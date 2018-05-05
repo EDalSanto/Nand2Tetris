@@ -64,4 +64,5 @@
   * "fanning out" -> input goes into multiple gates (i.e., And + Or)
 * Demultiplexor
   * inverse of multiplexor -> distributes single input value into one of two possible destinations
-
+* Tips
+  * write out boolean algebra and transpose to diagrams
