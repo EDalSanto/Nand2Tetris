@@ -64,5 +64,6 @@
   * "fanning out" -> input goes into multiple gates (i.e., And + Or)
 * Demultiplexor
   * inverse of multiplexor -> distributes single input value into one of two possible destinations
+* [Multiplexor & Demultiplexor use cases](https://www.elprocus.com/what-is-multiplexer-and-de-multiplexer-types-and-its-applications/)
 * Tips
   * write out boolean algebra and transpose to diagrams

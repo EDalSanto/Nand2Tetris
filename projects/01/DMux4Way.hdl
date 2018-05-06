@@ -11,10 +11,30 @@
  *                {0, 0, 0, in} if sel == 11
  */
 
+/**
+ * 00: IN AND !SEL[0] AND !SEL[1]
+ * 01: IN AND !SEL[1] AND SEL[0]
+ * 10: IN AND SEL[1] AND !SEL[0]
+ * 11: IN AND SEL[1] AND SEL[0]
+ */
+
 CHIP DMux4Way {
     IN in, sel[2];
     OUT a, b, c, d;
 
     PARTS:
-    // Put your code here:
+     Not(in=sel[0], out=notSel0);
+     Not(in=sel[1], out=notSel1);
+     /* a */
+     And(a=in, b=notSel0, out=w1);
+     And(a=w1, b=notSel1, out=a);
+     /* b */
+     And(a=in, b=notSel1, out=w2);
+     And(a=w2, b=sel[0], out=b);
+     /* c */
+     And(a=in, b=sel[1], out=w3);
+     And(a=w3, b=notSel0, out=c);
+     /* d */
+     And(a=in, b=sel[1], out=w4);
+     And(a=w4, b=sel[0], out=d);
 }
