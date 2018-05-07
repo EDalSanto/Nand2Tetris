@@ -27,3 +27,33 @@
 * similar to decimal addition
 * Overflow -> left-most bits carry over outside of word size
   * modern computers ignore this so sum of calculation will not add up properly in this case
+
+##### Negative Numbers
+* use 2's complement to represent negative number
+  * when applied to n-bit numbers, x + (-x) always sums up to 2^n (i.e., 1 followed by n 0's)
+  * properties
+    * can code a total of 2^n signed numbers, with maximal and minimal respectively 2^(n-1) and -2^(n - 1) respectively
+    * codes of all positive numbers begin with a 0
+    * codes of all negative numbers begin with a 1
+  * computing -x
+    * idea: 2^n - x = ((2^n - 1) - x) + 1
+    * hardware: flip all the bits of x and add 1 to result
+  * can add signed numbers with simple bitwise addition and result will be represented correctly
+    * thus, subtraction can be easily handled by converting x - y to x + (-y)
+* add 1 to number -> flip bits from right to left until flipped 0 to 1
+
+##### Arithmetic Logic Unit
+* ALU -> executes all the arithmetic and logical operations performed by the computer
+* Which operations should the ALU perform? -> hardware / software tradeoff; can add some functionality at either layer
+* Hack ALU
+  * 2 16-bit inputs, series of 6 control input bits, 2 control output bits, 1 16-bit output
+  * 6 control bits enable in theory 2^6 number of functions that could be done
+
+##### Perspective
+* all of the chips are pretty standard but ALU is pretty simplified
+* Why not include multiplication and division in ALU?
+  * when building computer system, functionality is divided between hardward and operating system that runs on top of it
+  * designer's freedom to decide
+  * hardware will be faster but cost more -> matter of tradeoffs
+* Carry look ahead -> more optimized adder then chaining carry to next fulladder
+* [How does electricity become computer logic](https://www.quora.com/How-do-computers-work-the-way-they-do-When-does-electricity-become-executable-logic-and-how)
