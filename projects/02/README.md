@@ -2,7 +2,7 @@
 
 ##### Roadmap
 * build family of adders -> chips designed to add numbers
-* build Arithmetic Logic Unit -> Computer's calculating brain, designed to perform a whole set of arithmetic and logical operations
+* build Arithmetic Logic Unit -> **Computer's calculating brain**, designed to perform a whole set of arithmetic and logical operations
   * ALU will be centerpiece for chip for computer's Central Processing Unit
 
 * [Why computers use Binary?](https://www.youtube.com/watch?v=1sWCBgGALXE)
@@ -56,4 +56,5 @@
   * designer's freedom to decide
   * hardware will be faster but cost more -> matter of tradeoffs
 * Carry look ahead -> more optimized adder then chaining carry to next fulladder
+  * [vid](https://www.youtube.com/watch?v=6Z1WikEWxH0) -> able to dervie formula so that once solved first carry can compute subsequent ones
 * [How does electricity become computer logic](https://www.quora.com/How-do-computers-work-the-way-they-do-When-does-electricity-become-executable-logic-and-how)

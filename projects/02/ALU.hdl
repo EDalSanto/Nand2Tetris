@@ -44,9 +44,37 @@ CHIP ALU {
 
     PARTS:
     /* conditionally zero x / y */
-      /* zero.. */
-      Xor16(x=x, y=y, out=zerodX);
+    Xor16(x=x, y=x, out=zerodX);
+    Mux16(a=x, b=zerodX, sel=zx, out=x1);
+
+    Xor16(x=y, y=y, out=zerodY);
+    Mux16(a=y, b=zerodY, sel=zy, out=y1);
+
     /* conditionally negate x / y */
-      /* negate already exists..Not16 */
-    /* */
+    Not16(in=x1, out=notX);
+    Mux16(a=x1, b=notX, sel=nx, out=x2);
+
+    Not16(in=y1, out=notY);
+    Mux16(a=y1, b=notY, sel=ny, out=y2);
+
+    /* f */
+    Add16(a=x2, b=y2, out=addResult);
+    And16(a=x2, b=y2, out=andResult);
+    Mux16(a=andResult, b=addResult, sel=f, out=outNoNot);
+
+    /* no - makes copy of out and lastBit for status bits */
+    Not16(in=outNoNot, out=outNot);
+    Mux16(a=outNoNot, b=outNot, sel=no, out=out, out=copyOut, out[15]=lastBit);
+
+    /* zr and ng */
+    /* if out == 0 zr=1, else zr=0 */
+    /* check if out is 0 */
+    Or16Way(in=copyOut, out=orOut);
+    Not(in=orOut, out=outIsZero);
+    Mux(a=false, b=true, sel=outIsZero, out=zr);
+
+    /* if out < 0 ng = 1, else ng = 0
+    /* check if out is negative */
+    And(a=true, b=lastBit, out=outIsNeg);
+    Mux(a=false, b=true, sel=outIsNeg, out=ng);
 }
