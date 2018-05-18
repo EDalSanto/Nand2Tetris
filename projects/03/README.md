@@ -82,11 +82,13 @@
 
 ##### Clocks deeper dive
 * [Clocks for Software Engineers](http://zipcpu.com/blog/2017/09/18/clocks-for-sw-engineers.html)
-  * Lesson #1: Hardware Design is Parallel Design
+  * Lesson #1: **Hardware Design is Parallel Design**
     * things don't take place serially, one instruction after another, like normally in software
-    * good example is thinking about loop in software vs hardware
+    * good example is thinking about **loop in software vs hardware**
       * [software loop](http://zipcpu.com/img/sw-loop.svg)
-      * [hardward loop](http://zipcpu.com/img/hw-loop.svg)
-        * every iteration runs in parallel -> loop iterations can't necessarily depend upon the output of prior loop iterations like in software
-  * Why the clock is important
+      * [hardware loop](http://zipcpu.com/img/hw-loop.svg)
+        * every **iteration runs in parallel** -> loop iterations can't necessarily depend upon the output of prior loop iterations like in software
+  * Why the clock is important?
     * everything takes time in hardware even for simple operations like reordering wires or moving the logic from one chip to another
+    * clock speed is limited by amount of time to accomplish whatever logic you place between clocks
+    * speed of the fastest operation limited by the clock speed required to accomplish slowest operation
