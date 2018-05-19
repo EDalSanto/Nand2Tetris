@@ -16,5 +16,18 @@ CHIP PC {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    /* Find if should load */
+    Or(a=reset, b=load, out=shouldLoadTmp);
+    Or(a=shouldLoadTmp, b=inc, out=shouldLoad);
+
+    /* create other potential values to load */
+    Xor16(x=in, y=in, out=zero);
+    Inc16(in=outCopy, out=incremented);
+
+    /* Find which value to load -> overwrite previous if present */
+    Mux16(a=incremented, b=incremented, sel=inc, out=v1);
+    Mux16(a=v1, b=in, sel=load, out=v2);
+    Mux16(a=v2, b=zero, sel=reset, out=valueToLoad);
+
+    Register(in=valueToLoad, load=shouldLoad, out=out, out=outCopy);
 }

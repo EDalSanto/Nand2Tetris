@@ -1,0 +1,11 @@
+CHIP Xor16 {
+    IN x[16], y[16];
+    OUT out[16];
+
+    PARTS:
+    Not16(in=x, out=notX);
+    Not16(in=y, out=notY);
+    And16(a=notX, b=y, out=w1);
+    And16(a=notY, b=x, out=w2);
+    Or16(a=w1, b=w2, out=out);
+}
