@@ -59,4 +59,49 @@
 * 16-bit machine -> atomic unit of machine is 16 bits
   * everything consists of chunks of 16 bits
   * if you want to store / retrieve / move, etc. need to do it in units of 16 bits
-  *
+  * CPU can only execute programs that reside in instruction memory (ROM)
+    * program can be "pre-burned" with required program
+    * **loading a new program** is done by **replacing entire ROM chip**, **similar to replacing a cartridge in a game console**
+* Hack Machine Language
+  * two 16-bit registers, D and A
+    * D -> solely stores data values
+    * A -> doubles as **both a data register and address register**, depending on instruction context
+  * Hack instructions are 16 bits wides and addresses are specified with 15 bits -> impossible to pack both operations in one instruction
+    * each instruction has symbolic and binary representation
+    * every operation that involves memory location requires two Hack commands
+      * address instruction, or A-Instruction
+        * @value -> stores value in Register A
+          * leading binary 0 tells computer this is an A instruction -> opt code
+            * next 15 bits represent value
+          * value is either a number or symbol representing a number
+      * compute instruction, or C-Instruction
+        ![CInstruction](./CInstruction.png)
+        * dest = comp ; jump
+    * memory access instructions operate on an implicit memory location labeled "M"
+      * M -> always refers to the memory word whose address is the current value of the A register
+
+##### Input / Output
+![IO](./IO.png)
+* Output
+  * Screen memory map
+    * designated memory area dedicated to manage a display unit
+    * phsyical display is continuously **refreshed** from the memory map many times per second
+    * output effect by writing code that manipulates the screen memory map ^^
+      * write binary values to into memory segment associated with screen
+* Input
+  * phsyical keyboard associated with keyboard memory map in RAM
+  * ASCII code sent to RAM[24576] and value read from their
+
+##### Hack Programming
+* use CPU emulator
+* CPU will continue to evaluate instructions at memory locations beyond program end
+  * end all programs in **infinite loop** to control memory locations that program operates on
+* Hack is case sensitive
+* Best Practices
+  * Design the program using pseudo code
+  * Translate to assembly
+  * Test program on paper using a variable-value trace table
+* variables that store memory addresses -> pointers
+  * whenever we have to access memory using a pointer, we need an instruction like A=M
+* **compiler** -> translate high level language, like C, to assembly
+  * building compiler in 2nd part of course
