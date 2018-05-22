@@ -14,7 +14,7 @@
 // Initialize sum
 @0   // load 0 into A register
 D=A  // set D to value of A address (0)
-@sum // some register which will hold sum
+@R2  // R2 which will hold sum
 M=D  // set value at this register to D (0)
 
 // Initialize i for iteration
@@ -24,6 +24,27 @@ D=A  // set D to value of A address (1)
 M=D  // set value to to register D (1)
 
 (LOOP)
-  @i   // load register i
-  D=M // set D to value at i
+  // Set up conditions
+  @i     // load register i address to A
+  D=M    // set D to value at i
+  @R1    // load register 1 to A
+  D=M-D  // D = value at R1 - i
+  @END
+  D;JLT  // if i > R1 (D < 0 specifically) end
+
+  // Do an addition to R2
+  @R0    // Load R0 value
+  D=M    // Place in D
+  @R2   // Load sum register
+  M=D+M  // Add value at R0 which should be in D
+
+  // increment i
+  @i
+  M=M+1
+
+  // Jump back to top of LOOP
+  @LOOP
+  0;JMP
 (END)
+  @END
+  0;JMP  // Infinite Loop
