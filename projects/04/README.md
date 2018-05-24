@@ -87,7 +87,7 @@
     * designated memory area dedicated to manage a display unit
     * phsyical display is continuously **refreshed** from the memory map many times per second
     * output effect by writing code that manipulates the screen memory map ^^
-      * write binary values to into memory segment associated with screen
+      * write binary values into memory segment associated with screen
 * Input
   * phsyical keyboard associated with keyboard memory map in RAM
   * ASCII code sent to RAM[24576] and value read from their
