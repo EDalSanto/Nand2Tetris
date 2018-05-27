@@ -4,25 +4,29 @@
 // File name: projects/01/DMux8Way.hdl
 
 /**
- * 8-way demultiplexor:
- * {a, b, c, d, e, f, g, h} = {in, 0, 0, 0, 0, 0, 0, 0} if sel == 000
- *                            {0, in, 0, 0, 0, 0, 0, 0} if sel == 001
- *                            etc.
- *                            {0, 0, 0, 0, 0, 0, 0, in} if sel == 111
- */
+* 8-way demultiplexor:
+* {a, b, c, d, e, f, g, h} = {in, 0, 0, 0, 0, 0, 0, 0} if sel == 000
+*                            {0, in, 0, 0, 0, 0, 0, 0} if sel == 001
+*                            {0, 0, in, 0, 0, 0, 0, 0} if sel == 010
+*                            {0, 0, 0, in, 0, 0, 0, 0} if sel == 011
+*                            {0, 0, 0, 0, in, 0, 0, 0} if sel == 100
+*                            {0, 0, 0, 0, 0, in, 0, 0} if sel == 101
+*                            {0, 0, 0, 0, 0, 0, in, 0} if sel == 110
+*                            {0, 0, 0, 0, 0, 0, 0, in} if sel == 111
+*/
 
 CHIP DMux8Way {
-    IN in, sel[3];
-    OUT a, b, c, d, e, f, g, h;
+IN in, sel[3];
+OUT a, b, c, d, e, f, g, h;
 
-    PARTS:
-    /* Pass in most sig bits to get section we care about */
-    /* Divides inputs in 2s, which DMux takes */
-    DMux4Way(in=in, sel=sel[1..2], a=t1, b=t2, c=t3, d=t4);
+PARTS:
+/* Pass in most sig bits to get section we care about */
+/* Divides inputs in 2s, which DMux takes */
+DMux4Way(in=in, sel=sel[1..2], a=t1, b=t2, c=t3, d=t4);
 
-    /* Look at section we care about with least sig bit */
-    DMux(in=t1, sel=sel[0], a=a, b=b);
-    DMux(in=t2, sel=sel[0], a=c, b=d);
-    DMux(in=t3, sel=sel[0], a=e, b=f);
-    DMux(in=t4, sel=sel[0], a=g, b=h);
+/* Look at section we care about with least sig bit */
+DMux(in=t1, sel=sel[0], a=a, b=b);
+DMux(in=t2, sel=sel[0], a=c, b=d);
+DMux(in=t3, sel=sel[0], a=e, b=f);
+DMux(in=t4, sel=sel[0], a=g, b=h);
 }
