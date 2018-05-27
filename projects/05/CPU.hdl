@@ -42,11 +42,11 @@ CHIP CPU {
     /* most sig bit decides whether to load new instruction or prev ALU output into register A*/
     Mux16(a=instruction, b=ALUOut, sel=instruction[15], out=instructionMux);
     ARegister(in=instructionMux, load=instruction[5], out=ARegisterOut);
-    Mux16(a=ARegisterOut, b=inM, sel=instruction[5], out=AOrMALUInput);
+    Mux16(a=ARegisterOut, b=inM, sel=instruction[12], out=AOrM);
 
     DRegister(in=ALUOut, load=instruction[4], out=DRegisterOut);
 
-    ALU(x=DRegisterOut, y=AOrMALUInput, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=outM, out=ALUOut, zr=zr, ng=ng);
+    ALU(x=DRegisterOut, y=AOrM, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=outM, out=ALUOut, zr=zr, ng=ng);
 
     And(a=instruction[15], b=instruction[3], out=writeM);
 
