@@ -32,8 +32,33 @@ CHIP Memory {
     /* 15th bit on and not preceeding would be screen */
     /* last 2 bits on would be for keyboard */
     /* last 2 bits plus any more would be invalid */
+    /**
+    * 8-way demultiplexor:
+    * {a, b, c, d, e, f, g, h} = {in, 0, 0, 0, 0, 0, 0, 0} if sel == 000 RAM
+    *                            {0, in, 0, 0, 0, 0, 0, 0} if sel == 001 RAM
+    *                            {0, 0, in, 0, 0, 0, 0, 0} if sel == 010 RAM
+    *                            {0, 0, 0, in, 0, 0, 0, 0} if sel == 011 RAM
+    *                            {0, 0, 0, 0, in, 0, 0, 0} if sel == 100 screen
+    *                            {0, 0, 0, 0, 0, in, 0, 0} if sel == 101 screen
+    *                            {0, 0, 0, 0, 0, 0, in, 0} if sel == 110 keyboard
+    *                            {0, 0, 0, 0, 0, 0, 0, in} if sel == 111 invalid
+    */
 
-    RAM16K(in=in, load=load, address=address);
-    Screen
-    Keyboard
+    DMux8Way(in=load, sel=address[12..14], a=ram1, b=ram2, c=ram3, d=ram4, e=screen1, f=screen2, g=keyboard, h=invalid);
+    /* load ram? */
+    Or(a=ram1, b=ram2, out=o1);
+    Or(a=ram3, b=ram4, out=o2);
+    Or(a=o1, b=o2, out=loadRam);
+    /* load screen? */
+    Or(a=screen1, b=screen2, out=loadScreen);
+
+    RAM16K(in=in, load=loadRam, address=address[1..14], out=ramOut);
+    Screen(in=in, load=loadScreen, address=address[0..12], out=screenOut);
+    Keyboard(out=keyboardOut);
+    /* output RAM if loadRam */
+    Mux16(a=ramOut, b=ramOut, sel=loadRam, out=r1);
+    /* output Screen if loadScreen */
+    Mux16(a=r1, b=screenOut, sel=loadScreen, out=r2);
+    /* output Keyboard if keyboard */
+    Mux16(a=r2, b=keyboardOut, sel=keyboard, out=out);
 }
