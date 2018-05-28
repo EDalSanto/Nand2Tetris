@@ -109,14 +109,16 @@
 * I/O peripherals in real computers have dedicated hardware (computers) for them to remove responsibilities from CPU
   * i.e., screen has a graphics card
 
-
 ### Projects
 
-##### CPU
+##### CPU -> "Data Processing Powerhouse"
 ![CPU](./CPU.png)
 
-##### Memory
-![Memory](./Memory.png)
+##### RAM -> "Data Memory Storage Unit"
+![RAM](./Memory.png)
+
+##### ROM32K -> "Instruction Memory Storage Unit"
+![ROM](./ROM32K.png)
 
 ##### Computer
 ![Computer](./Computer.png)
