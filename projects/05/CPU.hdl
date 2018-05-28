@@ -42,8 +42,10 @@ CHIP CPU {
 
     Mux16(a=instruction, b=ALUOut, sel=instruction[15], out=instructionMux);
 
-    Not(in=instruction[15], out=notA);
-    Or(a=notA, b=instruction[5], out=loadA);
+    Not(in=instruction[15], out=AInstruction);
+    And(a=instruction[15], b=instruction[5], out=w1);
+    /* AInstruction or CInstruction and instruction5 */
+    Or(a=AInstruction, b=w1, out=loadA);
     ARegister(in=instructionMux, load=loadA, out=ARegisterOut);
 
     Mux16(a=ARegisterOut, b=inM, sel=instruction[12], out=AOrM);
@@ -54,7 +56,7 @@ CHIP CPU {
 
     And(a=instruction[15], b=instruction[3], out=writeM);
 
-    Register(in=instruction, load=notA, out[0..14]=addressM);
+    Register(in=instructionMux, load=loadA, out[0..14]=addressM);
 
     /* ALU output control bits say whether 0 or less than and can infer if greater than */
     Or(a=zr, b=ng, out=zrOrng);
