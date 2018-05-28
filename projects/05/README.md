@@ -108,3 +108,15 @@
     * output of computer depends on input and current state
 * I/O peripherals in real computers have dedicated hardware (computers) for them to remove responsibilities from CPU
   * i.e., screen has a graphics card
+
+
+### Projects
+
+##### CPU
+![CPU](./CPU.png)
+
+##### Memory
+![Memory](./Memory.png)
+
+##### Computer
+![Computer](./Computer.png)
