@@ -5,7 +5,7 @@
 * Assembler -> translates symbolic machine language to binary 0s and 1s; essentially "text-processing program"
   * usually **first software layer** in computer
   * **2 flavors of symbols** in general:
-  ![SymbolResolution](./SymbolResolution)
+  ![SymbolResolution](./SymbolResolution.png)
     * Variables
       * automatically **assigned to memory addresses** by translator
         * actual values of these addresses is insignificant so long as each **symbol** is **resolved to the same address throughout the program's translation**
