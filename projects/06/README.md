@@ -21,3 +21,19 @@
 * full documentation must be given of assembly syntax / api and respective binary codes
 
 ### Hack Assembly
+* approach for translating A and C instructions, assembler without symbols and thenassembler with symbols
+* Symbols
+  * variables -> represent memory locations where the programmer wants to maintain values
+    * don't actually care about about memory location, just care that always same memory location and correct value
+    * these types of symbols one of most beautiful abstractions of programming
+  * labels -> represent destinations of goto instructions
+    * declared by pseudo commands of (LABEL)
+    * directive defines symbol LABEL to refer to memory location holding the next instruction in program
+  * pre-defined symbols -> represent special memory locations
+    * only A instructions
+
+### Perspective
+* Macro Assembler / Commands -> translate compact instructions into valid hack commands
+  * requires extending assembler
+* How to Write Assembler for First Computer?
+  * translate assembler by hand to machine code and then use that computer from then on
