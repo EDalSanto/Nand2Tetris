@@ -40,24 +40,28 @@ CHIP CPU {
 
     PARTS:
 
+    /* Select last ALU output or instruction */
     Mux16(a=instruction, b=ALUOut, sel=instruction[15], out=instructionMux);
 
+    /* Determine if load A register */
     Not(in=instruction[15], out=AInstruction);
-    And(a=instruction[15], b=instruction[5], out=w1);
-    /* AInstruction or CInstruction and instruction5 */
-    Or(a=AInstruction, b=w1, out=loadA);
+    And(a=instruction[15], b=instruction[5], out=CInstructionAndLoadABit);
+    Or(a=AInstruction, b=CInstructionAndLoadABit, out=loadA);
     ARegister(in=instructionMux, load=loadA, out=ARegisterOut);
 
+    /* Determine if use A Register or M input */
     Mux16(a=ARegisterOut, b=inM, sel=instruction[12], out=AOrM);
 
-    /* CInstruction and instruction4 */
-    And(a=instruction[15], b=instruction[4], out=loadD);
-    DRegister(in=ALUOut, load=loadD, out=DRegisterOut);
+    /* Determine if load D register */
+    And(a=instruction[15], b=instruction[4], out=CInstructionAndLoadDBit);
+    DRegister(in=ALUOut, load=CInstructionAndLoadDBit, out=DRegisterOut);
 
     ALU(x=DRegisterOut, y=AOrM, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=outM, out=ALUOut, zr=zr, ng=ng);
 
+    /* write m if CInstruction and M destination Bit */
     And(a=instruction[15], b=instruction[3], out=writeM);
 
+    /* address A in data memory of M */
     Register(in=instructionMux, load=loadA, out[0..14]=addressM);
 
     /* ALU output control bits say whether 0 or less than and can infer if greater than */
@@ -91,8 +95,10 @@ CHIP CPU {
     Or(a=o2, b=j4, out=o3);
     Or(a=o3, b=j5, out=o4);
     Or(a=o4, b=j6, out=o5);
-    Or(a=o5, b=j7, out=o6);
-    And(a=o6, b=instruction[15], out=jump);
+    Or(a=o5, b=j7, out=jumpCondition);
+    /* jump directive as well as C Instruction for jump */
+    And(a=jumpCondition, b=instruction[15], out=jump);
 
+    /* waterfall nature of PC means -> reset, load, inc order */
     PC(in=ARegisterOut, reset=reset, inc=true, load=jump, out[0..14]=pc);
 }
