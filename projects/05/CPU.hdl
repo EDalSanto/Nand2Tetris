@@ -39,9 +39,13 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    /* most sig bit decides whether to load new instruction or prev ALU output into register A*/
+
     Mux16(a=instruction, b=ALUOut, sel=instruction[15], out=instructionMux);
-    ARegister(in=instructionMux, load=instruction[5], out=ARegisterOut);
+
+    Not(in=instruction[15], out=notA);
+    Or(a=notA, b=instruction[5], out=loadA);
+    ARegister(in=instructionMux, load=loadA, out=ARegisterOut);
+
     Mux16(a=ARegisterOut, b=inM, sel=instruction[12], out=AOrM);
 
     DRegister(in=ALUOut, load=instruction[4], out=DRegisterOut);
@@ -50,7 +54,7 @@ CHIP CPU {
 
     And(a=instruction[15], b=instruction[3], out=writeM);
 
-    Register(in=instruction, load=instruction[5], out[0..14]=addressM);
+    Register(in=instruction, load=notA, out[0..14]=addressM);
 
     /* ALU output control bits say whether 0 or less than and can infer if greater than */
     Or(a=zr, b=ng, out=zrOrng);
@@ -83,7 +87,8 @@ CHIP CPU {
     Or(a=o2, b=j4, out=o3);
     Or(a=o3, b=j5, out=o4);
     Or(a=o4, b=j6, out=o5);
-    Or(a=o5, b=j7, out=jump);
+    Or(a=o5, b=j7, out=o6);
+    And(a=o6, b=instruction[15], out=jump);
 
     PC(in=ARegisterOut, reset=reset, inc=true, load=jump, out[0..14]=pc);
 }
