@@ -10,4 +10,3 @@ D=A
 @3
 D=D+A // comment
 @0
-M=D
