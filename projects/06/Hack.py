@@ -45,13 +45,13 @@ class HackAssembler():
     def run(self):
         output_file = open('input_file name converted to .hack', 'w+')
 
-        with open(self.input_file) as asm_instructions:
-            for instruction in asm_instructions:
-                parsed_instruction = parser.parsed_instruction_for(instruction)
-                if parsed_instruction == "not valid asm instruction":
-                    continue
-                translated_instruction = translator.translate_instruction(parsed_instruction)
-                output_file.write(translated_instruction)
+        while self.parser.has_more_commands():
+
+
+        if parsed_instruction == "not valid asm instruction":
+            continue
+        translated_instruction = translator.translate_instruction(parsed_instruction)
+        output_file.write(translated_instruction)
 
 
 class HackAssemblerTranslator():
@@ -60,11 +60,14 @@ class HackAssemblerTranslator():
 
 class HackAssemblerParser():
     """
-    Reads each line in the input file
+    Reads each line in the input file one a time and reports on state of current line
     """
     def __init__(self, input_file):
-        self.input_file = input_file
+        self.input_file = open(input_file, 'r')
         self.current_line = None
+
+    def advance(self):
+        self.current_line = self.input_file.readline()
 
     def instruction_type(self, instruction):
         # strip new line
