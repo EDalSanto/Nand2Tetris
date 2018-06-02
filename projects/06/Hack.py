@@ -141,13 +141,14 @@ class SymbolTable():
         self.symbols = PREDEFINED_SYMBOLS
 
     def add_entry(self, symbol):
-        self.symbols[symbol] =
+        self.symbols[symbol] = len(d)
 
     def contains(self, symbol):
-        return
+        return symbol in self.symbols
 
     def get_address(self, symbol):
         return self.symbols[symbol]
+
 
 class HackAssemblerParser():
     """
