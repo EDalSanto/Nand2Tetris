@@ -14,18 +14,41 @@ class HackAssembler():
     def __init__(self, input_file):
         self.parser = HackAssemblerParser(input_file)
         self.translator = HackAssemblerDecoder()
+        self.symbol_table = SymbolTable()
 
+    # 1st pass
+    def parse_for_labels(self):
+        count = 0
+
+        while self.parser.has_more_commands():
+            if self.parser.valid_instruction():
+                if self.parser.command_type_is('l_command'):
+                    self.symbol_table.add_entry(symbol=self.parser.label(), address=count)
+                else:
+                    count += 1
+
+    # 2nd pass
     def run(self):
         hack_file_name = self.parser.input_file.name.split('.')[0] + '.hack'
         hack_file = open(hack_file_name, 'w+')
+
+        num_matcher = re.compile('[0-9]+')
 
         while self.parser.has_more_commands():
             self.parser.advance()
             machine_code_parts = []
 
-            # comments and white space will be ignored
             if self.parser.command_type_is('a_command'):
-                register_number = int(self.parser.symbol())
+                symbol = self.parser.symbol()
+
+                if num_matcher.match(symbol):
+                    register_number = int(symbol)
+                else:
+                    if self.symbol_table.contains(symbol):
+                        register_number = self.symbol_table.get_address(symbol)
+                    else:
+                        register_number = self.symbol_table.add_entry(symbol)
+
                 machine_code = HackAssemblerDecoder.decimal_to_binary_string(register_number)
                 machine_code_parts.append(machine_code)
             elif self.parser.command_type_is('l_command'):
@@ -140,8 +163,14 @@ class SymbolTable():
     def __init__(self):
         self.symbols = PREDEFINED_SYMBOLS
 
-    def add_entry(self, symbol):
-        self.symbols[symbol] = len(d)
+    def add_entry(self, symbol=None, address=None):
+        if address:
+            self.symbols[symbol] = address
+        else:
+            self.symbols[symbol] = len(self.symbols)
+
+        return self.get_address(symbol)
+
 
     def contains(self, symbol):
         return symbol in self.symbols
@@ -181,7 +210,7 @@ class HackAssemblerParser():
 
     def symbol(self):
         """
-        remove symbols for A or Commands + trailing comments
+        returns decimal number or symbol
         """
         return ''.join(c for c in self.current_line if c not in '()@/')
 
@@ -216,7 +245,7 @@ class HackAssemblerParser():
         """
         first_char = self.current_line[0]
 
-        if not self._valid_instruction():
+        if not self.valid_instruction():
             self.current_command = 'comment_or_empty_line'
         elif first_char == '@':
             self.current_command = 'a_command'
@@ -228,11 +257,11 @@ class HackAssemblerParser():
     def line_without_invalid_characters(self):
         return self._matching_chars().group()
 
+    def valid_instruction(self):
+        return not self._comment_line() and not self._empty_line()
+
     def _matching_chars(self):
         return self.valid_char_matcher.match(self.current_line)
-
-    def _valid_instruction(self):
-        return not self._comment_line() and not self._empty_line()
 
     def _comment_line(self):
         return self.current_line[0] == '/'
