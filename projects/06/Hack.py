@@ -36,7 +36,7 @@ class HackAssembler():
         hack_file_name = self.parser.input_file.name.split('.')[0] + '.hack'
         hack_file = open(hack_file_name, 'w+')
 
-        num_matcher = re.compile('[0-9]+')
+        char_matcher = re.compile('[a-zA-Z]+')
 
         while self.parser.has_more_commands():
             self.parser.advance()
@@ -45,13 +45,13 @@ class HackAssembler():
             if self.parser.command_type_is('a_command'):
                 symbol = self.parser.symbol()
 
-                if num_matcher.match(symbol):
-                    register_number = int(symbol)
-                else:
+                if char_matcher.match(symbol):
                     if self.symbol_table.contains(symbol):
                         register_number = self.symbol_table.get_address(symbol)
                     else:
                         register_number = self.symbol_table.add_entry(symbol)
+                else:
+                    register_number = int(symbol)
 
                 machine_code = HackAssemblerDecoder.decimal_to_binary_string(register_number)
                 machine_code_parts.append(machine_code)
@@ -226,7 +226,7 @@ class HackAssemblerParser():
         """
         returns decimal number or symbol
         """
-        return ''.join(c for c in self.current_line if c not in '()@/')
+        return ''.join(c for c in self.current_line if c not in '()@/').strip()
 
     def has_more_commands(self):
         # if empty line, would at least return \n
@@ -237,9 +237,9 @@ class HackAssemblerParser():
         get next line as well so we know if there are more lines after the current
         """
         if self.current_line == None:
-            self.current_line = self.input_file.readline()
+            self.current_line = self.input_file.readline().strip(' ')
         else:
-            self.current_line = self.next_line
+            self.current_line = self.next_line.strip(' ')
 
         if self._matching_chars(self.current_line):
             self.current_line = self.string_without_invalid_characters(self.current_line)
@@ -269,7 +269,7 @@ class HackAssemblerParser():
             self.current_command = 'c_command'
 
     def string_without_invalid_characters(self, string):
-        return self._matching_chars(string).group()
+        return self._matching_chars(string).group().strip()
 
     def _matching_chars(self, string):
         return self.valid_char_matcher.match(string.strip())
