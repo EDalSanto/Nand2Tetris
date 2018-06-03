@@ -195,7 +195,7 @@ class HackAssemblerParser():
         self.current_line = None
         self.current_command = None
         self.next_line = None
-        self.valid_char_matcher = re.compile('[a-zA-Z0-9=+;]+')
+        self.valid_char_matcher = re.compile('[a-zA-Z0-9=+;-]+')
 
     def reset(self):
         self.input_file.seek(0)
