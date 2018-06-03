@@ -21,14 +21,18 @@ class HackAssembler():
         count = 0
 
         while self.parser.has_more_commands():
+            self.parser.advance()
+
             if self.parser.valid_instruction():
                 if self.parser.command_type_is('l_command'):
-                    self.symbol_table.add_entry(symbol=self.parser.label(), address=count)
+                    self.symbol_table.add_entry(symbol=self.parser.symbol(), address=count)
                 else:
                     count += 1
 
     # 2nd pass
     def run(self):
+        self.parser.reset()
+
         hack_file_name = self.parser.input_file.name.split('.')[0] + '.hack'
         hack_file = open(hack_file_name, 'w+')
 
@@ -161,7 +165,7 @@ class SymbolTable():
     }
 
     def __init__(self):
-        self.symbols = PREDEFINED_SYMBOLS
+        self.symbols = self.PREDEFINED_SYMBOLS
 
     def add_entry(self, symbol=None, address=None):
         if address:
@@ -183,7 +187,7 @@ class HackAssemblerParser():
     """
     Reads each line in the input file one a time and reports on state of current line
     """
-    COMP_DELIMITER = '='
+    DEST_DELIMITER = '='
     JUMP_DELIMITER = ';'
 
     def __init__(self, input_file):
@@ -193,20 +197,30 @@ class HackAssemblerParser():
         self.next_line = None
         self.valid_char_matcher = re.compile('[a-zA-Z0-9=+;]+')
 
+    def reset(self):
+        self.input_file.seek(0)
+        self.current_line = None
+        self.current_command = None
+        self.next_line = None
 
     def dest_mnemonic(self):
-        if self.current_line.find(self.JUMP_DELIMITER) != -1:
-            return self.current_line.split(self.JUMP_DELIMITER)[0]
-        elif self.current_line.find(self.COMP_DELIMITER) != -1:
-            return self.current_line.split(self.COMP_DELIMITER)[0]
+        if self.current_line.find(self.DEST_DELIMITER) != -1:
+            res = self.current_line.split(self.DEST_DELIMITER)[0]
+            return self.string_without_invalid_characters(res)
 
     def comp_mnemonic(self):
-        if self.current_line.find(self.COMP_DELIMITER) != -1:
-            return self.current_line.split(self.COMP_DELIMITER)[1].rstrip('\n')
+        if self.current_line.find(self.DEST_DELIMITER) != -1:
+            res = self.current_line.split(self.DEST_DELIMITER)[1].rstrip('\n')
+            return self.string_without_invalid_characters(res)
+        elif self.current_line.find(self.JUMP_DELIMITER) != -1:
+            res = self.current_line.split(self.JUMP_DELIMITER)[0].rstrip('\n')
+            return self.string_without_invalid_characters(res)
+
 
     def jump_mnemonic(self):
         if self.current_line.find(self.JUMP_DELIMITER) != -1:
-            return self.current_line.split(self.JUMP_DELIMITER)[1].rstrip('\n')
+            res = self.current_line.split(self.JUMP_DELIMITER)[1].rstrip('\n')
+            return self.string_without_invalid_characters(res)
 
     def symbol(self):
         """
@@ -227,8 +241,8 @@ class HackAssemblerParser():
         else:
             self.current_line = self.next_line
 
-        if self._matching_chars():
-            self.current_line = self.line_without_invalid_characters()
+        if self._matching_chars(self.current_line):
+            self.current_line = self.string_without_invalid_characters(self.current_line)
 
         self.next_line = self.input_file.readline()
         self.find_new_command_type()
@@ -254,14 +268,14 @@ class HackAssemblerParser():
         else:
             self.current_command = 'c_command'
 
-    def line_without_invalid_characters(self):
-        return self._matching_chars().group()
+    def string_without_invalid_characters(self, string):
+        return self._matching_chars(string).group()
+
+    def _matching_chars(self, string):
+        return self.valid_char_matcher.match(string.strip())
 
     def valid_instruction(self):
         return not self._comment_line() and not self._empty_line()
-
-    def _matching_chars(self):
-        return self.valid_char_matcher.match(self.current_line)
 
     def _comment_line(self):
         return self.current_line[0] == '/'
@@ -272,4 +286,5 @@ class HackAssemblerParser():
 
 asm_input_file = sys.argv[1]
 assembler = HackAssembler(asm_input_file)
+assembler.parse_for_labels()
 assembler.run()
