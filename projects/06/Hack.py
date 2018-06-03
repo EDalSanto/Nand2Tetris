@@ -192,10 +192,11 @@ class HackAssemblerParser():
 
     def __init__(self, input_file):
         self.input_file = open(input_file, 'r')
+        self.raw_linw = None
         self.current_line = None
         self.current_command = None
         self.next_line = None
-        self.valid_char_matcher = re.compile('[a-zA-Z0-9=+;-]+')
+        self.valid_char_matcher = re.compile('[a-zA-Z0-9=+;\-!]+')
 
     def reset(self):
         self.input_file.seek(0)
@@ -237,8 +238,10 @@ class HackAssemblerParser():
         get next line as well so we know if there are more lines after the current
         """
         if self.current_line == None:
-            self.current_line = self.input_file.readline().strip(' ')
+            self.raw_line = self.input_file.readline()
+            self.current_line = self.raw_line.strip(' ')
         else:
+            self.raw_line = self.next_line
             self.current_line = self.next_line.strip(' ')
 
         if self._matching_chars(self.current_line):
