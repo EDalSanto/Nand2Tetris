@@ -19,16 +19,15 @@ class HackAssembler():
         maps number of commands before label (xxx) to same value memory address
         example: 100 machine code instructions occur before (label) so the symbol label is mapped to memory address 100
         """
-        count = 0
+        num_instructions_so_far = 0
 
-        while self.parser.has_more_commands():
+        while self.parser.has_more_commands:
             self.parser.advance()
 
-            if self.parser.valid_machine_code_command(): # ignore whitespace and comments
-                if self.parser.command_is('l'):
-                    self.symbol_table.add_entry(symbol=self.parser.symbol(), address=count)
-                else:
-                    count += 1
+            if self.parser.command_is('label'):
+                self.symbol_table.add_entry(symbol=self.parser.symbol(), address=num_instructions_so_far)
+            else:
+                num_instructions_so_far += 1
 
     # 2nd pass
     def run(self):
@@ -43,11 +42,11 @@ class HackAssembler():
 
         char_only_matcher = re.compile('[a-zA-Z]+')
 
-        while self.parser.has_more_commands():
+        while self.parser.has_more_commands:
             self.parser.advance()
             machine_code_parts = []
 
-            if self.parser.command_is('a'):
+            if self.parser.command_is('address'):
                 symbol = self.parser.symbol()
                 not_number = char_only_matcher.match(symbol)
 
@@ -61,9 +60,9 @@ class HackAssembler():
 
                 machine_code = HackAssemblerDecoder.decimal_to_binary_string(register_number)
                 machine_code_parts.append(machine_code)
-            elif self.parser.command_is('l'):
-                continue
-            elif self.parser.command_is('c'):
+            elif self.parser.command_is('label'):
+                continue # because we don't execute them
+            elif self.parser.command_is('computation'):
                 # Init
                 machine_code_parts.append(HackAssemblerDecoder.C_COMMAND_INIT_BITS)
                 # Comp
@@ -79,7 +78,7 @@ class HackAssembler():
                 jump_bits = HackAssemblerDecoder.JUMP_MNEMONIC_TO_BITS[jump_mnemonic]
                 machine_code_parts.append(jump_bits)
 
-            if len(machine_code_parts) > 0:
+            if len(machine_code_parts) > 0: # needed?
                 machine_code_command = ''.join(machine_code_parts)
                 hack_file.write(machine_code_command + '\n')
 
@@ -204,19 +203,18 @@ class HackAssemblerParser():
 
     def __init__(self, input_file):
         self.input_file = open(input_file, 'r')
-        self.raw_linw = None
         self.current_line = None
         self.current_command = None
         self.next_line = None
-        self.valid_char_matcher = re.compile('[a-zA-Z0-9=+;\-!|&]+')
-
-
+        self.has_more_commands = True
+#        self.valid_char_matcher = re.compile('[a-zA-Z0-9=+;\-!|&]+')
 
     def reset(self):
         self.input_file.seek(0)
         self.current_line = None
         self.current_command = None
         self.next_line = None
+        self.has_more_commands = True
 
     def dest_mnemonic(self):
         if self.current_line.find(self.DEST_DELIMITER) != -1:
@@ -243,10 +241,6 @@ class HackAssemblerParser():
         """
         return ''.join(c for c in self.current_line if c not in '()@/').strip()
 
-    def has_more_commands(self):
-        # if empty line, would at least return \n
-        return self.next_line != ''
-
     def advance(self):
         """
         get next line as well so we know if there are more lines after the current
@@ -257,16 +251,23 @@ class HackAssemblerParser():
         else:
             self.current_line = self.next_line
 
-        self.current_line = self.cleaned_line(self.current_line)
+        # remove whitespace and comments
+        self.current_line = self._cleaned_line(self.current_line)
 
         self.next_line = self.input_file.readline()
+        # empty lines return \n
+        if self.next_line == '\n':
+            self.has_more_commands = False
+
         self.find_new_command_type()
 
     def _cleaned_line(self, line):
         # remove leading and trailing whitespace
         line = line.strip(' ')
         # remove comments
-        line = line.match(line).group()
+        line = line.split('//')[0]
+        # strip again in case space after, i.e., D=M+1 // comments
+        line = line.strip(' ')
 
         return line
 
@@ -277,14 +278,17 @@ class HackAssemblerParser():
         """
         assumes valid input
         """
+        if self.current_line == '':
+            return
+
         first_char = self.current_line[0]
 
         if first_char == '@':
-            self.current_command = 'a'
+            self.current_command = 'address'
         elif first_char == '(':
-            self.current_command = 'l'
+            self.current_command = 'label'
         else:
-            self.current_command = 'c'
+            self.current_command = 'computation'
 
     def string_without_invalid_characters(self, string):
         return self._matching_chars(string).group().strip()
@@ -293,13 +297,15 @@ class HackAssemblerParser():
         return self.valid_char_matcher.match(string.strip())
 
     def valid_machine_code_command(self):
-        return not self._current_line_is_empty() and not self._current_line_is_comment()
+        return self._current_line_is_not_empty() and self._current_line_is_not_comment()
 
-    def _current_line_is_comment(self):
-        return self.current_line[0] == '/'
+    def _current_line_is_not_comment(self):
+        if self.current_line == '':
+            return
+        return self.current_line[0] != '/'
 
-    def _current_line_is_empty(self):
-        return self.current_line == '\n'
+    def _current_line_is_not_empty(self):
+        return self.current_line != '\n'
 
 
 asm_input_file = sys.argv[1]
