@@ -1,5 +1,3 @@
-#!/usr/local/bin/python
-
 import sys
 import re
 
@@ -13,38 +11,45 @@ class HackAssembler():
 
     def __init__(self, input_file):
         self.parser = HackAssemblerParser(input_file)
-        self.translator = HackAssemblerDecoder()
         self.symbol_table = SymbolTable()
 
     # 1st pass
     def parse_for_labels(self):
+        """
+        maps number of commands before label (xxx) to same value memory address
+        example: 100 machine code instructions occur before (label) so the symbol label is mapped to memory address 100
+        """
         count = 0
 
         while self.parser.has_more_commands():
             self.parser.advance()
 
-            if self.parser.valid_instruction():
-                if self.parser.command_type_is('l_command'):
+            if self.parser.valid_instruction(): # ignore whitespace and comments
+                if self.parser.command_is('l'):
                     self.symbol_table.add_entry(symbol=self.parser.symbol(), address=count)
                 else:
                     count += 1
 
     # 2nd pass
     def run(self):
+        """
+        parses for variables @variable_value and executes instructions
+        """
+        # reset parser because of 1st pass
         self.parser.reset()
 
         hack_file_name = self.parser.input_file.name.split('.')[0] + '.hack'
         hack_file = open(hack_file_name, 'w+')
 
-        char_matcher = re.compile('[a-zA-Z]+')
+        char_only_matcher = re.compile('[a-zA-Z]+')
 
         while self.parser.has_more_commands():
             self.parser.advance()
             machine_code_parts = []
 
-            if self.parser.command_type_is('a_command'):
+            if self.parser.command_is('a'):
                 symbol = self.parser.symbol()
-                not_number = char_matcher.match(symbol)
+                not_number = char_only_matcher.match(symbol)
 
                 if not_number:
                     if self.symbol_table.contains(symbol):
