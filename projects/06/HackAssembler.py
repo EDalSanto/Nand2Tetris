@@ -24,7 +24,7 @@ class HackAssembler():
         while self.parser.has_more_commands():
             self.parser.advance()
 
-            if self.parser.valid_instruction(): # ignore whitespace and comments
+            if self.parser.valid_machine_code_command(): # ignore whitespace and comments
                 if self.parser.command_is('l'):
                     self.symbol_table.add_entry(symbol=self.parser.symbol(), address=count)
                 else:
@@ -61,9 +61,9 @@ class HackAssembler():
 
                 machine_code = HackAssemblerDecoder.decimal_to_binary_string(register_number)
                 machine_code_parts.append(machine_code)
-            elif self.parser.command_type_is('l_command'):
+            elif self.parser.command_is('l'):
                 continue
-            elif self.parser.command_type_is('c_command'):
+            elif self.parser.command_is('c'):
                 # Init
                 machine_code_parts.append(HackAssemblerDecoder.C_COMMAND_INIT_BITS)
                 # Comp
@@ -210,6 +210,8 @@ class HackAssemblerParser():
         self.next_line = None
         self.valid_char_matcher = re.compile('[a-zA-Z0-9=+;\-!|&]+')
 
+
+
     def reset(self):
         self.input_file.seek(0)
         self.current_line = None
@@ -249,24 +251,27 @@ class HackAssemblerParser():
         """
         get next line as well so we know if there are more lines after the current
         """
+        # initial state
         if self.current_line == None:
-            self.raw_line = self.input_file.readline()
-            self.current_line = self.raw_line.strip(' ')
+            self.current_line = self.input_file.readline()
         else:
-            self.raw_line = self.next_line
-            self.current_line = self.next_line.strip(' ')
+            self.current_line = self.next_line
 
-        if self._matching_chars(self.current_line):
-            self.current_line = self.string_without_invalid_characters(self.current_line)
+        self.current_line = self.cleaned_line(self.current_line)
 
         self.next_line = self.input_file.readline()
         self.find_new_command_type()
 
-    def command_type_is(self, possible_command_type):
-        return possible_command_type == self.current_command
+    def _cleaned_line(self, line):
+        # remove leading and trailing whitespace
+        line = line.strip(' ')
+        # remove comments
+        line = line.match(line).group()
 
-    def command_type(self):
-        return self.command_type
+        return line
+
+    def command_is(self, possible_command):
+        return possible_command == self.current_command
 
     def find_new_command_type(self):
         """
@@ -274,14 +279,12 @@ class HackAssemblerParser():
         """
         first_char = self.current_line[0]
 
-        if not self.valid_instruction():
-            self.current_command = 'comment_or_empty_line'
-        elif first_char == '@':
-            self.current_command = 'a_command'
+        if first_char == '@':
+            self.current_command = 'a'
         elif first_char == '(':
-            self.current_command = 'l_command'
+            self.current_command = 'l'
         else:
-            self.current_command = 'c_command'
+            self.current_command = 'c'
 
     def string_without_invalid_characters(self, string):
         return self._matching_chars(string).group().strip()
@@ -289,13 +292,13 @@ class HackAssemblerParser():
     def _matching_chars(self, string):
         return self.valid_char_matcher.match(string.strip())
 
-    def valid_instruction(self):
-        return not self._comment_line() and not self._empty_line()
+    def valid_machine_code_command(self):
+        return not self._current_line_is_empty() and not self._current_line_is_comment()
 
-    def _comment_line(self):
+    def _current_line_is_comment(self):
         return self.current_line[0] == '/'
 
-    def _empty_line(self):
+    def _current_line_is_empty(self):
         return self.current_line == '\n'
 
 
