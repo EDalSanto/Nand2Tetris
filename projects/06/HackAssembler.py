@@ -29,9 +29,9 @@ class HackAssembler():
         while self.parser.has_more_lines_to_parse:
             self.parser.advance()
 
-            if self.parser.command_is('not_instruction'):
+            if self.parser.current_command_type == 'not_instruction':
                 continue
-            elif self.parser.command_is('label'):
+            elif self.parser.current_command_type == 'label':
                 self.symbol_table.add_entry(symbol=self.parser.symbol(), address=num_instructions_so_far)
             else:
                 num_instructions_so_far += 1
@@ -50,7 +50,7 @@ class HackAssembler():
             self.parser.advance()
             machine_code = ''
 
-            if self.parser.command_is('address'):
+            if self.parser.current_command_type == 'address':
                 symbol = self.parser.symbol()
                 not_number = char_only_matcher.match(symbol)
 
@@ -63,7 +63,7 @@ class HackAssembler():
                     register_number = int(symbol)
 
                 machine_code = HackAssemblerDecoder.decimal_to_binary_string(register_number)
-            elif self.parser.command_is('computation'):
+            elif self.parser.current_command_type == 'computation':
                 # init_bits
                 init_bits = HackAssemblerDecoder.C_COMMAND_INIT_BITS
                 # Comp
@@ -202,57 +202,57 @@ class HackAssemblerParser():
 
     def __init__(self, input_file):
         self.input_file = open(input_file, 'r')
-        self.current_line = None
+        self.current_command = None
         self.current_command = None
         self.next_line = None
         self.has_more_lines_to_parse = True
 
     def reset(self):
         self.input_file.seek(0)
-        self.current_line = None
+        self.current_command = None
         self.current_command = None
         self.next_line = None
         self.has_more_lines_to_parse = True
 
     def dest_mnemonic(self):
-        if self.current_line.find(self.DEST_DELIMITER) != -1:
-            return self.current_line.split(self.DEST_DELIMITER)[0]
+        if self.current_command.find(self.DEST_DELIMITER) != -1:
+            return self.current_command.split(self.DEST_DELIMITER)[0]
 
     def comp_mnemonic(self):
-        if self.current_line.find(self.DEST_DELIMITER) != -1:
-            return self.current_line.split(self.DEST_DELIMITER)[1]
-        elif self.current_line.find(self.JUMP_DELIMITER) != -1:
-            return self.current_line.split(self.JUMP_DELIMITER)[0]
+        if self.current_command.find(self.DEST_DELIMITER) != -1:
+            return self.current_command.split(self.DEST_DELIMITER)[1]
+        elif self.current_command.find(self.JUMP_DELIMITER) != -1:
+            return self.current_command.split(self.JUMP_DELIMITER)[0]
 
     def jump_mnemonic(self):
-        if self.current_line.find(self.JUMP_DELIMITER) != -1:
-            return self.current_line.split(self.JUMP_DELIMITER)[1]
+        if self.current_command.find(self.JUMP_DELIMITER) != -1:
+            return self.current_command.split(self.JUMP_DELIMITER)[1]
 
     def symbol(self):
         """
         returns decimal number or symbol
         """
-        return ''.join(c for c in self.current_line if c not in '()@/').strip()
+        return ''.join(c for c in self.current_command if c not in '()@/')
 
     def advance(self):
         """
         get next line as well so we know if there are more lines after the current
         """
         # initial state
-        if self.current_line == None:
-            self.current_line = self.input_file.readline()
+        if self.current_command == None:
+            self.current_command = self.input_file.readline()
         else:
-            self.current_line = self.next_line
+            self.current_command = self.next_line
 
         # remove whitespace and comments
-        self.current_line = self._cleaned_line(self.current_line)
+        self.current_command = self._cleaned_line(self.current_command)
 
         self.next_line = self.input_file.readline()
         # empty lines return \n
         if self.next_line == '':
             self.has_more_lines_to_parse = False
 
-        self.find_new_command_type()
+        self._find_current_command_type()
 
     def _cleaned_line(self, line):
         # remove leading and trailing whitespace
@@ -264,21 +264,18 @@ class HackAssemblerParser():
 
         return line
 
-    def command_is(self, possible_command):
-        return possible_command == self.current_command
-
-    def find_new_command_type(self):
+    def _find_current_command_type(self):
         """
         assumes valid input
         """
-        if self.current_line == '':
-            self.current_command = 'not_instruction'
-        elif self.current_line[0] == '@':
-            self.current_command = 'address'
-        elif self.current_line[0] == '(':
-            self.current_command = 'label'
+        if self.current_command == '':
+            self.current_command_type = 'not_instruction'
+        elif self.current_command[0] == '@':
+            self.current_command_type = 'address'
+        elif self.current_command[0] == '(':
+            self.current_command_type = 'label'
         else:
-            self.current_command = 'computation'
+            self.current_command_type = 'computation'
 
 asm_input_file = sys.argv[1]
 assembler = HackAssembler(asm_input_file)
