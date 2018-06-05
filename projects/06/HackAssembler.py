@@ -13,6 +13,11 @@ class HackAssembler():
         self.parser = HackAssemblerParser(input_file)
         self.symbol_table = SymbolTable()
 
+    def run(self):
+        self.parse_for_labels()
+        self.parser.reset()
+        self.translate()
+
     # 1st pass
     def parse_for_labels(self):
         """
@@ -21,32 +26,33 @@ class HackAssembler():
         """
         num_instructions_so_far = 0
 
-        while self.parser.has_more_commands:
+        while self.parser.has_more_lines_to_parse:
             self.parser.advance()
 
-            if self.parser.command_is('label'):
+            if self.parser.command_is('not_instruction'):
+                continue
+            elif self.parser.command_is('label'):
                 self.symbol_table.add_entry(symbol=self.parser.symbol(), address=num_instructions_so_far)
             else:
                 num_instructions_so_far += 1
 
     # 2nd pass
-    def run(self):
+    def translate(self):
         """
-        parses for variables @variable_value and executes instructions
+        parses for variables @variable_value and translate instructions to machine code
         """
-        # reset parser because of 1st pass
-        self.parser.reset()
-
         hack_file_name = self.parser.input_file.name.split('.')[0] + '.hack'
         hack_file = open(hack_file_name, 'w+')
 
         char_only_matcher = re.compile('[a-zA-Z]+')
 
-        while self.parser.has_more_commands:
+        while self.parser.has_more_lines_to_parse:
             self.parser.advance()
             machine_code_parts = []
 
-            if self.parser.command_is('address'):
+            if self.parser.command_is('not_instruction'):
+                continue
+            elif self.parser.command_is('address'):
                 symbol = self.parser.symbol()
                 not_number = char_only_matcher.match(symbol)
 
@@ -206,34 +212,28 @@ class HackAssemblerParser():
         self.current_line = None
         self.current_command = None
         self.next_line = None
-        self.has_more_commands = True
-#        self.valid_char_matcher = re.compile('[a-zA-Z0-9=+;\-!|&]+')
+        self.has_more_lines_to_parse = True
 
     def reset(self):
         self.input_file.seek(0)
         self.current_line = None
         self.current_command = None
         self.next_line = None
-        self.has_more_commands = True
+        self.has_more_lines_to_parse = True
 
     def dest_mnemonic(self):
         if self.current_line.find(self.DEST_DELIMITER) != -1:
-            res = self.current_line.split(self.DEST_DELIMITER)[0]
-            return self.string_without_invalid_characters(res)
+            return self.current_line.split(self.DEST_DELIMITER)[0]
 
     def comp_mnemonic(self):
         if self.current_line.find(self.DEST_DELIMITER) != -1:
-            res = self.current_line.split(self.DEST_DELIMITER)[1].rstrip('\n')
-            return self.string_without_invalid_characters(res)
+            return self.current_line.split(self.DEST_DELIMITER)[1]
         elif self.current_line.find(self.JUMP_DELIMITER) != -1:
-            res = self.current_line.split(self.JUMP_DELIMITER)[0].rstrip('\n')
-            return self.string_without_invalid_characters(res)
-
+            return self.current_line.split(self.JUMP_DELIMITER)[0]
 
     def jump_mnemonic(self):
         if self.current_line.find(self.JUMP_DELIMITER) != -1:
-            res = self.current_line.split(self.JUMP_DELIMITER)[1].rstrip('\n')
-            return self.string_without_invalid_characters(res)
+            return self.current_line.split(self.JUMP_DELIMITER)[1]
 
     def symbol(self):
         """
@@ -256,14 +256,14 @@ class HackAssemblerParser():
 
         self.next_line = self.input_file.readline()
         # empty lines return \n
-        if self.next_line == '\n':
-            self.has_more_commands = False
+        if self.next_line == '':
+            self.has_more_lines_to_parse = False
 
         self.find_new_command_type()
 
     def _cleaned_line(self, line):
         # remove leading and trailing whitespace
-        line = line.strip(' ')
+        line = line.strip()
         # remove comments
         line = line.split('//')[0]
         # strip again in case space after, i.e., D=M+1 // comments
@@ -279,36 +279,14 @@ class HackAssemblerParser():
         assumes valid input
         """
         if self.current_line == '':
-            return
-
-        first_char = self.current_line[0]
-
-        if first_char == '@':
+            self.current_command = 'not_instruction'
+        elif self.current_line[0] == '@':
             self.current_command = 'address'
-        elif first_char == '(':
+        elif self.current_line[0] == '(':
             self.current_command = 'label'
         else:
             self.current_command = 'computation'
 
-    def string_without_invalid_characters(self, string):
-        return self._matching_chars(string).group().strip()
-
-    def _matching_chars(self, string):
-        return self.valid_char_matcher.match(string.strip())
-
-    def valid_machine_code_command(self):
-        return self._current_line_is_not_empty() and self._current_line_is_not_comment()
-
-    def _current_line_is_not_comment(self):
-        if self.current_line == '':
-            return
-        return self.current_line[0] != '/'
-
-    def _current_line_is_not_empty(self):
-        return self.current_line != '\n'
-
-
 asm_input_file = sys.argv[1]
 assembler = HackAssembler(asm_input_file)
-assembler.parse_for_labels()
 assembler.run()
