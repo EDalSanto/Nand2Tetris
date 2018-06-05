@@ -48,11 +48,9 @@ class HackAssembler():
 
         while self.parser.has_more_lines_to_parse:
             self.parser.advance()
-            machine_code_parts = []
+            machine_code = ''
 
-            if self.parser.command_is('not_instruction'):
-                continue
-            elif self.parser.command_is('address'):
+            if self.parser.command_is('address'):
                 symbol = self.parser.symbol()
                 not_number = char_only_matcher.match(symbol)
 
@@ -65,28 +63,23 @@ class HackAssembler():
                     register_number = int(symbol)
 
                 machine_code = HackAssemblerDecoder.decimal_to_binary_string(register_number)
-                machine_code_parts.append(machine_code)
-            elif self.parser.command_is('label'):
-                continue # because we don't execute them
             elif self.parser.command_is('computation'):
-                # Init
-                machine_code_parts.append(HackAssemblerDecoder.C_COMMAND_INIT_BITS)
+                # init_bits
+                init_bits = HackAssemblerDecoder.C_COMMAND_INIT_BITS
                 # Comp
                 comp_mnemonic = self.parser.comp_mnemonic()
                 comp_bits = HackAssemblerDecoder.COMP_MNEMONIC_TO_BITS[comp_mnemonic]
-                machine_code_parts.append(comp_bits)
                 # Dest
                 dest_mnemonic = self.parser.dest_mnemonic()
                 dest_bits = HackAssemblerDecoder.DEST_MNEMONIC_TO_BITS[dest_mnemonic]
-                machine_code_parts.append(dest_bits)
                 # Jump
                 jump_mnemonic = self.parser.jump_mnemonic()
                 jump_bits = HackAssemblerDecoder.JUMP_MNEMONIC_TO_BITS[jump_mnemonic]
-                machine_code_parts.append(jump_bits)
 
-            if len(machine_code_parts) > 0: # needed?
-                machine_code_command = ''.join(machine_code_parts)
-                hack_file.write(machine_code_command + '\n')
+                machine_code = init_bits + comp_bits + dest_bits + jump_bits
+
+            if len(machine_code) > 0:
+                hack_file.write(machine_code + '\n')
 
         hack_file.close()
 
