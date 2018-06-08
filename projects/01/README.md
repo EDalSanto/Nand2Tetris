@@ -34,7 +34,7 @@
 ##### Logic Gates
 * Gate -> physical device that implements Boolean function
   * n input pins, m output pins corresponding to Boolean function
-  * Transistors -> simplest gates of all made of tiny switching devices
+  * [Transistors](https://www.explainthatstuff.com/howtransistorswork.html) -> simplest gates of all made of tiny switching devices
   * today, most gates are implemented as transistors etched in silicon, packaged as chips
     * chips and gates words can be used interchangeably
   * gate designer cares about implementation details, or gate architecture
@@ -42,7 +42,7 @@
 * main goal in logic design is that gate implementation will reach its stated interface
 * from an effiency standpoint, should try to do so in as few gates as possible
 ##### Hardware Desctiption Language
-* Hardware Description Language -> enables construction of a chip by writing an HDL program, which is then subject to a battery of tests
+* **Hardware Description Language** -> **enables construction of a chip** by writing an HDL program, which is then subject to a battery of tests
   * software provides other metrics, such as computation speed, cost, energy consumption
   * allows you to define chip like defining any other sort of interfact / object
 * HDL file -> textual description of gate diagram
@@ -54,7 +54,7 @@
   * [tutorial](http://nand2tetris.org/tutorials/PDF/Hardware%20Simulator%20Tutorial.pdf)
 #### Multi-Bit Buses
 * enables handling group of multiple bits
-* indexed from right to left
+* **indexed from right to left**
   * A[0] = right-most-bit, A[15] = left-most-bit
 #### [Project 01](http://nand2tetris.org/01.php)
 * building gates that most commonly used
