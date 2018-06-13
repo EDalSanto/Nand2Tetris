@@ -1,5 +1,9 @@
 # Module 0: Machine Language
-![OverviewPartII](./OverviewOfPartII)
-* part where **software meets hardware**
+
+### Overview
+![OverviewPartII](./OverviewOfPartII.png)
+* part of course where **software meets hardware**
 * use **hardware** through its **interface** -> **machine language**
-*
+
+### VM Code to Assembly
+![VMCodeToAssembly](./VMCodeToAssembly.png)
