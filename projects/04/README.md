@@ -38,6 +38,48 @@
     * then need to get the memory contents into CPU, which is expensive
   * **Solution** -> series of increasing memory sizes starting from Registers in CPU to Cache to Main Memory to Disk
     * at each level, distance from CPU, memory size, and overall performance time increases
+    * [Cache Memory Explained](https://www.youtube.com/watch?v=Zr8WKIOIKsk)
+      ![MemoryHierarchy](./MemoryHierarchy.png)
+      * **CPU is can process data so quickly that it's bottlenecked by other components in computer**
+      * CPU can read and write memory much faster than hdd hard drive can
+        * ![SlowHDD](./SlowHDD.png)
+      * RAM bridges gap between CPU and hard drive -> provides data to and from CPU at much faster rate
+        * newer DDR are pretty fast but still much slower than the clock speed of the CPU especially when multiple cores are asking for data
+      * **Cache Memory** further bridges gap between RAM and CPU
+        * known as "Static Ram" -> all are Random Access Memory
+        * KB - MB of data stored in cache registers
+        * **levels**
+          * L1 -> stored in CPU / core itself
+            * fastest -> operate at same speed as CPU
+            * instruction cache and data cache available (**A and D registers in Hack Computer**)
+            * memory size: 2KB to 64KB
+          * L2
+            * either in or outside of CPU
+              * if outside CPU, connected with high-speed bus
+            * can be shared between cores
+            * memory size: 256KB - 512KB
+            * slower than L1
+          * L3
+            * memory size: 1MB to 8MB
+            * faster than RAM but slower than lower levels
+      * **when looking for some data, CPU will first look from the L1 up all the way to HDD**
+        * **first time** starting computer / program, will **require CPU to look into HDD**
+        ![DataSearchProcessFlow](./DataSearchProcessFlow.png)
+      * when buying a computer, look at cache memory as will as RAM
+        * cache is very expensive though
+    * [Why do CPUs need caches?](https://www.youtube.com/watch?v=6JpLD3PUAZk)
+      * CPUs grew at speeds much faster than RAMs
+      * **spatial locality** -> **program will often need nearby instructions to currently executing one**
+        * CPU will read more than 1 instruction at a time from main memory which is more efficient
+          * cache line -> i.e., 128 bytes
+    * [Ways Caches can be Organized](https://www.geeksforgeeks.org/cache-organization-set-1-introduction/)
+      * Direct-Mapped
+        * each block of RAM memory mapped to index in cache -> leads to conflicts (problem of **cache invalidation**)
+      * Associative
+        * no blocks, data can be stored anywhere in cache
+        * slows things down
+      * Associative-Mapped
+        * compromise between above
   * Addressing Modes
     * Register
       * Add R1, R2 -> R2 + R1
