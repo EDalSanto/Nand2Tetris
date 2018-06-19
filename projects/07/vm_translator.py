@@ -13,31 +13,31 @@ class VMTranslator():
         while parser.has_more_commands:
             parser.advance()
             if parser.valid_current_command():
-                writer.translate(parser.current_command, parser.current_command_type)
-
+                #print(parser.current_command.stripped())
+                writer.translate(parser.current_command)
 
 class VMCommand():
+    """
+    provides simpler interface and encapsulation for inspecting current command
+    """
+    COMMENT_SYMBOL = '//'
+    NEWLINE_SYMBOL = '\n'
+    EMPTY_SYMBOL = ''
+
     def __init__(self, text):
-        self.text = self._strip(text)
+        self.text = text
 
-    def type(self):
-        if self.text == '':
+    def stripped(self):
+        return self.text.strip()
 
+    def is_comment(self):
+        return self.text[0:2] == self.COMMENT_SYMBOL
 
-    def empty(self):
-        return self.text == ''
+    def is_whitespace(self):
+        return self.text == self.NEWLINE_SYMBOL
 
-    def _strip(self):
-        # remove leading and trailing whitespace
-        text = text.strip()
-        # remove comments
-        text = text.split('//')[0]
-        # strip again in case space after, i.e., D=M+1 // comments
-        text = text.strip(' ')
-
-        return text
-
-
+    def is_empty(self):
+        return self.text == self.EMPTY_SYMBOL
 
 class VMParser():
     """
@@ -51,37 +51,39 @@ class VMParser():
         self.current_command = None
         self.next_command = None
 
+    def valid_current_command(self):
+        return not self.current_command.is_whitespace() and not self.current_command.is_comment()
+
     def advance(self):
         self._update_current_command()
         self._update_next_command()
         self._update_has_more_commands()
 
     def _update_has_more_commands(self):
-        if self._next_command.empty():
+        if self.next_command.is_empty():
             self.has_more_commands = False
 
     def _update_next_command(self):
-        command = self.input_file.readline()
-        self.next_command = self._strip_command(command)
+        text = self.input_file.readline()
+        self.next_command = VMCommand(text)
 
     def _update_current_command(self):
+        # initialization
         if self.current_command == None:
-            command = self.input_file.readline()
-            self.current_command = self._strip_command(command)
+            text = self.input_file.readline()
+            self.current_command = VMCommand(text)
         else:
             self.current_command = self.next_command
 
 
-
 class VMToHackCodeWriter():
-    def __init__(self, output_file):
+    def __init__(self, input_file):
         self.output_file = open(self._output_file_name_from(input_file), 'w')
 
     def _output_file_name_from(self, input_file):
-        return input_file.name.split('.')[0] + '.asm'
+        return input_file.split('.')[0] + '.asm'
 
 
 if __name__ == "__main__" and len(sys.argv) == 2:
     vm_code_file = sys.argv[1]
-    asm_code = VMTranslator().run(vm_code_file)
-    print(asm_code)
+    asm_code_file = VMTranslator().run(vm_code_file)
