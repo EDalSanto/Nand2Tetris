@@ -203,13 +203,11 @@ class HackAssemblerParser():
     def __init__(self, input_file):
         self.input_file = open(input_file, 'r')
         self.current_command = None
-        self.current_command = None
         self.next_line = None
         self.has_more_lines_to_parse = True
 
     def reset(self):
         self.input_file.seek(0)
-        self.current_command = None
         self.current_command = None
         self.next_line = None
         self.has_more_lines_to_parse = True
