@@ -71,20 +71,44 @@ class VMWriter():
     def _output_file_name_from(self, input_file):
         return input_file.split('.')[0] + '.asm'
 
-class ArithmeticTranslator():
-    TRANSLATIONS = {
-        'add': [ '@SP', 'AM=M-1', 'D=M', 'A=A-1', 'M=D+M' ]
+class VMTranslator():
+    ARITHMETIC_AND_LOGICAL_TRANSLATIONS = {
+        'add': [ '@SP', 'AM=M-1', 'D=M', 'A=A-1', 'M=M+D' ],
+        'sub': [ '@SP', 'AM=M-1', 'D=M', 'A=A-1', 'M=M-D' ]
+        'neg': [ '@SP', 'A=M-1', 'M=-M' ]
+        'eq' : [
+            '(EQUAL)',
+              '@SP',
+              'A=A-1',
+              'M=-1',
+              ''
+            '@SP',
+            'AM=M-1',
+            'D=M', # y
+            'A=A-1',
+            'D=M-D', # y - x -> diff result stored in D
+            '@EQUAL',
+            'D;JEQ',
+
+
+        ],
+        'lt': [
+
+        ],
+        'gt': [
+
+        ],
     }
-
-class PushPopTranslator():
-    @classmethod
-    def translate(self, text):
-        op, segment, index = text.split(' ')
-        if op == 'push':
-            to_load = '@{}'.format(index).strip()
-            # add the index to the top of the stack
-            return [ to_load, 'D=A', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1' ]
-
+    def translate(self, command):
+        if command.text in self.ARITHMETIC_AND_LOGICAL_TRANSLATIONS:
+            return self.ARITHMETIC_AND_LOGICAL_TRANSLATIONS[command.text]
+        #else if command.is_push_or_pop_type():
+        else:
+            op, segment, index = command.text.split(' ')
+            if op == 'push':
+                to_load = '@{}'.format(index).strip()
+                # add the index to the top of the segment
+                return [ to_load, 'D=A', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1' ]
 
 
 if __name__ == "__main__" and len(sys.argv) == 2:
@@ -92,6 +116,7 @@ if __name__ == "__main__" and len(sys.argv) == 2:
 
     parser = VMParser(vm_code_file)
     writer = VMWriter(vm_code_file)
+    translator = VMTranslator()
 
     while parser.has_more_commands:
         parser.advance()
@@ -99,10 +124,11 @@ if __name__ == "__main__" and len(sys.argv) == 2:
 
         if parser.has_valid_current_command():
             #print(parser.current_command.stripped())
-            if parser.current_command.text == 'add':
-                output = ArithmeticTranslator.TRANSLATIONS['add']
-            elif parser.current_command.text.split(' ')[0] == 'push':
-                output = PushPopTranslator.translate(parser.current_command.text)
+            output = translator.translate(parser.current_command)
+            #if parser.current_command.text == 'add':
+            #    output = ArithmeticTranslator.TRANSLATIONS['add']
+            #elif parser.current_command.text.split(' ')[0] == 'push':
+            #    output = PushPopTranslator.translate(parser.current_command.text)
             for line in output:
                 writer.write(line + '\n')
 
