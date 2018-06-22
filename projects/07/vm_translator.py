@@ -85,7 +85,7 @@ class VMTranslator():
             'D=M-D',  # y - x -> diff result stored in D
             '@NOT_EQUAL',
             'D;JNE',
-            '@SP'
+            '@SP',
             'A=M',
             'M=-1',
             '@OUT_COMP',
@@ -102,6 +102,15 @@ class VMTranslator():
 
         ],
         'gt': [
+
+        ],
+        'or': [
+
+        ],
+        'not': [
+
+        ],
+        'and': [
 
         ]
     }
