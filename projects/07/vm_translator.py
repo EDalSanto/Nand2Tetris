@@ -73,34 +73,37 @@ class VMWriter():
 
 class VMTranslator():
     ARITHMETIC_AND_LOGICAL_TRANSLATIONS = {
-        'add': [ '@SP', 'AM=M-1', 'D=M', 'A=A-1', 'M=M+D' ],
-        'sub': [ '@SP', 'AM=M-1', 'D=M', 'A=A-1', 'M=M-D' ]
-        'neg': [ '@SP', 'A=M-1', 'M=-M' ]
+        'add': [ '@SP', 'AM=M-1', 'D=M', '@SP', 'AM=A-1', 'M=M+D', '@SP', 'M=M+1' ],
+        'sub': [ '@SP', 'AM=M-1', 'D=M', '@SP', 'AM=A-1', 'M=M-D', '@SP', 'M=M+1' ],
+        'neg': [ '@SP', 'A=M-1', 'M=-M' ],
         'eq' : [
-            '(EQUAL)',
-              '@SP',
-              'M=-1',
-              '@OUT',
-              '0;JMP' # how to jump back to previous executing line?
+            '@SP',    # load top of stack
+            'AM=M-1', # set address and address register to 1 less
+            'D=M',    # load y
             '@SP',
-            'AM=M-1',
-            'D=M', # y
-            'A=A-1',
-            'D=M-D', # y - x -> diff result stored in D
-            '@EQUAL',
-            'D;JEQ',
+            'AM=M-1', # get to x
+            'D=M-D',  # y - x -> diff result stored in D
+            '@NOT_EQUAL',
+            'D;JNE',
+            '@SP'
+            'A=M',
+            'M=-1',
+            '@OUT_COMP',
+            '0;JMP',
+            '(NOT_EQUAL)',
             '@SP',
+            'A=M',
             'M=0',
-            '(OUT)'
-
-
+            '(OUT_COMP)',
+            '@SP',
+            'M=M+1'
         ],
         'lt': [
 
         ],
         'gt': [
 
-        ],
+        ]
     }
     def translate(self, command):
         if command.text in self.ARITHMETIC_AND_LOGICAL_TRANSLATIONS:
