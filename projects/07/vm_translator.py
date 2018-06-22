@@ -73,24 +73,47 @@ class VMWriter():
 
 class VMTranslator():
     ARITHMETIC_AND_LOGICAL_TRANSLATIONS = {
-        'add': [ '@SP', 'AM=M-1', 'D=M', '@SP', 'AM=A-1', 'M=M+D', '@SP', 'M=M+1' ],
-        'sub': [ '@SP', 'AM=M-1', 'D=M', '@SP', 'AM=A-1', 'M=M-D', '@SP', 'M=M+1' ],
+        'add': [ '@SP', 'AM=M-1', 'D=M', '@SP', 'AM=M-1', 'M=M+D', '@SP', 'M=M+1' ],
+        'sub': [ '@SP', 'AM=M-1', 'D=M', '@SP', 'AM=M-1', 'M=M-D', '@SP', 'M=M+1' ],
         'neg': [ '@SP', 'A=M-1', 'M=-M' ],
         'eq' : [
-            '@SP',    # load top of stack
-            'AM=M-1', # set address and address register to 1 less
-            'D=M',    # load y
+            # doesn't account for duplicate labels which could be handled with counters
             '@SP',
-            'AM=M-1', # get to x
-            'D=M-D',  # y - x -> diff result stored in D
+            'AM=M-1',
+            'D=M',
+            '@SP',
+            'AM=M-1',
+            'D=M-D', # diff x - y
             '@NOT_EQUAL',
-            'D;JNE',
+            'D;JNE', # jump to no_equal if diff not equal to 0 otherwise will execute equal
+            '@SP',
+            'A=M',
+            'M=-1',
+            '@OUT_COMP',
+            '0;JMP', # skip not_equal that we executed equal above
+            '(NOT_EQUAL)',
+            '@SP',
+            'A=M',
+            'M=0',
+            '(OUT_COMP)',
+            '@SP',
+            'M=M+1' # increment stack pointer
+        ],
+        'lt': [
+            '@SP',
+            'AM=M-1',
+            'D=M',
+            '@SP',
+            'AM=M-1',
+            'D=M-D',
+            '@GREATER_THAN',
+            'D;JGT',
             '@SP',
             'A=M',
             'M=-1',
             '@OUT_COMP',
             '0;JMP',
-            '(NOT_EQUAL)',
+            '(GREATER_THAN)',
             '@SP',
             'A=M',
             'M=0',
@@ -98,21 +121,31 @@ class VMTranslator():
             '@SP',
             'M=M+1'
         ],
-        'lt': [
-
-        ],
         'gt': [
-
+            '@SP',
+            'AM=M-1',
+            'D=M',
+            '@SP',
+            'AM=M-1',
+            'D=M-D',
+            '@LESS_THAN',
+            'D;JGT',
+            '@SP',
+            'A=M',
+            'M=-1',
+            '@OUT_COMP',
+            '0;JMP',
+            '(LESS_THAN)',
+            '@SP',
+            'A=M',
+            'M=0',
+            '(OUT_COMP)',
+            '@SP',
+            'M=M+1'
         ],
-        'or': [
-
-        ],
-        'not': [
-
-        ],
-        'and': [
-
-        ]
+        'or': [ '@SP', 'AM=M-1', 'D=M', '@SP', 'AM=M-1', 'M=M|D', '@SP', 'M=M+1' ],
+        'not': [ '@SP', 'AM=M-1', 'D=M', 'M=!M', '@SP', 'M=M+1'],
+        'and': [ '@SP', 'AM=M-1', 'D=M', '@SP', 'AM=M-1', 'M=M&D', '@SP', 'M=M+1']
     }
     def translate(self, command):
         if command.text in self.ARITHMETIC_AND_LOGICAL_TRANSLATIONS:
