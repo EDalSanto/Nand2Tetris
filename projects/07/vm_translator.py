@@ -84,7 +84,7 @@ class VMTranslator():
             '@SP',
             'AM=M-1',
             'D=M-D', # diff x - y
-            '@NOT_EQUAL',
+            '@NOT_EQUAL{}',
             'D;JNE', # jump to no_equal if diff not equal to 0 otherwise will execute equal
             '@SP',
             'A=M',
@@ -147,8 +147,40 @@ class VMTranslator():
         'not': [ '@SP', 'AM=M-1', 'D=M', 'M=!M', '@SP', 'M=M+1'],
         'and': [ '@SP', 'AM=M-1', 'D=M', '@SP', 'AM=M-1', 'M=M&D', '@SP', 'M=M+1']
     }
+
+    def __init__(self):
+        self.eq_counter = 0
+        self.lt_counter = 0
+        self.gt_counter = 0
+
     def translate(self, command):
         if command.text in self.ARITHMETIC_AND_LOGICAL_TRANSLATIONS:
+            if command.text == 'eq':
+                res = [
+                    # doesn't account for duplicate labels which could be handled with counters
+                    '@SP',
+                    'AM=M-1',
+                    'D=M',
+                    '@SP',
+                    'AM=M-1',
+                    'D=M-D', # diff x - y
+                    '@NOT_EQUAL{}'.format(self.eq_counter),
+                    'D;JNE', # jump to no_equal if diff not equal to 0 otherwise will execute equal
+                    '@SP',
+                    'A=M',
+                    'M=-1',
+                    '@OUT_COMP{}'.format(self.eq_counter),
+                    '0;JMP', # skip not_equal that we executed equal above
+                    '(NOT_EQUAL{})'.format(self.eq_counter),
+                    '@SP',
+                    'A=M',
+                    'M=0',
+                    '(OUT_COMP{})'.format(self.eq_counter),
+                    '@SP',
+                    'M=M+1' # increment stack pointer
+                ]
+                self.eq_counter += 1
+                return res
             return self.ARITHMETIC_AND_LOGICAL_TRANSLATIONS[command.text]
         #else if command.is_push_or_pop_type():
         else:
