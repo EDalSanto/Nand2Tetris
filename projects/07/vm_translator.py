@@ -79,9 +79,9 @@ class VMTranslator():
         'eq' : [
             '(EQUAL)',
               '@SP',
-              'A=A-1',
               'M=-1',
-              ''
+              '@OUT',
+              '0;JMP' # how to jump back to previous executing line?
             '@SP',
             'AM=M-1',
             'D=M', # y
@@ -89,6 +89,9 @@ class VMTranslator():
             'D=M-D', # y - x -> diff result stored in D
             '@EQUAL',
             'D;JEQ',
+            '@SP',
+            'M=0',
+            '(OUT)'
 
 
         ],
