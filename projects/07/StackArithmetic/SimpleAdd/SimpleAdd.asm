@@ -16,7 +16,7 @@ M=M+1
 AM=M-1
 D=M
 @SP
-AM=A-1
+AM=M-1
 M=M+D
 @SP
 M=M+1

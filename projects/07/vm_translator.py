@@ -72,77 +72,10 @@ class VMWriter():
         return input_file.split('.')[0] + '.asm'
 
 class VMTranslator():
-    ARITHMETIC_AND_LOGICAL_TRANSLATIONS = {
+    ARITHMETIC_TRANSLATIONS = {
         'add': [ '@SP', 'AM=M-1', 'D=M', '@SP', 'AM=M-1', 'M=M+D', '@SP', 'M=M+1' ],
         'sub': [ '@SP', 'AM=M-1', 'D=M', '@SP', 'AM=M-1', 'M=M-D', '@SP', 'M=M+1' ],
         'neg': [ '@SP', 'A=M-1', 'M=-M' ],
-        'eq' : [
-            # doesn't account for duplicate labels which could be handled with counters
-            '@SP',
-            'AM=M-1',
-            'D=M',
-            '@SP',
-            'AM=M-1',
-            'D=M-D', # diff x - y
-            '@NOT_EQUAL{}',
-            'D;JNE', # jump to no_equal if diff not equal to 0 otherwise will execute equal
-            '@SP',
-            'A=M',
-            'M=-1',
-            '@OUT_COMP',
-            '0;JMP', # skip not_equal that we executed equal above
-            '(NOT_EQUAL)',
-            '@SP',
-            'A=M',
-            'M=0',
-            '(OUT_COMP)',
-            '@SP',
-            'M=M+1' # increment stack pointer
-        ],
-        'lt': [
-            '@SP',
-            'AM=M-1',
-            'D=M',
-            '@SP',
-            'AM=M-1',
-            'D=M-D',
-            '@GREATER_THAN',
-            'D;JGT',
-            '@SP',
-            'A=M',
-            'M=-1',
-            '@OUT_COMP',
-            '0;JMP',
-            '(GREATER_THAN)',
-            '@SP',
-            'A=M',
-            'M=0',
-            '(OUT_COMP)',
-            '@SP',
-            'M=M+1'
-        ],
-        'gt': [
-            '@SP',
-            'AM=M-1',
-            'D=M',
-            '@SP',
-            'AM=M-1',
-            'D=M-D',
-            '@LESS_THAN',
-            'D;JGT',
-            '@SP',
-            'A=M',
-            'M=-1',
-            '@OUT_COMP',
-            '0;JMP',
-            '(LESS_THAN)',
-            '@SP',
-            'A=M',
-            'M=0',
-            '(OUT_COMP)',
-            '@SP',
-            'M=M+1'
-        ],
         'or': [ '@SP', 'AM=M-1', 'D=M', '@SP', 'AM=M-1', 'M=M|D', '@SP', 'M=M+1' ],
         'not': [ '@SP', 'AM=M-1', 'D=M', 'M=!M', '@SP', 'M=M+1'],
         'and': [ '@SP', 'AM=M-1', 'D=M', '@SP', 'AM=M-1', 'M=M&D', '@SP', 'M=M+1']
@@ -154,34 +87,84 @@ class VMTranslator():
         self.gt_counter = 0
 
     def translate(self, command):
-        if command.text in self.ARITHMETIC_AND_LOGICAL_TRANSLATIONS:
-            if command.text == 'eq':
-                res = [
-                    # doesn't account for duplicate labels which could be handled with counters
-                    '@SP',
-                    'AM=M-1',
-                    'D=M',
-                    '@SP',
-                    'AM=M-1',
-                    'D=M-D', # diff x - y
-                    '@NOT_EQUAL{}'.format(self.eq_counter),
-                    'D;JNE', # jump to no_equal if diff not equal to 0 otherwise will execute equal
-                    '@SP',
-                    'A=M',
-                    'M=-1',
-                    '@OUT_COMP{}'.format(self.eq_counter),
-                    '0;JMP', # skip not_equal that we executed equal above
-                    '(NOT_EQUAL{})'.format(self.eq_counter),
-                    '@SP',
-                    'A=M',
-                    'M=0',
-                    '(OUT_COMP{})'.format(self.eq_counter),
-                    '@SP',
-                    'M=M+1' # increment stack pointer
-                ]
-                self.eq_counter += 1
-                return res
-            return self.ARITHMETIC_AND_LOGICAL_TRANSLATIONS[command.text]
+        if command.text in self.ARITHMETIC_TRANSLATIONS:
+            return self.ARITHMETIC_TRANSLATIONS[command.text]
+        if command.text == 'eq':
+            res = [
+                # doesn't account for duplicate labels which could be handled with counters
+                '@SP',
+                'AM=M-1',
+                'D=M',
+                '@SP',
+                'AM=M-1',
+                'D=M-D', # diff x - y
+                '@NOT_EQUAL{}'.format(self.eq_counter),
+                'D;JNE', # jump to no_equal if diff not equal to 0 otherwise will execute equal
+                '@SP',
+                'A=M',
+                'M=-1',
+                '@OUT_EQ{}'.format(self.eq_counter),
+                '0;JMP', # skip not_equal that we executed equal above
+                '(NOT_EQUAL{})'.format(self.eq_counter),
+                '@SP',
+                'A=M',
+                'M=0',
+                '(OUT_EQ{})'.format(self.eq_counter),
+                '@SP',
+                'M=M+1' # increment stack pointer
+            ]
+            self.eq_counter += 1
+            return res
+        if command.text == 'lt':
+            res = [
+                '@SP',
+                'AM=M-1',
+                'D=M',
+                '@SP',
+                'AM=M-1',
+                'D=M-D',
+                '@GREATER_THAN{}'.format(self.lt_counter),
+                'D;JGE',
+                '@SP',
+                'A=M',
+                'M=-1',
+                '@OUT_LT{}'.format(self.lt_counter),
+                '0;JMP',
+                '(GREATER_THAN{})'.format(self.lt_counter),
+                '@SP',
+                'A=M',
+                'M=0',
+                '(OUT_LT{})'.format(self.lt_counter),
+                '@SP',
+                'M=M+1'
+            ]
+            self.lt_counter += 1
+            return res
+        if command.text == 'gt':
+            res = [
+                '@SP',
+                'AM=M-1',
+                'D=M',
+                '@SP',
+                'AM=M-1',
+                'D=M-D',
+                '@LESS_THAN{}'.format(self.gt_counter),
+                'D;JLE',
+                '@SP',
+                'A=M',
+                'M=-1',
+                '@OUT_GT{}'.format(self.gt_counter),
+                '0;JMP',
+                '(LESS_THAN{})'.format(self.gt_counter),
+                '@SP',
+                'A=M',
+                'M=0',
+                '(OUT_GT{})'.format(self.gt_counter),
+                '@SP',
+                'M=M+1'
+            ]
+            self.gt_counter += 1
+            return res
         #else if command.is_push_or_pop_type():
         else:
             op, segment, index = command.text.split(' ')
