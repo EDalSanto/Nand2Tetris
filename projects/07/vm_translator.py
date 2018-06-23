@@ -75,7 +75,9 @@ class VMTranslator():
     ARITHMETIC_TRANSLATIONS = {
         'add': [ '@SP', 'AM=M-1', 'D=M', '@SP', 'AM=M-1', 'M=M+D', '@SP', 'M=M+1' ],
         'sub': [ '@SP', 'AM=M-1', 'D=M', '@SP', 'AM=M-1', 'M=M-D', '@SP', 'M=M+1' ],
-        'neg': [ '@SP', 'A=M-1', 'M=-M' ],
+        'neg': [ '@SP', 'A=M-1', 'M=-M' ]
+    }
+    LOGICAL_TRANSLATIONS = {
         'or' : [ '@SP', 'AM=M-1', 'D=M', '@SP', 'AM=M-1', 'M=M|D', '@SP', 'M=M+1' ],
         'not': [ '@SP', 'AM=M-1', 'D=M', 'M=!M', '@SP', 'M=M+1'],
         'and': [ '@SP', 'AM=M-1', 'D=M', '@SP', 'AM=M-1', 'M=M&D', '@SP', 'M=M+1']
@@ -89,8 +91,12 @@ class VMTranslator():
     def translate(self, command):
         if command.text in self.ARITHMETIC_TRANSLATIONS:
             return self.ARITHMETIC_TRANSLATIONS[command.text]
+        elif command.text in self.LOGICAL_TRANSLATIONS:
+            return self.LOGICAL_TRANSLATIONS[command.text]
         elif command.text == 'eq':
             self.eq_counter += 1
+            label_identifier = self._command_label_identifier(command.text, self.eq_counter)
+
             return [
                 '@SP',
                 'AM=M-1',
@@ -98,23 +104,25 @@ class VMTranslator():
                 '@SP',
                 'AM=M-1',
                 'D=M-D', # diff x - y
-                '@NOT_EQ{}'.format(self.eq_counter),
+                '@NOT_{}'.format(label_identifier),
                 'D;JNE', # if diff not equal jump to 0 otherwise will execute equal
                 '@SP',
                 'A=M',
                 'M=-1',
-                '@INC_STACK_POINTER_EQ{}'.format(self.eq_counter),
+                '@INC_STACK_POINTER_{}'.format(label_identifier),
                 '0;JMP', # skip not_equal that we executed equal above
-                '(NOT_EQ{})'.format(self.eq_counter),
+                '(NOT_{})'.format(label_identifier),
                 '@SP',
                 'A=M',
                 'M=0',
-                '(INC_STACK_POINTER_EQ{})'.format(self.eq_counter),
+                '(INC_STACK_POINTER_{})'.format(label_identifier),
                 '@SP',
                 'M=M+1' # increment stack pointer
             ]
         elif command.text == 'lt':
             self.lt_counter += 1
+            label_identifier = self._command_label_identifier(command.text, self.lt_counter)
+
             return [
                 '@SP',
                 'AM=M-1',
@@ -122,23 +130,25 @@ class VMTranslator():
                 '@SP',
                 'AM=M-1',
                 'D=M-D',
-                '@NOT_LT{}'.format(self.lt_counter),
+                '@NOT_{}'.format(label_identifier),
                 'D;JGE',
                 '@SP',
                 'A=M',
                 'M=-1',
-                '@INC_STACK_POINTER_LT{}'.format(self.lt_counter),
+                '@INC_STACK_POINTER_{}'.format(label_identifier),
                 '0;JMP',
-                '(NOT_LT{})'.format(self.lt_counter),
+                '(NOT_{})'.format(label_identifier),
                 '@SP',
                 'A=M',
                 'M=0',
-                '(INC_STACK_POINTER_LT{})'.format(self.lt_counter),
+                '(INC_STACK_POINTER_{})'.format(label_identifier),
                 '@SP',
                 'M=M+1'
             ]
         elif command.text == 'gt':
             self.gt_counter += 1
+            label_identifier = self._command_label_identifier(command.text, self.gt_counter)
+
             return [
                 '@SP',
                 'AM=M-1',
@@ -146,18 +156,18 @@ class VMTranslator():
                 '@SP',
                 'AM=M-1',
                 'D=M-D',
-                '@NOT_GT{}'.format(self.gt_counter),
+                '@NOT_{}'.format(label_identifier),
                 'D;JLE',
                 '@SP',
                 'A=M',
                 'M=-1',
-                '@INC_STACK_POINTER_GT{}'.format(self.gt_counter),
+                '@INC_STACK_POINTER_{}'.format(label_identifier),
                 '0;JMP',
-                '(NOT_GT{})'.format(self.gt_counter),
+                '(NOT_{})'.format(label_identifier),
                 '@SP',
                 'A=M',
                 'M=0',
-                '(INC_STACK_POINTER_GT{})'.format(self.gt_counter),
+                '(INC_STACK_POINTER_{})'.format(label_identifier),
                 '@SP',
                 'M=M+1'
             ]
@@ -167,6 +177,9 @@ class VMTranslator():
                 to_load = '@{}'.format(index).strip()
                 # add the index to the top of the segment
                 return [ to_load, 'D=A', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1' ]
+
+    def _command_label_identifier(self, command_text, counter):
+        return '{command_text}.{counter}'.format(command_text=command_text, counter=counter)
 
 
 if __name__ == "__main__" and len(sys.argv) == 2:
