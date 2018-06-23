@@ -82,95 +82,27 @@ class VMTranslator():
         'not': [ '@SP', 'AM=M-1', 'D=M', 'M=!M', '@SP', 'M=M+1'],
         'and': [ '@SP', 'AM=M-1', 'D=M', '@SP', 'AM=M-1', 'M=M&D', '@SP', 'M=M+1']
     }
+    # can't put translations here because need to update with counter at each iteration
+    COMP_COMMANDS = {
+        'eq': { 'jump_directive': 'JNE'},
+        'lt': { 'jump_directive': 'JGE'},
+        'gt': { 'jump_directive': 'JLE'}
+    }
 
     def __init__(self):
-        self.eq_counter = 0
-        self.lt_counter = 0
-        self.gt_counter = 0
+        self.counters = {
+            'eq' : { 'count': 0 },
+            'lt' : { 'count': 0 },
+            'gt' : { 'count': 0 }
+        }
 
     def translate(self, command):
         if command.text in self.ARITHMETIC_TRANSLATIONS:
             return self.ARITHMETIC_TRANSLATIONS[command.text]
         elif command.text in self.LOGICAL_TRANSLATIONS:
             return self.LOGICAL_TRANSLATIONS[command.text]
-        elif command.text == 'eq':
-            self.eq_counter += 1
-            label_identifier = self._command_label_identifier(command.text, self.eq_counter)
-
-            return [
-                '@SP',
-                'AM=M-1',
-                'D=M',
-                '@SP',
-                'AM=M-1',
-                'D=M-D', # diff x - y
-                '@NOT_{}'.format(label_identifier),
-                'D;JNE', # if diff not equal jump to 0 otherwise will execute equal
-                '@SP',
-                'A=M',
-                'M=-1',
-                '@INC_STACK_POINTER_{}'.format(label_identifier),
-                '0;JMP', # skip not_equal that we executed equal above
-                '(NOT_{})'.format(label_identifier),
-                '@SP',
-                'A=M',
-                'M=0',
-                '(INC_STACK_POINTER_{})'.format(label_identifier),
-                '@SP',
-                'M=M+1' # increment stack pointer
-            ]
-        elif command.text == 'lt':
-            self.lt_counter += 1
-            label_identifier = self._command_label_identifier(command.text, self.lt_counter)
-
-            return [
-                '@SP',
-                'AM=M-1',
-                'D=M',
-                '@SP',
-                'AM=M-1',
-                'D=M-D',
-                '@NOT_{}'.format(label_identifier),
-                'D;JGE',
-                '@SP',
-                'A=M',
-                'M=-1',
-                '@INC_STACK_POINTER_{}'.format(label_identifier),
-                '0;JMP',
-                '(NOT_{})'.format(label_identifier),
-                '@SP',
-                'A=M',
-                'M=0',
-                '(INC_STACK_POINTER_{})'.format(label_identifier),
-                '@SP',
-                'M=M+1'
-            ]
-        elif command.text == 'gt':
-            self.gt_counter += 1
-            label_identifier = self._command_label_identifier(command.text, self.gt_counter)
-
-            return [
-                '@SP',
-                'AM=M-1',
-                'D=M',
-                '@SP',
-                'AM=M-1',
-                'D=M-D',
-                '@NOT_{}'.format(label_identifier),
-                'D;JLE',
-                '@SP',
-                'A=M',
-                'M=-1',
-                '@INC_STACK_POINTER_{}'.format(label_identifier),
-                '0;JMP',
-                '(NOT_{})'.format(label_identifier),
-                '@SP',
-                'A=M',
-                'M=0',
-                '(INC_STACK_POINTER_{})'.format(label_identifier),
-                '@SP',
-                'M=M+1'
-            ]
+        elif command.text in self.COMP_COMMANDS:
+            return self.comp_translation(command.text)
         else: #elif command.is_push_or_pop_type():
             op, segment, index = command.text.split(' ')
             if op == 'push':
@@ -178,8 +110,35 @@ class VMTranslator():
                 # add the index to the top of the segment
                 return [ to_load, 'D=A', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1' ]
 
-    def _command_label_identifier(self, command_text, counter):
-        return '{command_text}.{counter}'.format(command_text=command_text, counter=counter)
+    def comp_translation(self, command_text):
+        counter = self.counters[command_text]
+        counter['count'] += 1
+        label_identifier = '{}{}'.format(command_text.upper(), counter['count'])
+        jump_directive = self.COMP_COMMANDS[command_text]['jump_directive']
+
+        return [
+            '@SP',
+            'AM=M-1',
+            'D=M',
+            '@SP',
+            'AM=M-1',
+            'D=M-D', # x - y
+            '@NOT_{}'.format(label_identifier),
+            'D;{}'.format(jump_directive),
+            '@SP',
+            'A=M',
+            'M=-1',
+            '@INC_STACK_POINTER_{}'.format(label_identifier),
+            '0;JMP',
+            '(NOT_{})'.format(label_identifier),
+            '@SP',
+            'A=M',
+            'M=0',
+            '(INC_STACK_POINTER_{})'.format(label_identifier),
+            '@SP',
+            'M=M+1'
+        ]
+
 
 
 if __name__ == "__main__" and len(sys.argv) == 2:
