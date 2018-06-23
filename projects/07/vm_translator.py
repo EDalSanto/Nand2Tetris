@@ -10,8 +10,9 @@ class VMCommand():
     EMPTY_SYMBOL = ''
 
     def __init__(self, text):
-        self.text = text.strip()
         self.raw_text = text
+        self.text = text.strip()
+        self.parts = text.strip().split(' ')
 
     def is_comment(self):
         return self.raw_text[0:2] == self.COMMENT_SYMBOL
@@ -21,6 +22,23 @@ class VMCommand():
 
     def is_empty(self):
         return self.raw_text == self.EMPTY_SYMBOL
+
+    def segment(self):
+        # only for memory access commands
+        if len(self.parts) != 3:
+            return
+
+        return self.parts[1]
+
+    def index(self):
+        # only for memory access commands
+        if len(self.parts) != 3:
+            return
+
+        return self.parts[2]
+
+    def operation(self):
+        return self.parts[0]
 
 class VMParser():
     """
@@ -89,6 +107,14 @@ class VMTranslator():
         'gt': { 'jump_directive': 'JLE'}
     }
 
+    SEGMENT_NAMES = {
+        'local': 'LCL',
+        'argument': 'ARG',
+        'this': 'THIS',
+        'that': 'THAT',
+        'temp': 'R5'
+    }
+
     def __init__(self):
         self.counters = {
             'eq' : { 'count': 0 },
@@ -103,12 +129,89 @@ class VMTranslator():
             return self.LOGICAL_TRANSLATIONS[command.text]
         elif command.text in self.COMP_COMMANDS:
             return self.comp_translation(command.text)
-        else: #elif command.is_push_or_pop_type():
-            op, segment, index = command.text.split(' ')
-            if op == 'push':
-                to_load = '@{}'.format(index).strip()
-                # add the index to the top of the segment
-                return [ to_load, 'D=A', '@SP', 'A=M', 'M=D', '@SP', 'M=M+1' ]
+        else: #elif command.push_or_pop():
+            if command.operation() == 'push':
+                # Push the value of segment[index] onto the stack
+
+                if command.segment() == 'constant':
+                    # add the index to the top of stack
+
+                    return [
+                        # load index value
+                        '@' + command.index(
+                        # store in D as temp
+                        'D=A',
+                        # load SP
+                        '@SP',
+                        # Get current address
+                        'A=M',
+                        # Store constant in address
+                        'M=D',
+                        # increment stack pointer
+                        '@SP',
+                        'M=M+1'
+                    ]
+                elif command.segment() in self.SEGMENT_NAMES:
+                    segment_name  = self.SEGMENT_NAMES[command.segment()]
+
+                    return [
+                        # lookup segment[index]
+                        '@' + segment_name,
+                        'A=M',
+                        '@' + command.index(),
+                        'D=A',
+                        'A=A+D',
+                        'D=M'
+                        # add to stack
+                        '@SP',
+                        'A=M',
+                        'M=D',
+                        '@SP',
+                        'M=M+1'
+                    ]
+            elif command.operation() == 'pop':
+                # Pop the top-most value off the stack store in segment[index]
+                if command.segment() in self.SEGMENT_NAMES:
+                    segment_name  = self.SEGMENT_NAMES[command.segment()]
+                    index_to_load = '@{}'.format(command.index())
+
+                    # pop the top-most item off the stack and store in temp
+                    return [
+                        # load stack pointer
+                        '@SP',
+                        # decrement pointer to top of stack
+                        'AM=M-1',
+                        # store value temp in D
+                        'D=M',
+                        # load temp register
+                        '@R5',
+                        'M=D',
+                        '@SP',
+                        'M=M-1',
+                    # place in memory segment location
+                        # load base address
+                        '@{}'.format(segment_name),
+                        # store base
+                        'D=M',
+                        # get index
+                        index_to_load,
+                        # add index to base for address
+                        'D=A+D',
+                        # store in temp
+                        '@R6',
+                        'M=D',
+                        # load value
+                        '@R5',
+                        # store in D
+                        'D=M',
+                        # load address value
+                        '@R6',
+                        # set as current address register
+                        'A=M',
+                        # set M to value
+                        'M=D',
+                    ]
+
 
     def comp_translation(self, command_text):
         counter = self.counters[command_text]
