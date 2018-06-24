@@ -12,6 +12,8 @@ D=M
 M=D
 @THIS
 D=M
+@3
+D=A+D
 @R6
 M=D
 @R5
@@ -33,6 +35,8 @@ D=M
 M=D
 @THAT
 D=M
+@4
+D=A+D
 @R6
 M=D
 @R5
