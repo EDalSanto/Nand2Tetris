@@ -367,6 +367,15 @@ class VMTranslator():
                         # set segment[index] to stack top
                         'M=D'
                     ]
+                elif command.segment() == 'pointer':
+                    if command.index() == 0:
+                        segment = 'this'
+                    elif command.index() == 1:
+                        segment == 'that'
+
+                    return [
+                        #
+                    ]
 
 
 
