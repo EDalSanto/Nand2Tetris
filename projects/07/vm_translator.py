@@ -215,6 +215,24 @@ class VMTranslator():
             'gt' : { 'count': 0 }
         }
 
+    def place_value_in_D_on_top_stack_instructions(self):
+        return [
+            # load stack pointer
+            '@SP',
+            # Get current address
+            'A=M',
+            # Store constant in address
+            'M=D'
+        ]
+
+    def increment_stack_pointer_instructions(self):
+        return [
+            # load stack pointer
+            '@SP',
+            # increment stack pointer
+            'M=M+1'
+        ]
+
     def translate(self, command):
         if command.text in self.ARITHMETIC_TRANSLATIONS:
             return self.ARITHMETIC_TRANSLATIONS[command.text]
@@ -233,16 +251,8 @@ class VMTranslator():
                         '@' + command.index(),
                         # store in D as temp
                         'D=A',
-                        # load stack pointer
-                        '@SP',
-                        # Get current address
-                        'A=M',
-                        # Store constant in address
-                        'M=D',
-                        # load stack pointer
-                        '@SP',
-                        # increment stack pointer
-                        'M=M+1'
+                        *self.place_value_in_D_on_top_stack_instructions(),
+                        *self.increment_stack_pointer_instructions()
                     ]
                 elif command.segment() in self.SEGMENT_REGISTER_NAMES:
                     # put segment[index] on top of the stack
@@ -259,16 +269,8 @@ class VMTranslator():
                         'A=A+D',
                         # store segment[index] in D
                         'D=M',
-                        # load stack pointer
-                        '@SP',
-                        # set address
-                        'A=M',
-                        # set value at address to segment[index]
-                        'M=D',
-                        # load stack pointer
-                        '@SP',
-                        # increment stack pointer
-                        'M=M+1'
+                        *self.place_value_in_D_on_top_stack_instructions(),
+                        *self.increment_stack_pointer_instructions()
                     ]
                 elif command.segment() == 'pointer':
                     # put pointer[index] on top of stack
@@ -279,16 +281,8 @@ class VMTranslator():
                         '@' + segment_to_set,
                         # store segment[index] in D
                         'D=M',
-                        # load stack pointer
-                        '@SP',
-                        # set to address of stack pointer
-                        'A=M',
-                        # place pointer[index] on top of stack
-                        'M=D',
-                        # load stack pointer
-                        '@SP',
-                        # increment stack pointer
-                        'M=M+1'
+                        *self.place_value_in_D_on_top_stack_instructions(),
+                        *self.increment_stack_pointer_instructions()
                     ]
                 elif command.segment() == 'temp':
                     # put temp[index] value on stack
@@ -303,16 +297,8 @@ class VMTranslator():
                         'A=A+D',
                         # store segment[index] in D
                         'D=M',
-                        # load stack pointer
-                        '@SP',
-                        # set address
-                        'A=M',
-                        # set top of stack to temp[index]
-                        'M=D',
-                        # load stack pointer
-                        '@SP',
-                        # increment stack pointer
-                        'M=M+1'
+                        *self.place_value_in_D_on_top_stack_instructions(),
+                        *self.increment_stack_pointer_instructions()
                     ]
                 elif command.segment() == 'static':
                     # put static[index] value on top of stack
@@ -327,16 +313,8 @@ class VMTranslator():
                         'A=A+D',
                         # store segment[index] in D
                         'D=M',
-                        # load stack pointer
-                        '@SP',
-                        # set address
-                        'A=M',
-                        # set top of stack to stack[index]
-                        'M=D',
-                        # load stack pointer
-                        '@SP',
-                        # increment stack pointer
-                        'M=M+1'
+                        *self.place_value_in_D_on_top_stack_instructions(),
+                        *self.increment_stack_pointer_instructions()
                     ]
             elif command.operation() == 'pop':
                 # Pop the top-most value off the stack store in segment[index]
@@ -451,12 +429,7 @@ class VMTranslator():
                         'M=D'
                     ]
                 elif command.segment() == 'pointer':
-                    if command.index() == '0':
-                        segment_to_set = 'this'
-                        index = '3'
-                    elif command.index() == '1':
-                        segment_to_set = 'that'
-                        index = '4'
+                    segment_to_set = self.POINTER_SEGMENT_REGISTERS[command.index()]
 
                     # set segment to top of stack
                     return [
@@ -471,13 +444,9 @@ class VMTranslator():
                         # store top of stack in temp register
                         'M=D',
                         # load segment base address
-                        '@' + self.SEGMENT_REGISTER_NAMES[segment_to_set],
+                        '@' + segment_to_set,
                         # store segment base address
                         'D=M',
-                        # load index value
-                        '@' + index,
-                        # store index + base = address we care about
-                        'D=A+D',
                         # load temp
                         '@R6',
                         # store segment + index address
