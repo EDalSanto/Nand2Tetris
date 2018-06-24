@@ -27,7 +27,7 @@ M=D
 @16
 D=A
 @8
-D=A+D
+D=D+A
 @R6
 M=D
 @R5
@@ -43,7 +43,7 @@ M=D
 @16
 D=A
 @3
-D=A+D
+D=D+A
 @R6
 M=D
 @R5
@@ -59,7 +59,7 @@ M=D
 @16
 D=A
 @1
-D=A+D
+D=D+A
 @R6
 M=D
 @R5
