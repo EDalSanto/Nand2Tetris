@@ -159,7 +159,7 @@ D=M
 @R6
 A=M
 M=D
-@1
+@LCL
 D=M
 @0
 A=A+D
@@ -169,7 +169,7 @@ A=M
 M=D
 @SP
 M=M+1
-@4
+@THAT
 D=M
 @5
 A=A+D
@@ -187,7 +187,7 @@ AM=M-1
 M=M+D
 @SP
 M=M+1
-@2
+@ARG
 D=M
 @1
 A=A+D
@@ -205,7 +205,7 @@ AM=M-1
 M=M-D
 @SP
 M=M+1
-@3
+@THIS
 D=M
 @6
 A=A+D
@@ -215,7 +215,7 @@ A=M
 M=D
 @SP
 M=M+1
-@3
+@THIS
 D=M
 @6
 A=A+D

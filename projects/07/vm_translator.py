@@ -205,8 +205,10 @@ class VMTranslator():
         '0': 'THIS',
         '1': 'THAT'
     }
-    TEMP_BASE_ADDRESS = '5'
-    STATIC_BASE_ADDRESS = '16'
+    HOST_SEGMENTS = {
+        'temp'  : '5',
+        'static': '16'
+    }
 
     def __init__(self):
         self.counters = {
@@ -284,28 +286,12 @@ class VMTranslator():
                         *self.place_value_in_D_on_top_stack_instructions(),
                         *self.increment_stack_pointer_instructions()
                     ]
-                elif command.segment() == 'temp':
+                elif command.segment() in self.HOST_SEGMENTS:
                     # put temp[index] value on stack
                     return [
                         # load temp address
-                        '@' + self.TEMP_BASE_ADDRESS,
+                        '@' + self.HOST_SEGMENTS[command.segment()],
                         # store temp base address
-                        'D=A',
-                        # load index value
-                        '@' + command.index(),
-                        # set address base + index
-                        'A=A+D',
-                        # store segment[index] in D
-                        'D=M',
-                        *self.place_value_in_D_on_top_stack_instructions(),
-                        *self.increment_stack_pointer_instructions()
-                    ]
-                elif command.segment() == 'static':
-                    # put static[index] value on top of stack
-                    return [
-                        # load static address
-                        '@' + self.STATIC_BASE_ADDRESS,
-                        # store static base address
                         'D=A',
                         # load index value
                         '@' + command.index(),
@@ -358,7 +344,7 @@ class VMTranslator():
                         # set segment[index] to stack top
                         'M=D'
                     ]
-                elif command.segment() == 'temp':
+                elif command.segment() in self.HOST_SEGMENTS:
                     return [
                         # load stack pointer
                         '@SP',
@@ -371,43 +357,8 @@ class VMTranslator():
                         # store top of stack in temp register
                         'M=D',
                         # load segment base address
-                        '@' + self.TEMP_BASE_ADDRESS,
+                        '@' + self.HOST_SEGMENTS[command.segment()],
                         # store temp base address
-                        'D=A',
-                        # load index value
-                        '@' + command.index(),
-                        # store index + base = address we care about
-                        'D=A+D',
-                        # load temp
-                        '@R6',
-                        # store segment + index address
-                        'M=D',
-                        # load top of stack value
-                        '@R5',
-                        # store in D
-                        'D=M',
-                        # load segment + index address
-                        '@R6',
-                        # set as current address register
-                        'A=M',
-                        # set segment[index] to stack top
-                        'M=D'
-                    ]
-                elif command.segment() == 'static':
-                    return [
-                        # load stack pointer
-                        '@SP',
-                        # decrement pointer to top of stack
-                        'AM=M-1',
-                        # store value temp in D
-                        'D=M',
-                        # load temp register
-                        '@R5',
-                        # store top of stack in temp register
-                        'M=D',
-                        # load segment base address
-                        '@' + self.STATIC_BASE_ADDRESS,
-                        # store static base address
                         'D=A',
                         # load index value
                         '@' + command.index(),
