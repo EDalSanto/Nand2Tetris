@@ -91,14 +91,102 @@ class VMWriter():
 
 class VMTranslator():
     ARITHMETIC_TRANSLATIONS = {
-        'add': [ '@SP', 'AM=M-1', 'D=M', '@SP', 'AM=M-1', 'M=M+D', '@SP', 'M=M+1' ],
-        'sub': [ '@SP', 'AM=M-1', 'D=M', '@SP', 'AM=M-1', 'M=M-D', '@SP', 'M=M+1' ],
-        'neg': [ '@SP', 'A=M-1', 'M=-M' ]
+        'add': [
+            # load stack pointer
+            '@SP',
+            # decrement stack pointer and set address
+            'AM=M-1',
+            # store top of stack in D
+            'D=M',
+            # load stack pointer again
+            '@SP',
+            # decrement stack pointer and set address
+            'AM=M-1',
+            # set top of stack to x + y
+            'M=M+D',
+            # load stack pointer
+            '@SP',
+            # increment stack pointer
+            'M=M+1'
+        ],
+        'sub': [
+            # load stack pointer
+            '@SP',
+            # decrement stack pointer and set address
+            'AM=M-1',
+            # store top of stack in D
+            'D=M',
+            # load stack pointer again
+            '@SP',
+            # decrement stack pointer and set address
+            'AM=M-1',
+            # set top of stack to x - y
+            'M=M-D',
+            # load stack pointer
+            '@SP',
+            # increment stack pointer
+            'M=M+1'
+        ],
+        'neg': [
+            # load stack pointer
+            '@SP',
+            # set address to top of stack pointer
+            'A=M-1',
+            # negate value at address
+            'M=-M'
+        ]
     }
+
     LOGICAL_TRANSLATIONS = {
-        'or' : [ '@SP', 'AM=M-1', 'D=M', '@SP', 'AM=M-1', 'M=M|D', '@SP', 'M=M+1' ],
-        'not': [ '@SP', 'AM=M-1', 'D=M', 'M=!M', '@SP', 'M=M+1'],
-        'and': [ '@SP', 'AM=M-1', 'D=M', '@SP', 'AM=M-1', 'M=M&D', '@SP', 'M=M+1']
+        'or' : [
+            # load stack pointer
+            '@SP',
+            # decrement stack pointer and set address
+            'AM=M-1',
+            # store top of stack in D
+            'D=M',
+            # load stack pointer
+            '@SP',
+            # decrement stack pointer and set address
+            'AM=M-1',
+            # x or y
+            'M=M|D',
+            # load stack pointer
+            '@SP',
+            # increment stack pointer
+            'M=M+1'
+        ],
+        'not': [
+            # load stack pointer
+            '@SP',
+            # decrement stack pointer and set address
+            'AM=M-1',
+            # Not top of stack
+            'M=!M',
+            # decrement stack pointer and set address
+            '@SP',
+            # load stack pointer
+            'M=M+1'
+            # increment stack pointer
+        ],
+        'and': [
+            # load stack pointer
+            '@SP',
+            # decrement stack pointer and set address
+            'AM=M-1',
+            # store top of stack in D
+            'D=M',
+            # load stack pointer
+            '@SP',
+            # decrement stack pointer and set address
+            'AM=M-1',
+            # x or y
+            'M=M&D',
+            # load stack pointer
+            '@SP',
+            # increment stack pointer
+            'M=M+1'
+        ]
     }
     # can't put translations here because need to update with counter at each iteration
     COMP_COMMANDS = {
@@ -134,7 +222,7 @@ class VMTranslator():
                 # Push the value of segment[index] onto the stack
 
                 if command.segment() == 'constant':
-                    # add the index to the top of stack
+                    # put the index value on top of the stack
 
                     return [
                         # load index value
@@ -153,7 +241,7 @@ class VMTranslator():
                         'M=M+1'
                     ]
                 elif command.segment() in self.SEGMENT_REGISTER_NAMES:
-                    # segment[index] to top of stack
+                    # put segment[index] on top of the stack
                     segment_name  = self.SEGMENT_REGISTER_NAMES[command.segment()]
 
                     return [
@@ -179,6 +267,7 @@ class VMTranslator():
                         'M=M+1'
                     ]
                 elif command.segment() == 'temp':
+                    # put index value
                     return [
                         # load temp address
                         '@' + self.TEMP_BASE_ADDRESS,
@@ -194,7 +283,7 @@ class VMTranslator():
                         '@SP',
                         # set address
                         'A=M',
-                        # set value at address to segment[index]
+                        # set top of stack to temp[index]
                         'M=D',
                         # load stack pointer
                         '@SP',
@@ -205,9 +294,10 @@ class VMTranslator():
                 # Pop the top-most value off the stack store in segment[index]
 
                 if command.segment() in self.SEGMENT_REGISTER_NAMES:
+                    # pop the top-most item off the stack and store in segment
+
                     segment_name  = self.SEGMENT_REGISTER_NAMES[command.segment()]
 
-                    # pop the top-most item off the stack and store in temp
                     return [
                         # load stack pointer
                         '@SP',

@@ -376,7 +376,6 @@ M=M|D
 M=M+1
 @SP
 AM=M-1
-D=M
 M=!M
 @SP
 M=M+1
