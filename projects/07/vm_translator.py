@@ -266,6 +266,38 @@ class VMTranslator():
                         # increment stack pointer
                         'M=M+1'
                     ]
+                elif command.segment() == 'pointer':
+                    # put pointer[index] on top of stack
+
+                    if command.index() == '0':
+                        segment_to_set = 'this'
+                        index = '3'
+                    elif command.index() == '1':
+                        segment_to_set = 'that'
+                        index = '4'
+
+                    return [
+                        # load segment ram pointer
+                        '@' + segment_to_set,
+                        # store segment base address
+                        'D=M', #
+                        # load index value
+                        '@' + index,
+                        # set address base + index
+                        'A=A+D',
+                        # store segment[index] in D
+                        'D=M',
+                        # load stack pointer
+                        '@SP',
+                        # set address
+                        'A=M',
+                        # set value at address to segment[index]
+                        'M=D',
+                        # load stack pointer
+                        '@SP',
+                        # increment stack pointer
+                        'M=M+1'
+                    ]
                 elif command.segment() == 'temp':
                     # put index value
                     return [
@@ -368,13 +400,47 @@ class VMTranslator():
                         'M=D'
                     ]
                 elif command.segment() == 'pointer':
-                    if command.index() == 0:
-                        segment = 'this'
-                    elif command.index() == 1:
-                        segment == 'that'
+                    if command.index() == '0':
+                        segment_to_set = 'this'
+                        index = '3'
+                    elif command.index() == '1':
+                        segment_to_set = 'that'
+                        index = '4'
 
+                    # set segment to top of stack
                     return [
-                        #
+                        # load stack pointer
+                        '@SP',
+                        # decrement pointer to top of stack
+                        'AM=M-1',
+                        # store value temp in D
+                        'D=M',
+                        # load temp register
+                        '@R5',
+                        # store top of stack in temp register
+                        'M=D',
+                        # load segment base address
+                        '@' + self.SEGMENT_REGISTER_NAMES[segment_to_set],
+                        # store segment base address
+                        'D=M',
+                        # load index value
+                        '@' + index,
+                        # store index + base = address we care about
+                        'D=A+D',
+                        # load temp
+                        '@R6',
+                        # store segment + index address
+                        'M=D',
+                        # load top of stack value
+                        '@R5',
+                        # store in D
+                        'D=M',
+                        # load segment + index address
+                        '@R6',
+                        # set as current address register
+                        'A=M',
+                        # set segment[index] to stack top
+                        'M=D'
                     ]
 
 
