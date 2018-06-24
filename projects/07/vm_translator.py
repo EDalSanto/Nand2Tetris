@@ -196,10 +196,14 @@ class VMTranslator():
     }
 
     SEGMENT_REGISTER_NAMES = {
-        'local'   : 'LCL',
-        'argument': 'ARG',
-        'this'    : 'THIS',
-        'that'    : 'THAT'
+        'local'    : 'LCL',
+        'argument' : 'ARG',
+        'this'     : 'THIS',
+        'that'     : 'THAT'
+    }
+    POINTER_SEGMENT_REGISTERS = {
+        '0': 'THIS',
+        '1': 'THAT'
     }
     TEMP_BASE_ADDRESS = '5'
     STATIC_BASE_ADDRESS = '16'
@@ -224,7 +228,6 @@ class VMTranslator():
 
                 if command.segment() == 'constant':
                     # put the index value on top of the stack
-
                     return [
                         # load index value
                         '@' + command.index(),
@@ -269,30 +272,18 @@ class VMTranslator():
                     ]
                 elif command.segment() == 'pointer':
                     # put pointer[index] on top of stack
-
-                    if command.index() == '0':
-                        segment_to_set = 'this'
-                        index = '3'
-                    elif command.index() == '1':
-                        segment_to_set = 'that'
-                        index = '4'
+                    segment_to_set = self.POINTER_SEGMENT_REGISTERS[command.index()]
 
                     return [
                         # load segment ram pointer
                         '@' + segment_to_set,
-                        # store segment base address
-                        'D=M', #
-                        # load index value
-                        '@' + index,
-                        # set address base + index
-                        'A=A+D',
                         # store segment[index] in D
                         'D=M',
                         # load stack pointer
                         '@SP',
-                        # set address
+                        # set to address of stack pointer
                         'A=M',
-                        # set value at address to segment[index]
+                        # place pointer[index] on top of stack
                         'M=D',
                         # load stack pointer
                         '@SP',
@@ -300,7 +291,7 @@ class VMTranslator():
                         'M=M+1'
                     ]
                 elif command.segment() == 'temp':
-                    # put index value
+                    # put temp[index] value on stack
                     return [
                         # load temp address
                         '@' + self.TEMP_BASE_ADDRESS,
@@ -324,7 +315,7 @@ class VMTranslator():
                         'M=M+1'
                     ]
                 elif command.segment() == 'static':
-                    # put index value
+                    # put static[index] value on top of stack
                     return [
                         # load static address
                         '@' + self.STATIC_BASE_ADDRESS,
