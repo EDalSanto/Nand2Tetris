@@ -195,7 +195,7 @@ class VMTranslator():
         'gt': { 'jump_directive': 'JLE'}
     }
 
-    SEGMENT_REGISTER_NAMES = {
+    VIRTUAL_MEMORY_SEGMENT_REGISTER_NAMES = {
         'local'    : 'LCL',
         'argument' : 'ARG',
         'this'     : 'THIS',
@@ -256,9 +256,9 @@ class VMTranslator():
                         *self.place_value_in_D_on_top_stack_instructions(),
                         *self.increment_stack_pointer_instructions()
                     ]
-                elif command.segment() in self.SEGMENT_REGISTER_NAMES:
+                elif command.segment() in self.VIRTUAL_MEMORY_SEGMENT_REGISTER_NAMES:
                     # put segment[index] on top of the stack
-                    segment_name  = self.SEGMENT_REGISTER_NAMES[command.segment()]
+                    segment_name  = self.VIRTUAL_MEMORY_SEGMENT_REGISTER_NAMES[command.segment()]
 
                     return [
                         # load segment ram pointer
@@ -305,10 +305,10 @@ class VMTranslator():
             elif command.operation() == 'pop':
                 # Pop the top-most value off the stack store in segment[index]
 
-                if command.segment() in self.SEGMENT_REGISTER_NAMES:
+                if command.segment() in self.VIRTUAL_MEMORY_SEGMENT_REGISTER_NAMES:
                     # pop the top-most item off the stack and store in segment
 
-                    segment_name  = self.SEGMENT_REGISTER_NAMES[command.segment()]
+                    segment_name  = self.VIRTUAL_MEMORY_SEGMENT_REGISTER_NAMES[command.segment()]
 
                     return [
                         # load stack pointer
@@ -401,7 +401,7 @@ class VMTranslator():
                         # store top of stack in temp register
                         'M=D',
                         # load segment base address
-                        '@' + self.SEGMENT_REGISTER_NAMES[segment_to_set],
+                        '@' + self.VIRTUAL_MEMORY_SEGMENT_REGISTER_NAMES[segment_to_set],
                         # store segment base address
                         'D=M',
                         # load index value
