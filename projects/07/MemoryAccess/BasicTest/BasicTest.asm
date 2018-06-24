@@ -10,8 +10,6 @@ AM=M-1
 D=M
 @R5
 M=D
-@SP
-M=M-1
 @LCL
 D=M
 @0
@@ -42,8 +40,6 @@ AM=M-1
 D=M
 @R5
 M=D
-@SP
-M=M-1
 @ARG
 D=M
 @2
@@ -60,8 +56,6 @@ AM=M-1
 D=M
 @R5
 M=D
-@SP
-M=M-1
 @ARG
 D=M
 @1
@@ -85,8 +79,6 @@ AM=M-1
 D=M
 @R5
 M=D
-@SP
-M=M-1
 @THIS
 D=M
 @6
@@ -117,8 +109,6 @@ AM=M-1
 D=M
 @R5
 M=D
-@SP
-M=M-1
 @THAT
 D=M
 @5
@@ -135,8 +125,6 @@ AM=M-1
 D=M
 @R5
 M=D
-@SP
-M=M-1
 @THAT
 D=M
 @2
@@ -160,10 +148,8 @@ AM=M-1
 D=M
 @R5
 M=D
-@SP
-M=M-1
-@R5
-D=M
+@5
+D=A
 @6
 D=A+D
 @R6
@@ -255,8 +241,8 @@ AM=M-1
 M=M-D
 @SP
 M=M+1
-@R5
-D=M
+@5
+D=A
 @6
 A=A+D
 D=M
