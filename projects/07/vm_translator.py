@@ -196,13 +196,13 @@ class VMTranslator():
     }
 
     VIRTUAL_MEMORY_SEGMENTS = {
-        'local'    : { 'base_address': '1' },
-        'argument' : { 'base_address': '2' },
-        'this'     : { 'base_address': '3' },
-        'that'     : { 'base_address': '4' },
+        'local'    : { 'base_address_pointer': '1' },
+        'argument' : { 'base_address_pointer': '2' },
+        'this'     : { 'base_address_pointer': '3' },
+        'that'     : { 'base_address_pointer': '4' },
     }
 
-    POINTER_SEGMENT_REGISTERS = {
+    POINTER_SEGMENT_BASE_ADDRESSES = {
         '0': 'THIS',
         '1': 'THAT'
     }
@@ -219,7 +219,7 @@ class VMTranslator():
             'gt' : { 'count': 0 }
         }
 
-    def place_value_in_D_on_top_stack_instructions(self):
+    def place_value_in_D_on_top_of_stack_instructions(self):
         return [
             # load stack pointer
             '@SP',
@@ -239,10 +239,29 @@ class VMTranslator():
 
     def load_value_in_D_instructions(self, value):
         return [
-            # load index value
+            # load value
             '@' + value,
-            # store value in D as temp
+            # store value in D
             'D=A'
+        ]
+
+    def load_referenced_value_in_D_instructions(self, address):
+        return [
+            # load address
+            '@' + address,
+            # store address value
+            'D=M'
+        ]
+
+    def add_index_to_base_address_in_D_instructions(self, index):
+        return [
+            '@' + index,
+            'D=D+A'
+        ]
+    def load_value_at_memory_address_in_D_instructions(self):
+        return [
+            'A=D',
+            'D=M'
         ]
 
     def translate(self, command):
@@ -252,65 +271,50 @@ class VMTranslator():
             return self.LOGICAL_TRANSLATIONS[command.text]
         elif command.text in self.COMP_COMMANDS:
             return self.comp_translation(command.text)
-        else: #elif command.push_or_pop():
+        else:
             if command.operation() == 'push':
                 # Push the value of segment[index] onto the stack
 
                 if command.segment() == 'constant':
                     # put the index value on top of the stack
+
                     return [
-                        *self.load_value_in_D_instructions(command.index()),
-                        *self.place_value_in_D_on_top_stack_instructions(),
+                        *self.load_value_in_D_instructions(value=command.index()),
+                        *self.place_value_in_D_on_top_of_stack_instructions(),
                         *self.increment_stack_pointer_instructions()
                     ]
                 elif command.segment() in self.VIRTUAL_MEMORY_SEGMENTS:
-                    # put segment[index] on top of the stack
+                    # put virtual_segment[index] on top of the stack
+
                     segment_props = self.VIRTUAL_MEMORY_SEGMENTS[command.segment()]
-                    base_address = segment_props['base_address']
+                    pointer_to_segment_base_address = segment_props['base_address_pointer']
 
                     return [
-                        # load segment ram pointer
-                        '@' + base_address,
-                        # store segment base address
-                        'D=M', #
-                        # load index value
-                        '@' + command.index(),
-                        # set address base + index
-                        'A=A+D',
-                        # store segment[index] in D
-                        'D=M',
-                        *self.place_value_in_D_on_top_stack_instructions(),
+                        *self.load_referenced_value_in_D_instructions(address=pointer_to_segment_base_address),
+                        *self.add_index_to_base_address_in_D_instructions(index=command.index()),
+                        *self.load_value_at_memory_address_in_D_instructions(),
+                        *self.place_value_in_D_on_top_of_stack_instructions(),
                         *self.increment_stack_pointer_instructions()
                     ]
                 elif command.segment() in self.HOST_SEGMENTS:
                     # put host_segment[index] value on stack
                     segment_props = self.HOST_SEGMENTS[command.segment()]
-                    base_address = segment_props['base_address']
+                    host_segment_base_address = segment_props['base_address']
 
                     return [
-                        # load temp address
-                        '@' + base_address,
-                        # store temp base address
-                        'D=A',
-                        # load index value
-                        '@' + command.index(),
-                        # set address base + index
-                        'A=A+D',
-                        # store segment[index] in D
-                        'D=M',
-                        *self.place_value_in_D_on_top_stack_instructions(),
+                        *self.load_value_in_D_instructions(value=host_segment_base_address),
+                        *self.add_index_to_base_address_in_D_instructions(index=command.index()),
+                        *self.load_value_at_memory_address_in_D_instructions(),
+                        *self.place_value_in_D_on_top_of_stack_instructions(),
                         *self.increment_stack_pointer_instructions()
                     ]
                 elif command.segment() == 'pointer':
                     # put pointer[index] (THIS or THAT value) on top of stack
-                    segment_address = self.POINTER_SEGMENT_REGISTERS[command.index()]
+                    pointer_segment_base_address = self.POINTER_SEGMENT_BASE_ADDRESSES[command.index()]
 
                     return [
-                        # load segment address
-                        '@' + segment_address,
-                        # store segment[index] in D
-                        'D=M',
-                        *self.place_value_in_D_on_top_stack_instructions(),
+                        *self.load_referenced_value_in_D_instructions(address=pointer_segment_base_address),
+                        *self.place_value_in_D_on_top_of_stack_instructions(),
                         *self.increment_stack_pointer_instructions()
                     ]
             elif command.operation() == 'pop':
@@ -320,7 +324,7 @@ class VMTranslator():
                     # pop the top-most item off the stack and store in segment
 
                     segment_props = self.VIRTUAL_MEMORY_SEGMENTS[command.segment()]
-                    base_address = segment_props['base_address']
+                    base_address = segment_props['base_address_pointer']
 
                     return [
                         # load stack pointer
@@ -395,7 +399,7 @@ class VMTranslator():
                         'M=D'
                     ]
                 elif command.segment() == 'pointer':
-                    segment_address = self.POINTER_SEGMENT_REGISTERS[command.index()]
+                    segment_address = self.POINTER_SEGMENT_BASE_ADDRESSES[command.index()]
 
                     # set segment (THIS or THAT) to top of stack
                     return [

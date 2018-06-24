@@ -93,7 +93,8 @@ M=M+1
 @3
 D=M
 @2
-A=A+D
+D=D+A
+A=D
 D=M
 @SP
 A=M
@@ -111,7 +112,8 @@ M=M+1
 @4
 D=M
 @6
-A=A+D
+D=D+A
+A=D
 D=M
 @SP
 A=M

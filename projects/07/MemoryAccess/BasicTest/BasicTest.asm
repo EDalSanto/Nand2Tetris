@@ -162,7 +162,8 @@ M=D
 @1
 D=M
 @0
-A=A+D
+D=D+A
+A=D
 D=M
 @SP
 A=M
@@ -172,7 +173,8 @@ M=M+1
 @4
 D=M
 @5
-A=A+D
+D=D+A
+A=D
 D=M
 @SP
 A=M
@@ -190,7 +192,8 @@ M=M+1
 @2
 D=M
 @1
-A=A+D
+D=D+A
+A=D
 D=M
 @SP
 A=M
@@ -208,7 +211,8 @@ M=M+1
 @3
 D=M
 @6
-A=A+D
+D=D+A
+A=D
 D=M
 @SP
 A=M
@@ -218,7 +222,8 @@ M=M+1
 @3
 D=M
 @6
-A=A+D
+D=D+A
+A=D
 D=M
 @SP
 A=M
@@ -244,7 +249,8 @@ M=M+1
 @5
 D=A
 @6
-A=A+D
+D=D+A
+A=D
 D=M
 @SP
 A=M

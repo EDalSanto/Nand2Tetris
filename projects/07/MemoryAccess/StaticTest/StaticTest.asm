@@ -70,7 +70,8 @@ M=D
 @16
 D=A
 @3
-A=A+D
+D=D+A
+A=D
 D=M
 @SP
 A=M
@@ -80,7 +81,8 @@ M=M+1
 @16
 D=A
 @1
-A=A+D
+D=D+A
+A=D
 D=M
 @SP
 A=M
@@ -98,7 +100,8 @@ M=M+1
 @16
 D=A
 @8
-A=A+D
+D=D+A
+A=D
 D=M
 @SP
 A=M
