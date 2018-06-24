@@ -202,6 +202,7 @@ class VMTranslator():
         'that'    : 'THAT'
     }
     TEMP_BASE_ADDRESS = '5'
+    STATIC_BASE_ADDRESS = '16'
 
     def __init__(self):
         self.counters = {
@@ -322,6 +323,30 @@ class VMTranslator():
                         # increment stack pointer
                         'M=M+1'
                     ]
+                elif command.segment() == 'static':
+                    # put index value
+                    return [
+                        # load static address
+                        '@' + self.STATIC_BASE_ADDRESS,
+                        # store static base address
+                        'D=A',
+                        # load index value
+                        '@' + command.index(),
+                        # set address base + index
+                        'A=A+D',
+                        # store segment[index] in D
+                        'D=M',
+                        # load stack pointer
+                        '@SP',
+                        # set address
+                        'A=M',
+                        # set top of stack to stack[index]
+                        'M=D',
+                        # load stack pointer
+                        '@SP',
+                        # increment stack pointer
+                        'M=M+1'
+                    ]
             elif command.operation() == 'pop':
                 # Pop the top-most value off the stack store in segment[index]
 
@@ -399,6 +424,41 @@ class VMTranslator():
                         # set segment[index] to stack top
                         'M=D'
                     ]
+                elif command.segment() == 'static':
+                    return [
+                        # load stack pointer
+                        '@SP',
+                        # decrement pointer to top of stack
+                        'AM=M-1',
+                        # store value temp in D
+                        'D=M',
+                        # load temp register
+                        '@R5',
+                        # store top of stack in temp register
+                        'M=D',
+                        # load segment base address
+                        '@' + self.STATIC_BASE_ADDRESS,
+                        # store static base address
+                        'D=A',
+                        # load index value
+                        '@' + command.index(),
+                        # store index + base = address we care about
+                        'D=A+D',
+                        # load temp
+                        '@R6',
+                        # store segment + index address
+                        'M=D',
+                        # load top of stack value
+                        '@R5',
+                        # store in D
+                        'D=M',
+                        # load segment + index address
+                        '@R6',
+                        # set as current address register
+                        'A=M',
+                        # set segment[index] to stack top
+                        'M=D'
+                    ]
                 elif command.segment() == 'pointer':
                     if command.index() == '0':
                         segment_to_set = 'this'
@@ -443,8 +503,6 @@ class VMTranslator():
                         'M=D'
                     ]
 
-
-
     def comp_translation(self, command_text):
         counter = self.counters[command_text]
         counter['count'] += 1
@@ -452,25 +510,45 @@ class VMTranslator():
         jump_directive = self.COMP_COMMANDS[command_text]['jump_directive']
 
         return [
+            # load stack pointer
             '@SP',
+            # set address and decrement stack pointer
             'AM=M-1',
+            # set D to top of stack
             'D=M',
+            # load stack pointer
             '@SP',
+            # set address and decrement stack pointer
             'AM=M-1',
-            'D=M-D', # x - y
+            # set D to x-y
+            'D=M-D',
+            # load not true label
             '@NOT_{}'.format(label_identifier),
+            # jump to not true section on directive
             'D;{}'.format(jump_directive),
+            # load stack pointer
             '@SP',
+            # set A to top of stack address
             'A=M',
+            # set it to -1 for true
             'M=-1',
+            # load inc stack pointer
             '@INC_STACK_POINTER_{}'.format(label_identifier),
+            # jump uncoditionally
             '0;JMP',
+            # not true section
             '(NOT_{})'.format(label_identifier),
+            # load stack pointer
             '@SP',
+            # set A to to top of stack address
             'A=M',
+            # set to 0 for false
             'M=0',
+            # define inc stack pointer label
             '(INC_STACK_POINTER_{})'.format(label_identifier),
+            # load stack pointer
             '@SP',
+            # increment stack pointer
             'M=M+1'
         ]
 
