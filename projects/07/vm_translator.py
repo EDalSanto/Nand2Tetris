@@ -14,6 +14,9 @@ class VMCommand():
         self.text = text.strip()
         self.parts = text.strip().split(' ')
 
+    def is_pushpop_command(self):
+        return self.operation() == 'push' or self.operation() == 'pop'
+
     def is_comment(self):
         return self.raw_text[0:2] == self.COMMENT_SYMBOL
 
@@ -77,6 +80,9 @@ class VMParser():
             self.current_command = self.next_command
 
 class VMWriter():
+    """
+    simply wrapper for interacting with output file
+    """
     def __init__(self, input_file):
         self.output_file = open(self._output_file_name_from(input_file), 'w')
 
@@ -89,112 +95,112 @@ class VMWriter():
     def _output_file_name_from(self, input_file):
         return input_file.split('.')[0] + '.asm'
 
-class VMTranslator():
-    ARITHMETIC_TRANSLATIONS = {
-        'add': [
-            # load stack pointer
-            '@SP',
-            # decrement stack pointer and set address
-            'AM=M-1',
-            # store top of stack in D
-            'D=M',
-            # load stack pointer again
-            '@SP',
-            # decrement stack pointer and set address
-            'AM=M-1',
-            # set top of stack to x + y
-            'M=M+D',
-            # load stack pointer
-            '@SP',
-            # increment stack pointer
-            'M=M+1'
-        ],
-        'sub': [
-            # load stack pointer
-            '@SP',
-            # decrement stack pointer and set address
-            'AM=M-1',
-            # store top of stack in D
-            'D=M',
-            # load stack pointer again
-            '@SP',
-            # decrement stack pointer and set address
-            'AM=M-1',
-            # set top of stack to x - y
-            'M=M-D',
-            # load stack pointer
-            '@SP',
-            # increment stack pointer
-            'M=M+1'
-        ],
-        'neg': [
-            # load stack pointer
-            '@SP',
-            # set address to top of stack pointer
-            'A=M-1',
-            # negate value at address
-            'M=-M'
-        ]
+
+class VMArithmeticTranslator():
+    OPERATION_INSTRUCTIONS = {
+        'add': 'M=M+D',
+        'sub': 'M=M-D',
+        'neg': 'M=-M',
+        'or' : 'M=M|D',
+        'not': 'M=!M',
+        'and': 'M=M&D'
     }
 
-    LOGICAL_TRANSLATIONS = {
-        'or' : [
-            # load stack pointer
-            '@SP',
-            # decrement stack pointer and set address
-            'AM=M-1',
-            # store top of stack in D
-            'D=M',
-            # load stack pointer
-            '@SP',
-            # decrement stack pointer and set address
-            'AM=M-1',
-            # x or y
-            'M=M|D',
-            # load stack pointer
-            '@SP',
-            # increment stack pointer
-            'M=M+1'
-        ],
-        'not': [
-            # load stack pointer
-            '@SP',
-            # decrement stack pointer and set address
-            'AM=M-1',
-            # Not top of stack
-            'M=!M',
-            # decrement stack pointer and set address
-            '@SP',
-            # load stack pointer
-            'M=M+1'
-            # increment stack pointer
-        ],
-        'and': [
-            # load stack pointer
-            '@SP',
-            # decrement stack pointer and set address
-            'AM=M-1',
-            # store top of stack in D
-            'D=M',
-            # load stack pointer
-            '@SP',
-            # decrement stack pointer and set address
-            'AM=M-1',
-            # x or y
-            'M=M&D',
-            # load stack pointer
-            '@SP',
-            # increment stack pointer
-            'M=M+1'
-        ]
-    }
-    # can't put translations here because need to update with counter at each iteration
     COMP_COMMANDS = {
         'eq': { 'jump_directive': 'JNE'},
         'lt': { 'jump_directive': 'JGE'},
         'gt': { 'jump_directive': 'JLE'}
     }
 
+    def __init__(self):
+        self.comp_counters = {
+            'eq' : { 'count': 0 },
+            'lt' : { 'count': 0 },
+            'gt' : { 'count': 0 }
+        }
+
+    def translate(self, command):
+        if command.text in self.COMP_COMMANDS:
+            return self.comp_translation(command.text)
+        else:
+            return self.arithmetic_translation(command.text)
+
+    def arithmetic_translation(self, command_text):
+        # binary operation
+        if command_text in [ 'add', 'sub', 'and', 'or' ]:
+            return [
+                *self.pop_top_number_off_stack_instructions(),
+                # put in temp D for operation
+                'D=M',
+                *self.pop_top_number_off_stack_instructions(),
+                self.OPERATION_INSTRUCTIONS[command_text],
+                *self.increment_stack_pointer_instructions()
+            ]
+        else: # unary operation
+            return [
+                *self.pop_top_number_off_stack_instructions(),
+                self.OPERATION_INSTRUCTIONS[command_text],
+                *self.increment_stack_pointer_instructions()
+            ]
+
+    def comp_translation(self, command_text):
+        counter = self.comp_counters[command_text]
+        counter['count'] += 1
+        label_identifier = '{}{}'.format(command_text.upper(), counter['count'])
+        jump_directive = self.COMP_COMMANDS[command_text]['jump_directive']
+
+        return [
+            *self.pop_top_number_off_stack_instructions(),
+            # set D to top of stack
+            'D=M',
+            *self.pop_top_number_off_stack_instructions(),
+            # set D to x-y
+            'D=M-D',
+            # load not true label
+            '@NOT_{}'.format(label_identifier),
+            # jump to not true section on directive
+            'D;{}'.format(jump_directive),
+            # load stack pointer
+            '@SP',
+            # set A to top of stack address
+            'A=M',
+            # set it to -1 for true
+            'M=-1',
+            # load inc stack pointer
+            '@INC_STACK_POINTER_{}'.format(label_identifier),
+            # jump uncoditionally
+            '0;JMP',
+            # not true section
+            '(NOT_{})'.format(label_identifier),
+            # load stack pointer
+            '@SP',
+            # set A to to top of stack address
+            'A=M',
+            # set to 0 for false
+            'M=0',
+            # define inc stack pointer label
+            '(INC_STACK_POINTER_{})'.format(label_identifier),
+            *self.increment_stack_pointer_instructions()
+        ]
+
+    def pop_top_number_off_stack_instructions(self):
+        return [
+            # load stack pointer
+            '@SP',
+            # decrement stack pointer and set address
+            'AM=M-1'
+        ]
+
+    def increment_stack_pointer_instructions(self):
+        return [
+            # load stack pointer
+            '@SP',
+            # increment stack pointer
+            'M=M+1'
+        ]
+
+
+class VMPushPopTranslator():
     VIRTUAL_MEMORY_SEGMENTS = {
         'local'    : { 'base_address_pointer': '1' },
         'argument' : { 'base_address_pointer': '2' },
@@ -209,21 +215,8 @@ class VMTranslator():
         'static': { 'base_address': '16'}
     }
 
-    def __init__(self):
-        self.counters = {
-            'eq' : { 'count': 0 },
-            'lt' : { 'count': 0 },
-            'gt' : { 'count': 0 }
-        }
-
     def translate(self, command):
-        if command.text in self.ARITHMETIC_TRANSLATIONS:
-            return self.ARITHMETIC_TRANSLATIONS[command.text]
-        elif command.text in self.LOGICAL_TRANSLATIONS:
-            return self.LOGICAL_TRANSLATIONS[command.text]
-        elif command.text in self.COMP_COMMANDS:
-            return self.comp_translation(command.text)
-        elif command.operation() == 'push':
+        if command.operation() == 'push':
             # Push the value of segment[index] onto the stack
 
             return [
@@ -231,7 +224,7 @@ class VMTranslator():
                 *self.place_value_in_D_on_top_of_stack_instructions(),
                 *self.increment_stack_pointer_instructions()
             ]
-        elif command.operation() == 'pop':
+        else: # command operation is pull
             # Pop the top-most value off the stack store in segment[index]
 
             return [
@@ -308,7 +301,9 @@ class VMTranslator():
         ]
     def load_value_at_memory_address_in_D_instructions(self):
         return [
+            # set A to address stored in D
             'A=D',
+            # now put value at new address in D
             'D=M'
         ]
 
@@ -360,70 +355,24 @@ class VMTranslator():
             'D=M'
         ]
 
-    def comp_translation(self, command_text):
-        counter = self.counters[command_text]
-        counter['count'] += 1
-        label_identifier = '{}{}'.format(command_text.upper(), counter['count'])
-        jump_directive = self.COMP_COMMANDS[command_text]['jump_directive']
-
-        return [
-            # load stack pointer
-            '@SP',
-            # set address and decrement stack pointer
-            'AM=M-1',
-            # set D to top of stack
-            'D=M',
-            # load stack pointer
-            '@SP',
-            # set address and decrement stack pointer
-            'AM=M-1',
-            # set D to x-y
-            'D=M-D',
-            # load not true label
-            '@NOT_{}'.format(label_identifier),
-            # jump to not true section on directive
-            'D;{}'.format(jump_directive),
-            # load stack pointer
-            '@SP',
-            # set A to top of stack address
-            'A=M',
-            # set it to -1 for true
-            'M=-1',
-            # load inc stack pointer
-            '@INC_STACK_POINTER_{}'.format(label_identifier),
-            # jump uncoditionally
-            '0;JMP',
-            # not true section
-            '(NOT_{})'.format(label_identifier),
-            # load stack pointer
-            '@SP',
-            # set A to to top of stack address
-            'A=M',
-            # set to 0 for false
-            'M=0',
-            # define inc stack pointer label
-            '(INC_STACK_POINTER_{})'.format(label_identifier),
-            # load stack pointer
-            '@SP',
-            # increment stack pointer
-            'M=M+1'
-        ]
-
-
 
 if __name__ == "__main__" and len(sys.argv) == 2:
     vm_code_file = sys.argv[1]
 
     parser = VMParser(vm_code_file)
     writer = VMWriter(vm_code_file)
-    translator = VMTranslator()
+    arithmetic_translator = VMArithmeticTranslator()
+    push_pop_translator = VMPushPopTranslator()
 
     while parser.has_more_commands:
         parser.advance()
         translation = []
 
         if parser.has_valid_current_command():
-            translation = translator.translate(parser.current_command)
+            if parser.current_command.is_pushpop_command():
+                translation = push_pop_translator.translate(parser.current_command)
+            else:
+                translation = arithmetic_translator.translate(parser.current_command)
 
             for line in translation:
                 writer.write(line + '\n')
