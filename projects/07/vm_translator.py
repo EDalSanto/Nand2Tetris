@@ -199,13 +199,10 @@ class VMTranslator():
         'local'    : { 'base_address_pointer': '1' },
         'argument' : { 'base_address_pointer': '2' },
         'this'     : { 'base_address_pointer': '3' },
-        'that'     : { 'base_address_pointer': '4' },
+        'that'     : { 'base_address_pointer': '4' }
     }
 
-    POINTER_SEGMENT_BASE_ADDRESSES = {
-        '0': 'THIS',
-        '1': 'THAT'
-    }
+    POINTER_SEGMENT_BASE_ADDRESS = '3'
 
     HOST_SEGMENTS = {
         'temp'  : { 'base_address': '5' },
@@ -229,31 +226,8 @@ class VMTranslator():
         elif command.operation() == 'push':
             # Push the value of segment[index] onto the stack
 
-            if command.segment() == 'constant':
-                # put the index value on top of the stack
-
-                segment_specific_ops = [
-                    *self.load_value_in_D_instructions(value=command.index())
-                ]
-            elif command.segment() in self.VIRTUAL_MEMORY_SEGMENTS or command.segment() in self.HOST_SEGMENTS:
-                # put segment[index] on top of the stack
-
-                segment_specific_ops = [
-                    *self.load_base_address_instructions_for(segment=command.segment()),
-                    *self.add_index_to_base_address_in_D_instructions(index=command.index()),
-                    *self.load_value_at_memory_address_in_D_instructions()
-                ]
-            elif command.segment() == 'pointer':
-                # put pointer[index] (THIS or THAT value) on top of stack
-
-                pointer_segment_base_address = self.POINTER_SEGMENT_BASE_ADDRESSES[command.index()]
-
-                segment_specific_ops = [
-                    *self.load_referenced_value_in_D_instructions(address=pointer_segment_base_address)
-                ]
-
             return [
-                *segment_specific_ops,
+                *self.load_desired_value_into_D_instructions_for(segment=command.segment(), index=command.index()),
                 *self.place_value_in_D_on_top_of_stack_instructions(),
                 *self.increment_stack_pointer_instructions()
             ]
@@ -272,23 +246,36 @@ class VMTranslator():
                     *self.set_target_address_to_value_instructions()
                 ]
             elif command.segment() == 'pointer':
-                segment_address = self.POINTER_SEGMENT_BASE_ADDRESSES[command.index()]
-
                 # set segment (THIS or THAT) to top of stack
+
                 return [
                     *self.store_top_of_stack_in_D_instructions(),
-                    *self.set_address_to_D_instructions(address=segment_address)
+                    *self.set_address_to_top_of_stack_instructions(address=self.POINTER_SEGMENT_BASE_ADDRESS)
                 ]
+
+
+    def load_desired_value_into_D_instructions_for(self, segment, index):
+        if segment == 'constant':
+            return [
+                *self.load_value_in_D_instructions(value=index)
+            ]
+        else:
+            return [
+                *self.load_base_address_instructions_for(segment=segment),
+                *self.add_index_to_base_address_in_D_instructions(index=index),
+                *self.load_value_at_memory_address_in_D_instructions()
+            ]
 
     def load_base_address_instructions_for(self, segment):
         if segment in self.VIRTUAL_MEMORY_SEGMENTS:
-            segment_props = self.VIRTUAL_MEMORY_SEGMENTS[segment]
-            pointer_to_segment_base_address = segment_props['base_address_pointer']
+            pointer_to_segment_base_address = self.VIRTUAL_MEMORY_SEGMENTS[segment]['base_address_pointer']
             return self.load_referenced_value_in_D_instructions(address=pointer_to_segment_base_address)
         elif segment in self.HOST_SEGMENTS:
-            segment_props = self.HOST_SEGMENTS[segment]
-            host_segment_base_address = segment_props['base_address']
+            host_segment_base_address = self.HOST_SEGMENTS[segment]['base_address']
             return self.load_value_in_D_instructions(value=host_segment_base_address)
+        elif segment == 'pointer':
+            return self.load_value_in_D_instructions(value=self.POINTER_SEGMENT_BASE_ADDRESS)
+
 
     def place_value_in_D_on_top_of_stack_instructions(self):
         return [
@@ -335,7 +322,7 @@ class VMTranslator():
             'D=M'
         ]
 
-    def set_address_to_D_instructions(self, address):
+    def set_address_to_top_of_stack_instructions(self, address):
         return [
             # load segment address
             '@' + address,
