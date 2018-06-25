@@ -234,24 +234,14 @@ class VMTranslator():
         elif command.operation() == 'pop':
             # Pop the top-most value off the stack store in segment[index]
 
-            if command.segment() in self.VIRTUAL_MEMORY_SEGMENTS or command.segment() in self.HOST_SEGMENTS:
-                # pop the top-most item off the stack and store in virtual_segment[index]
-
-                return [
-                    *self.store_top_of_stack_in_D_instructions(),
-                    *self.store_top_of_stack_first_temp_register_instructions(),
-                    *self.load_base_address_instructions_for(segment=command.segment()),
-                    *self.add_index_to_base_address_in_D_instructions(index=command.index()),
-                    *self.store_target_address_in_second_temp_register_instructions(),
-                    *self.set_target_address_to_value_instructions()
-                ]
-            elif command.segment() == 'pointer':
-                # set segment (THIS or THAT) to top of stack
-
-                return [
-                    *self.store_top_of_stack_in_D_instructions(),
-                    *self.set_address_to_top_of_stack_instructions(address=self.POINTER_SEGMENT_BASE_ADDRESS)
-                ]
+            return [
+                *self.store_top_of_stack_in_D_instructions(),
+                *self.store_top_of_stack_first_temp_register_instructions(),
+                *self.load_base_address_instructions_for(segment=command.segment()),
+                *self.add_index_to_base_address_in_D_instructions(index=command.index()),
+                *self.store_target_address_in_second_temp_register_instructions(),
+                *self.set_target_address_to_value_instructions()
+            ]
 
 
     def load_desired_value_into_D_instructions_for(self, segment, index):
