@@ -13,8 +13,50 @@ class VMCommand():
 
     def __init__(self, text):
         self.raw_text = text
-        self.text = text.strip()
-        self.parts = text.strip().split(' ')
+        self.text = text.split(self.COMMENT_SYMBOL)[0].strip()
+        self.parts = self.text.split(' ')
+
+    def label(self):
+        if not self.is_branching_command():
+            return
+
+        return self.parts[1]
+
+    def function(self):
+        if not self.is_function_command() or not self.is_call_command():
+            return
+
+        return self.parts[1]
+
+    def arguments(self):
+        if not self.is_call_command():
+            return
+
+        return self.parts[2]
+
+    def locals(self):
+        if not self.is_function_command():
+            return
+
+        return self.parts[2]
+
+    def is_function_command(self):
+        return self.operation() == 'function'
+
+    def is_call_command(self):
+        return self.operation() == 'call'
+
+    def is_branching_command(self):
+        return self.is_goto_command() or self.is_label_command() or self.is_ifgoto_command()
+
+    def is_goto_command(self):
+        return self.operation() == 'goto'
+
+    def is_ifgoto_command(self):
+        return self.operation() == 'if-goto'
+
+    def is_label_command(self):
+        return self.operation() == 'label'
 
     def is_pushpop_command(self):
         return self.operation() == 'push' or self.operation() == 'pop'
@@ -357,6 +399,30 @@ class VMPushPopTranslator():
             'D=M'
         ]
 
+class VMBranchingTranslator():
+    def translate(self, command):
+        if command.is_label_command():
+            # insert label into assembly
+            return [
+                '({})'.format(command.label())
+            ]
+        elif command.is_goto_command():
+            # unconditionally jump to label
+            return [
+                '@' + command.label(),
+                '0;JMP'
+            ]
+        elif command.is_ifgoto_command():
+            # jump if the topmost item on the stack is not equal to zero
+            return [
+                # pop top most item off stack
+                '@SP',
+                'AM=M-1',
+                'D=M',
+                '@' + command.label(),
+                'D;JNE'
+            ]
+
 
 if __name__ == "__main__" and len(sys.argv) == 2:
     input = sys.argv[1]
@@ -372,6 +438,7 @@ if __name__ == "__main__" and len(sys.argv) == 2:
         writer = VMWriter(vm_file)
         arithmetic_translator = VMArithmeticTranslator()
         push_pop_translator = VMPushPopTranslator()
+        branching_translator = VMBranchingTranslator()
 
         while parser.has_more_commands:
             parser.advance()
@@ -379,6 +446,8 @@ if __name__ == "__main__" and len(sys.argv) == 2:
             if parser.has_valid_current_command():
                 if parser.current_command.is_pushpop_command():
                     translation = push_pop_translator.translate(parser.current_command)
+                elif parser.current_command.is_branching_command():
+                    translation = branching_translator.translate(parser.current_command)
                 else:
                     translation = arithmetic_translator.translate(parser.current_command)
 
