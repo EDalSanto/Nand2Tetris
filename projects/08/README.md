@@ -40,6 +40,7 @@
 * be able to handle subroutines calling other subroutines and calling itself (recursion) -> stack grows
 
 ### Stack-Based Implementation
+![VMOnHackRAM](./images/VMOnHackRAM.png)
 * call-and-return logic -> **hierarchical structure** where called **subroutine must finish** its execution before the caller can resume its own execution
   * **stack of active subroutines**
   * each subroutine must maintain its **private set of local variables, argument values, pointers, and so on -> method frame**
