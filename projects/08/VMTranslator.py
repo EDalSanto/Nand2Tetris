@@ -419,9 +419,20 @@ class VMBranchingTranslator():
                 '@SP',
                 'AM=M-1',
                 'D=M',
+                # jump is not 0
                 '@' + command.label(),
                 'D;JNE'
             ]
+
+class VMFunctionTranslator():
+    def translate(self, command):
+        if command.is_function_command():
+
+        elif command.is_call_command():
+
+        elif command.is_return_command():
+
+
 
 
 if __name__ == "__main__" and len(sys.argv) == 2:
@@ -436,9 +447,11 @@ if __name__ == "__main__" and len(sys.argv) == 2:
     for vm_file in vm_files:
         parser = VMParser(vm_file)
         writer = VMWriter(vm_file)
+
         arithmetic_translator = VMArithmeticTranslator()
         push_pop_translator = VMPushPopTranslator()
         branching_translator = VMBranchingTranslator()
+        function_translator = VMFunctionTranslator()
 
         while parser.has_more_commands:
             parser.advance()
@@ -448,7 +461,9 @@ if __name__ == "__main__" and len(sys.argv) == 2:
                     translation = push_pop_translator.translate(parser.current_command)
                 elif parser.current_command.is_branching_command():
                     translation = branching_translator.translate(parser.current_command)
-                else:
+                elif parser.current_command.is_function():
+                    translation = function_translator.translate(parser.current_command)
+                else: # math / logical operation
                     translation = arithmetic_translator.translate(parser.current_command)
 
                 for line in translation:
