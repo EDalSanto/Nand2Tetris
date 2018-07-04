@@ -22,8 +22,8 @@ class VMCommand():
 
         return self.parts[1]
 
-    def function(self):
-        if not self.is_function_command() or not self.is_call_command():
+    def function_name(self):
+        if not self.is_function_declaration_command() and not self.is_call_command():
             return
 
         return self.parts[1]
@@ -35,16 +35,23 @@ class VMCommand():
         return self.parts[2]
 
     def locals(self):
-        if not self.is_function_command():
+        if not self.is_function_declaration_command():
             return
 
         return self.parts[2]
 
     def is_function_command(self):
+        return self.is_function_declaration_command() or self.is_call_command() or self.is_return_command()
+
+
+    def is_function_declaration_command(self):
         return self.operation() == 'function'
 
     def is_call_command(self):
         return self.operation() == 'call'
+
+    def is_return_command(self):
+        return self.operation() == 'return'
 
     def is_branching_command(self):
         return self.is_goto_command() or self.is_label_command() or self.is_ifgoto_command()
@@ -381,6 +388,7 @@ class VMPushPopTranslator():
             'M=D'
         ]
 
+    # (when top of stack already in D)
     def store_top_of_stack_first_temp_register_instructions(self):
         return [
             # load temp register
@@ -425,12 +433,152 @@ class VMBranchingTranslator():
             ]
 
 class VMFunctionTranslator():
+    def __init__(self):
+        self.function_count = 0
+        self.call_count = 0
+
     def translate(self, command):
-        if command.is_function_command():
+        if command.is_function_declaration_command():
+            self.function_count += 1
 
+            return [
+                # establish function label
+                '({})'.format(command.function_name()),
+                # push onto the stack 0 command.locals() times
+                # initialize loop times
+                '@' + command.locals(),
+                # store in D
+                'D=A',
+                # store in temp?
+                # establish loop label
+                '(LOOP.ADD_LOCALS.{})'.format(self.function_count),
+                # push 0 onto stack D times
+                # load stack pointer
+                '@SP',
+                # get pointer address
+                'A=M',
+                # set to 0
+                'M=0',
+                # increment stack pointer
+                '@SP',
+                'M=M+1',
+                # decrement D
+                'D=D-1',
+                # load loop
+                '@LOOP.ADD_LOCALS.{}'.format(self.function_count),
+                # jump back if not 0
+                'D;JNE'
+            ]
         elif command.is_call_command():
+            self.call_count += 1
 
+            return [
+                "call"
+            ]
         elif command.is_return_command():
+            return [
+                # FRAME=LCL // FRAME is a temporary variable
+                '@LCL',
+                'D=M', # Frame
+                # load temp register
+                '@R5',
+                # store Frame in temp register
+                'M=D',
+                # RET=*(FRAME-5) // save return address in a temp. var
+                # load value to subtract
+                '@5',
+                # store value in D
+                'D=A',
+                # load frame from temp
+                '@R5',
+                # get address value into A
+                'A=M-D',
+                # dereference to get value at mem address
+                'D=M',
+                # load into temp reg
+                '@R6',
+                'M=D',
+                # *ARG=pop() // reposition return value for caller
+                # pop of stack off into D
+                '@SP',
+                'AM=M-1',
+                'D=M',
+                # set top of arg stack to return value for caller
+                '@ARG',
+                'A=M',
+                'M=D',
+                #SP=ARG+1 // restore SP for caller
+                '@ARG',
+                'D=M+1',
+                '@SP',
+                'M=D',
+                #THAT=*(FRAME-1) // restore THAT of calling function
+                # load value to subtract
+                '@1',
+                # place in D
+                'D=A',
+                # load frame
+                '@R5',
+                # get address value into A
+                'A=M-D',
+                # dereference to get value at mem address
+                'D=M',
+                # load THAT
+                '@THAT',
+                # set value at THAT to D
+                'M=D',
+                #THIS=*(FRAME-2) // restore THIS of calling function
+                # load value to subtract
+                '@2',
+                # place in D
+                'D=A',
+                # load frame
+                '@R5',
+                # get address value into A
+                'A=M-D',
+                # dereference to get value at mem address
+                'D=M',
+                # load THIS
+                '@THIS',
+                # set value at THAT to D
+                'M=D',
+                #ARG=*(FRAME-3) // restore ARG of calling function
+                # load value to subtract
+                '@3',
+                # place in D
+                'D=A',
+                # load frame
+                '@R5',
+                # get address value into A
+                'A=M-D',
+                # dereference to get value at mem address
+                'D=M',
+                # load ARG
+                '@ARG',
+                # set value at THAT to D
+                'M=D',
+                #LCL=*(FRAME-4) // Restore LCL of calling function
+                # load value to subtract
+                '@4',
+                # place in D
+                'D=A',
+                # load frame
+                '@R5',
+                # get address value into A
+                'A=M-D',
+                # dereference to get value at mem address
+                'D=M',
+                # load LCL
+                '@LCL',
+                # set value at THAT to D
+                'M=D',
+                #goto RET // GOTO the return-address
+                # load RET
+                '@R6',
+                'A=M',
+                # go to RET
+                '0;JMP'
+            ]
 
 
 
@@ -448,6 +596,7 @@ if __name__ == "__main__" and len(sys.argv) == 2:
         parser = VMParser(vm_file)
         writer = VMWriter(vm_file)
 
+        # maybe these go inside the translator and wrap up to 1 translate method
         arithmetic_translator = VMArithmeticTranslator()
         push_pop_translator = VMPushPopTranslator()
         branching_translator = VMBranchingTranslator()
@@ -461,7 +610,7 @@ if __name__ == "__main__" and len(sys.argv) == 2:
                     translation = push_pop_translator.translate(parser.current_command)
                 elif parser.current_command.is_branching_command():
                     translation = branching_translator.translate(parser.current_command)
-                elif parser.current_command.is_function():
+                elif parser.current_command.is_function_command():
                     translation = function_translator.translate(parser.current_command)
                 else: # math / logical operation
                     translation = arithmetic_translator.translate(parser.current_command)
