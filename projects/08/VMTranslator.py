@@ -275,7 +275,7 @@ class VMPushPopTranslator():
                 *self.place_value_in_D_on_top_of_stack_instructions(),
                 *self.increment_stack_pointer_instructions()
             ]
-        else: # command operation is pull
+        else: # command operation is pop
             # Pop the top-most value off the stack store in segment[index]
 
             return [
@@ -369,11 +369,11 @@ class VMPushPopTranslator():
     def set_target_address_to_value_instructions(self):
         return [
             # load top of stack value
-            '@R5',
+            '@R13',
             # store in D
             'D=M',
             # load segment + index address
-            '@R6',
+            '@R14',
             # set as current address register
             'A=M',
             # set segment[index] to stack top
@@ -383,7 +383,7 @@ class VMPushPopTranslator():
     def store_target_address_in_second_temp_register_instructions(self):
         return [
             # load temp
-            '@R6',
+            '@R14',
             # store segment + index address
             'M=D'
         ]
@@ -392,7 +392,7 @@ class VMPushPopTranslator():
     def store_top_of_stack_first_temp_register_instructions(self):
         return [
             # load temp register
-            '@R5',
+            '@R13',
             # store top of stack in temp register
             'M=D'
         ]
@@ -453,6 +453,9 @@ class VMFunctionTranslator():
                 'D=A',
                 # establish loop label
                 '(LOOP.ADD_LOCALS.{})'.format(self.function_count),
+                # skip if D eq 0
+                '@NO_LOCALS.{}'.format(self.function_count),
+                'D;JEQ',
                 ## push 0 onto stack D times
                 # load stack pointer
                 '@SP',
@@ -468,7 +471,8 @@ class VMFunctionTranslator():
                 # load loop
                 '@LOOP.ADD_LOCALS.{}'.format(self.function_count),
                 # jump back if not 0
-                'D;JNE'
+                'D;JNE',
+                '(NO_LOCALS.{})'.format(self.function_count)
             ]
         elif command.is_call_command():
             self.call_count += 1
@@ -492,7 +496,7 @@ class VMFunctionTranslator():
                 # load LCL
                 '@LCL',
                 # get its address
-                'D=A',
+                'D=M',
                 # load stack pointer
                 '@SP',
                 # load address
@@ -506,7 +510,7 @@ class VMFunctionTranslator():
                 # load ARG
                 '@ARG',
                 # get its address
-                'D=A',
+                'D=M',
                 # load stack pointer
                 '@SP',
                 # load address
@@ -520,7 +524,7 @@ class VMFunctionTranslator():
                 # load THIS
                 '@THIS',
                 # get its address
-                'D=A',
+                'D=M',
                 # load stack pointer
                 '@SP',
                 # load address
@@ -534,7 +538,7 @@ class VMFunctionTranslator():
                 # load THAT
                 '@THAT',
                 # get its address
-                'D=A',
+                'D=M',
                 # load stack pointer
                 '@SP',
                 # load address
@@ -552,7 +556,8 @@ class VMFunctionTranslator():
                 '@{}'.format(command.num_arguments()),
                 'D=D-A',
                 # subtract 5
-                'D=D-{}'.format(self.NUM_SEGMENTS_COPIED_TO_NEW_STACK_FRAME),
+                '@{}'.format(self.NUM_SEGMENTS_COPIED_TO_NEW_STACK_FRAME),
+                'D=D-A',
                 # set ARG
                 '@ARG',
                 'M=D',
@@ -574,7 +579,7 @@ class VMFunctionTranslator():
                 # store in D
                 'D=M', # Frame
                 # load temp register
-                '@R5',
+                '@R13',
                 # store Frame in temp register
                 'M=D',
                 # RET=*(FRAME-5) // save return address in a temp. var
@@ -583,13 +588,13 @@ class VMFunctionTranslator():
                 # store value in D
                 'D=A',
                 # load frame from temp
-                '@R5',
+                '@R13',
                 # get address value into A
                 'A=M-D',
                 # dereference to get value at mem address
                 'D=M',
                 # load into temp reg
-                '@R6',
+                '@R14',
                 'M=D',
                 # *ARG=pop() // reposition return value for caller
                 # pop of stack off into D
@@ -618,7 +623,7 @@ class VMFunctionTranslator():
                 *self.restore_calling_function('LCL', slots_behind_frame_end=4),
                 #goto RET // GOTO the return-address
                 # load RET
-                '@R6',
+                '@R14',
                 'A=M',
                 # go to RET
                 '0;JMP'
@@ -631,7 +636,7 @@ class VMFunctionTranslator():
             # place in D
             'D=A',
             # load frame
-            '@R5',
+            '@R13',
             # get address value into A
             'A=M-D',
             # dereference to get value at mem address
