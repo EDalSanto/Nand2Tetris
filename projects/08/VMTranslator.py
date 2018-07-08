@@ -479,6 +479,7 @@ class VMFunctionTranslator():
             return [
                 # FRAME=LCL // FRAME is a temporary variable
                 '@LCL',
+                # store in D
                 'D=M', # Frame
                 # load temp register
                 '@R5',
@@ -501,77 +502,28 @@ class VMFunctionTranslator():
                 # *ARG=pop() // reposition return value for caller
                 # pop of stack off into D
                 '@SP',
+                # decrment address and stack pointer
                 'AM=M-1',
+                # store value at top of stack in D
                 'D=M',
                 # set top of arg stack to return value for caller
                 '@ARG',
+                # get register access at memory address
                 'A=M',
+                # set to D, top of stack value
                 'M=D',
                 #SP=ARG+1 // restore SP for caller
                 '@ARG',
+                # store current address of ARG + 1 in D
                 'D=M+1',
+                # load stack pointer
                 '@SP',
+                # set address to arg + 1
                 'M=D',
-                #THAT=*(FRAME-1) // restore THAT of calling function
-                # load value to subtract
-                '@1',
-                # place in D
-                'D=A',
-                # load frame
-                '@R5',
-                # get address value into A
-                'A=M-D',
-                # dereference to get value at mem address
-                'D=M',
-                # load THAT
-                '@THAT',
-                # set value at THAT to D
-                'M=D',
-                #THIS=*(FRAME-2) // restore THIS of calling function
-                # load value to subtract
-                '@2',
-                # place in D
-                'D=A',
-                # load frame
-                '@R5',
-                # get address value into A
-                'A=M-D',
-                # dereference to get value at mem address
-                'D=M',
-                # load THIS
-                '@THIS',
-                # set value at THAT to D
-                'M=D',
-                #ARG=*(FRAME-3) // restore ARG of calling function
-                # load value to subtract
-                '@3',
-                # place in D
-                'D=A',
-                # load frame
-                '@R5',
-                # get address value into A
-                'A=M-D',
-                # dereference to get value at mem address
-                'D=M',
-                # load ARG
-                '@ARG',
-                # set value at THAT to D
-                'M=D',
-                #LCL=*(FRAME-4) // Restore LCL of calling function
-                # load value to subtract
-                '@4',
-                # place in D
-                'D=A',
-                # load frame
-                '@R5',
-                # get address value into A
-                'A=M-D',
-                # dereference to get value at mem address
-                'D=M',
-                # load LCL
-                '@LCL',
-                # set value at THAT to D
-                'M=D',
+                *self.restore_calling_function('THAT', slots_behind_frame_end=1),
+                *self.restore_calling_function('THIS', slots_behind_frame_end=2),
+                *self.restore_calling_function('ARG', slots_behind_frame_end=3),
+                *self.restore_calling_function('LCL', slots_behind_frame_end=4),
                 #goto RET // GOTO the return-address
                 # load RET
                 '@R6',
@@ -579,6 +531,26 @@ class VMFunctionTranslator():
                 # go to RET
                 '0;JMP'
             ]
+
+    def restore_calling_function(self, memory_segment, slots_behind_frame_end):
+        return [
+            # load delta before frame end
+            '@{}'.format(slots_behind_frame_end),
+            # place in D
+            'D=A',
+            # load frame
+            '@R5',
+            # get address value into A
+            'A=M-D',
+            # dereference to get value at mem address
+            'D=M',
+            # load LCL
+            '@{}'.format(memory_segment),
+            # set value at THAT to D
+            'M=D'
+        ]
+
+
 
 
 
