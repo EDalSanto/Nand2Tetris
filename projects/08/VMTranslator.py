@@ -28,7 +28,7 @@ class VMCommand():
 
         return self.parts[1]
 
-    def arguments(self):
+    def num_arguments(self):
         if not self.is_call_command():
             return
 
@@ -433,6 +433,8 @@ class VMBranchingTranslator():
             ]
 
 class VMFunctionTranslator():
+    NUM_SEGMENTS_COPIED_TO_NEW_STACK_FRAME = 5
+
     def __init__(self):
         self.function_count = 0
         self.call_count = 0
@@ -472,7 +474,98 @@ class VMFunctionTranslator():
             self.call_count += 1
 
             return [
-                "call"
+                ## push return address onto stack
+                # load return address label
+                '@RET_ADDRESS.{}'.format(self.call_count),
+                # get address value
+                'D=A',
+                # load stack pointer
+                '@SP',
+                # load address
+                'A=M',
+                # set value at address to D, return address
+                'M=D',
+                # increment stack pointer
+                '@SP',
+                'M=M+1',
+                ## push LCL address onto stack
+                # load LCL
+                '@LCL',
+                # get its address
+                'D=A',
+                # load stack pointer
+                '@SP',
+                # load address
+                'A=M',
+                # set value at address to D, return address
+                'M=D',
+                # increment stack pointer
+                '@SP',
+                'M=M+1',
+                ## push ARG address onto stack
+                # load ARG
+                '@ARG',
+                # get its address
+                'D=A',
+                # load stack pointer
+                '@SP',
+                # load address
+                'A=M',
+                # set value at address to D, return address
+                'M=D',
+                # increment stack pointer
+                '@SP',
+                'M=M+1',
+                ## push THIS address onto stack
+                # load THIS
+                '@THIS',
+                # get its address
+                'D=A',
+                # load stack pointer
+                '@SP',
+                # load address
+                'A=M',
+                # set value at address to D, return address
+                'M=D',
+                # increment stack pointer
+                '@SP',
+                'M=M+1',
+                ## push THAT address onto stack
+                # load THAT
+                '@THAT',
+                # get its address
+                'D=A',
+                # load stack pointer
+                '@SP',
+                # load address
+                'A=M',
+                # set value at address to D, return address
+                'M=D',
+                # increment stack pointer
+                '@SP',
+                'M=M+1',
+                ## ARG = SP - nArgs - 5
+                # get value of SP
+                '@SP',
+                'D=M',
+                # substract num arguments
+                '@{}'.format(command.num_arguments()),
+                'D=D-A',
+                # subtract 5
+                'D=D-{}'.format(self.NUM_SEGMENTS_COPIED_TO_NEW_STACK_FRAME),
+                # set ARG
+                '@ARG',
+                'M=D',
+                ## LCL = SP reposition LCL
+                '@SP',
+                'D=M',
+                '@LCL',
+                'M=D',
+                ## jump to function (which will run this function's instructions)
+                '@{}'.format(command.function_name()),
+                '0;JMP',
+                ## label for return address
+                '(RET_ADDRESS.{})'.format(self.call_count)
             ]
         elif command.is_return_command():
             return [
