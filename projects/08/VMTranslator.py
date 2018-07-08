@@ -23,7 +23,7 @@ class VMCommand():
         return self.parts[1]
 
     def function_name(self):
-        if not self.is_function_declaration_command() and not self.is_call_command():
+        if not self.is_function_definition_command() and not self.is_call_command():
             return
 
         return self.parts[1]
@@ -35,16 +35,16 @@ class VMCommand():
         return self.parts[2]
 
     def locals(self):
-        if not self.is_function_declaration_command():
+        if not self.is_function_definition_command():
             return
 
         return self.parts[2]
 
     def is_function_command(self):
-        return self.is_function_declaration_command() or self.is_call_command() or self.is_return_command()
+        return self.is_function_definition_command() or self.is_call_command() or self.is_return_command()
 
 
-    def is_function_declaration_command(self):
+    def is_function_definition_command(self):
         return self.operation() == 'function'
 
     def is_call_command(self):
@@ -438,21 +438,20 @@ class VMFunctionTranslator():
         self.call_count = 0
 
     def translate(self, command):
-        if command.is_function_declaration_command():
+        if command.is_function_definition_command():
             self.function_count += 1
 
             return [
-                # establish function label
+                # establish function label -> will be used to jump to spot when called
                 '({})'.format(command.function_name()),
-                # push onto the stack 0 command.locals() times
+                ## push onto the stack 0 command.locals() times
                 # initialize loop times
                 '@' + command.locals(),
                 # store in D
                 'D=A',
-                # store in temp?
                 # establish loop label
                 '(LOOP.ADD_LOCALS.{})'.format(self.function_count),
-                # push 0 onto stack D times
+                ## push 0 onto stack D times
                 # load stack pointer
                 '@SP',
                 # get pointer address
