@@ -134,8 +134,8 @@ class VMWriter():
     """
     simply wrapper for interacting with output file
     """
-    def __init__(self, input_file):
-        self.output_file = open(self._output_file_name_from(input_file), 'w')
+    def __init__(self, input):
+        self.output_file = open(self._output_file_name_from(input), 'w')
 
     def write(self, command):
         self.output_file.write(command)
@@ -143,8 +143,12 @@ class VMWriter():
     def close_file(self):
         self.output_file.close()
 
-    def _output_file_name_from(self, input_file):
-        return input_file.split('.')[0] + '.asm'
+    def _output_file_name_from(self, input):
+        if os.path.isfile(input):
+            return input.split('.')[0] + '.asm'
+        elif os.path.isdir(input):
+            last_dir_name = input.split('/')[-2]
+            return input + last_dir_name + '.asm'
 
 
 class VMArithmeticTranslator():
@@ -661,15 +665,29 @@ if __name__ == "__main__" and len(sys.argv) == 2:
         vm_path = os.path.join(input, "*.vm")
         vm_files = glob.glob(vm_path)
 
+    # maybe these go inside the translator and wrap up to 1 translate method
+    arithmetic_translator = VMArithmeticTranslator()
+    push_pop_translator = VMPushPopTranslator()
+    branching_translator = VMBranchingTranslator()
+    function_translator = VMFunctionTranslator()
+
+    # write properly only to 1 file
+    writer = VMWriter(input)
+
+    ## init code
+    init_code = [
+        # SP = 256
+        '@SP',
+        'M=256',
+        # call Sys.init
+        *function_translator.translate(VMCommand('call Sys.init 0'))
+    ]
+
+    for line in init_code:
+        writer.write(line + "\n")
+
     for vm_file in vm_files:
         parser = VMParser(vm_file)
-        writer = VMWriter(vm_file)
-
-        # maybe these go inside the translator and wrap up to 1 translate method
-        arithmetic_translator = VMArithmeticTranslator()
-        push_pop_translator = VMPushPopTranslator()
-        branching_translator = VMBranchingTranslator()
-        function_translator = VMFunctionTranslator()
 
         while parser.has_more_commands:
             parser.advance()
