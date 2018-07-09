@@ -677,8 +677,10 @@ if __name__ == "__main__" and len(sys.argv) == 2:
     ## init code
     init_code = [
         # SP = 256
+        '@256',
+        'D=A',
         '@SP',
-        'M=256',
+        'M=D',
         # call Sys.init
         *function_translator.translate(VMCommand('call Sys.init 0'))
     ]

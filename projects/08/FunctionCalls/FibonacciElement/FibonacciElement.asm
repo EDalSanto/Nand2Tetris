@@ -1,5 +1,7 @@
+@256
+D=A
 @SP
-M=256
+M=D
 @RET_ADDRESS.1
 D=A
 @SP
