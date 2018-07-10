@@ -145,10 +145,11 @@ class VMWriter():
 
     def _output_file_name_from(self, input):
         if os.path.isfile(input):
-            return input.split('.')[0] + '.asm'
+            vm_file_name = input.split('.')[0]
+            return vm_file_name + '.asm'
         elif os.path.isdir(input):
-            last_dir_name = input.split('/')[-2]
-            return input + last_dir_name + '.asm'
+            last_dir_name = os.path.basename(input)
+            return input + "/" + last_dir_name + ".asm"
 
 
 class VMArithmeticTranslator():
