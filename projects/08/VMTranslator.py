@@ -270,6 +270,24 @@ class VMPushPopTranslator():
         'static': { 'base_address': '16'}
     }
 
+    def translate_static(self, command, current_file_name):
+        if command.operation() == 'push':
+            return [
+                # load Filename.index
+                '@{}.{}'.format(current_file_name, command.index())
+                *self.load_value_at_memory_address_in_D_instructions()
+                *self.place_value_in_D_on_top_of_stack_instructions(),
+                *self.increment_stack_pointer_instructions()
+            ]
+         elif command.operation() == 'pop':
+            return [
+                *self.store_top_of_stack_in_D_instructions(),
+                # set value at address to D
+                *self.set_address_to_top_of_stack_instructions(
+                    address='{}.{}'.format(current_file_name, command.index())
+                )
+            ]
+
     def translate(self, command):
         if command.operation() == 'push':
             # Push the value of segment[index] onto the stack
@@ -279,18 +297,15 @@ class VMPushPopTranslator():
                 *self.place_value_in_D_on_top_of_stack_instructions(),
                 *self.increment_stack_pointer_instructions()
             ]
-        else: # command operation is pop
-            # Pop the top-most value off the stack store in segment[index]
-
+        elif command.operation() == 'pop':
             return [
                 *self.store_top_of_stack_in_D_instructions(),
                 *self.store_top_of_stack_first_temp_register_instructions(),
                 *self.load_base_address_instructions_for(segment=command.segment()),
-                *self.add_index_to_base_address_in_D_instructions(index=command.index()),
+                *self.add_index_to_base_address_in_D_instructions(command),
                 *self.store_target_address_in_second_temp_register_instructions(),
                 *self.set_target_address_to_value_instructions()
             ]
-
 
     def load_desired_value_into_D_instructions_for(self, segment, index):
         if segment == 'constant':
@@ -300,7 +315,7 @@ class VMPushPopTranslator():
         else:
             return [
                 *self.load_base_address_instructions_for(segment=segment),
-                *self.add_index_to_base_address_in_D_instructions(index=index),
+                *self.add_index_to_base_address_in_D_instructions(command),
                 *self.load_value_at_memory_address_in_D_instructions()
             ]
 
@@ -313,7 +328,6 @@ class VMPushPopTranslator():
             return self.load_value_in_D_instructions(value=host_segment_base_address)
         elif segment == 'pointer':
             return self.load_value_in_D_instructions(value=self.POINTER_SEGMENT_BASE_ADDRESS)
-
 
     def place_value_in_D_on_top_of_stack_instructions(self):
         return [
@@ -349,11 +363,12 @@ class VMPushPopTranslator():
             'D=M'
         ]
 
-    def add_index_to_base_address_in_D_instructions(self, index):
+    def add_index_to_base_address_in_D_instructions(self, command):
         return [
-            '@' + index,
+            '@' + command.index(),
             'D=D+A'
         ]
+
     def load_value_at_memory_address_in_D_instructions(self):
         return [
             # set A to address stored in D
@@ -650,10 +665,6 @@ class VMFunctionTranslator():
             # set value at THAT to D
             'M=D'
         ]
-
-
-
-
 
 
 if __name__ == "__main__" and len(sys.argv) == 2:

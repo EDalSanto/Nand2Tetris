@@ -1,0 +1,5 @@
+- each file needs to have separate static segment
+  - static variables -> variables that every part of class sees
+  - translate pop static i to filename.i assembly reference
+  - possiblities
+    - special case for static segment that translate pop static i's target address just to @Filename.i
