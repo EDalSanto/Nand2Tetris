@@ -274,12 +274,13 @@ class VMPushPopTranslator():
         if command.operation() == 'push':
             return [
                 # load Filename.index
-                '@{}.{}'.format(current_file_name, command.index())
-                *self.load_value_at_memory_address_in_D_instructions()
+                *self.load_referenced_value_in_D_instructions(
+                    '{}.{}'.format(current_file_name, command.index()),
+                ),
                 *self.place_value_in_D_on_top_of_stack_instructions(),
                 *self.increment_stack_pointer_instructions()
             ]
-         elif command.operation() == 'pop':
+        elif command.operation() == 'pop':
             return [
                 *self.store_top_of_stack_in_D_instructions(),
                 # set value at address to D
@@ -293,7 +294,7 @@ class VMPushPopTranslator():
             # Push the value of segment[index] onto the stack
 
             return [
-                *self.load_desired_value_into_D_instructions_for(segment=command.segment(), index=command.index()),
+                *self.load_desired_value_into_D_instructions_for(command),
                 *self.place_value_in_D_on_top_of_stack_instructions(),
                 *self.increment_stack_pointer_instructions()
             ]
@@ -307,14 +308,14 @@ class VMPushPopTranslator():
                 *self.set_target_address_to_value_instructions()
             ]
 
-    def load_desired_value_into_D_instructions_for(self, segment, index):
-        if segment == 'constant':
+    def load_desired_value_into_D_instructions_for(self, command):
+        if command.segment() == 'constant':
             return [
-                *self.load_value_in_D_instructions(value=index)
+                *self.load_value_in_D_instructions(value=command.index())
             ]
         else:
             return [
-                *self.load_base_address_instructions_for(segment=segment),
+                *self.load_base_address_instructions_for(segment=command.segment()),
                 *self.add_index_to_base_address_in_D_instructions(command),
                 *self.load_value_at_memory_address_in_D_instructions()
             ]
@@ -668,36 +669,35 @@ class VMFunctionTranslator():
 
 
 if __name__ == "__main__" and len(sys.argv) == 2:
-    input = sys.argv[1]
-
-    if os.path.isfile(input):
-        vm_files = [input]
-    elif os.path.isdir(input):
-        vm_path = os.path.join(input, "*.vm")
-        vm_files = glob.glob(vm_path)
-
     # maybe these go inside the translator and wrap up to 1 translate method
     arithmetic_translator = VMArithmeticTranslator()
     push_pop_translator = VMPushPopTranslator()
     branching_translator = VMBranchingTranslator()
     function_translator = VMFunctionTranslator()
 
-    # write properly only to 1 file
+    input = sys.argv[1]
+
     writer = VMWriter(input)
 
-    ## init code
-    init_code = [
-        # SP = 256
-        '@256',
-        'D=A',
-        '@SP',
-        'M=D',
-        # call Sys.init
-        *function_translator.translate(VMCommand('call Sys.init 0'))
-    ]
+    if os.path.isfile(input):
+        vm_files = [input]
+    elif os.path.isdir(input):
+        vm_path = os.path.join(input, "*.vm")
+        vm_files = glob.glob(vm_path)
+        ## add init code only for directories
+        init_code = [
+            # SP = 256
+            '@256',
+            'D=A',
+            '@SP',
+            'M=D',
+            # call Sys.init
+            *function_translator.translate(VMCommand('call Sys.init 0'))
+        ]
 
-    for line in init_code:
-        writer.write(line + "\n")
+        for line in init_code:
+            writer.write(line + "\n")
+
 
     for vm_file in vm_files:
         parser = VMParser(vm_file)
@@ -706,7 +706,9 @@ if __name__ == "__main__" and len(sys.argv) == 2:
             parser.advance()
 
             if parser.has_valid_current_command():
-                if parser.current_command.is_pushpop_command():
+                if parser.current_command.segment() == 'static':
+                    translation = push_pop_translator.translate_static(parser.current_command, vm_file.split(".")[0].split("/")[-1])
+                elif parser.current_command.is_pushpop_command():
                     translation = push_pop_translator.translate(parser.current_command)
                 elif parser.current_command.is_branching_command():
                     translation = branching_translator.translate(parser.current_command)
