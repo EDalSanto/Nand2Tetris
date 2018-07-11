@@ -427,29 +427,29 @@ class VMPushPopTranslator():
         ]
 
 class VMBranchingTranslator():
-    def translate(self, command):
-        if command.is_label_command():
-            # insert label into assembly
-            return [
-                '({})'.format(command.label())
-            ]
-        elif command.is_goto_command():
-            # unconditionally jump to label
-            return [
-                '@' + command.label(),
-                '0;JMP'
-            ]
-        elif command.is_ifgoto_command():
-            # jump if the topmost item on the stack is not equal to zero
-            return [
-                # pop top most item off stack
-                '@SP',
-                'AM=M-1',
-                'D=M',
-                # jump is not 0
-                '@' + command.label(),
-                'D;JNE'
-            ]
+    def translate_label(self, command):
+        return [
+            '({})'.format(command.label())
+        ]
+
+    def translate_goto(self, command):
+        # unconditionally jump to label
+        return [
+            '@' + command.label(),
+            '0;JMP'
+        ]
+
+    def translate_ifgoto(self, command):
+        # jump if the topmost item on the stack is not equal to zero
+        return [
+            # pop top most item off stack
+            '@SP',
+            'AM=M-1',
+            'D=M',
+            # jump is not 0
+            '@' + command.label(),
+            'D;JNE'
+        ]
 
 class VMFunctionTranslator():
     NUM_SEGMENTS_COPIED_TO_NEW_STACK_FRAME = 5
@@ -733,8 +733,12 @@ class Main():
             return self.function_translator.translate_function_definition(current_command)
         elif current_command.is_function_call_command():
             return self.function_translator.translate_function_call(current_command)
-        elif current_command.is_branching_command():
-            return self.branching_translator.translate(current_command)
+        elif current_command.is_label_command():
+            return self.branching_translator.translate_label(current_command)
+        elif current_command.is_goto_command():
+            return self.branching_translator.translate_goto(current_command)
+        elif current_command.is_ifgoto_command():
+            return self.branching_translator.translate_ifgoto(current_command)
         else: # math / logical operation
             return self.arithmetic_translator.translate(current_command)
 
