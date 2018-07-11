@@ -75,6 +75,9 @@ class VMCommand():
     def is_empty(self):
         return self.raw_text == self.EMPTY_SYMBOL
 
+    def for_static_memory_segment(self):
+        return self.segment() == 'static'
+
     def segment(self):
         if self.memory_access_command():
             return self.parts()[1]
@@ -267,24 +270,24 @@ class VMPushPopTranslator():
         'static': { 'base_address': '16'}
     }
 
-    def translate_static(self, command, current_file_name):
-        if command.operation() == 'push':
-            return [
-                # load Filename.index
-                *self.load_referenced_value_in_D_instructions(
-                    '{}.{}'.format(current_file_name, command.index()),
-                ),
-                *self.place_value_in_D_on_top_of_stack_instructions(),
-                *self.increment_stack_pointer_instructions()
-            ]
-        elif command.operation() == 'pop':
-            return [
-                *self.store_top_of_stack_in_D_instructions(),
-                # set value at address to D
-                *self.set_address_to_top_of_stack_instructions(
-                    address='{}.{}'.format(current_file_name, command.index())
-                )
-            ]
+    def translate_static_pop(self, command, current_file_name):
+        return [
+            *self.store_top_of_stack_in_D_instructions(),
+            # set value at address to D
+            *self.set_address_to_top_of_stack_instructions(
+                address='{}.{}'.format(current_file_name, command.index())
+            )
+        ]
+
+    def translate_static_push(self, command, current_file_name):
+        return [
+            # load Filename.index
+            *self.load_referenced_value_in_D_instructions(
+                '{}.{}'.format(current_file_name, command.index()),
+            ),
+            *self.place_value_in_D_on_top_of_stack_instructions(),
+            *self.increment_stack_pointer_instructions()
+        ]
 
     def translate_push(self, command):
         # Push the value of segment[index] onto the stack
@@ -702,12 +705,18 @@ if __name__ == "__main__" and len(sys.argv) == 2:
             parser.advance()
 
             if parser.has_valid_current_command():
-                if parser.current_command.segment() == 'static':
-                    translation = push_pop_translator.translate_static(parser.current_command, vm_file.split(".")[0].split("/")[-1])
-                elif parser.current_command.is_push_command():
-                    translation = push_pop_translator.translate_push(parser.current_command)
+                if parser.current_command.is_push_command():
+                    if parser.current_command.for_static_memory_segment():
+                        filename_without_extension = vm_file.split(".")[0].split("/")[-1]
+                        translation = push_pop_translator.translate_static_push(parser.current_command, filename_without_extension)
+                    else:
+                        translation = push_pop_translator.translate_push(parser.current_command)
                 elif parser.current_command.is_pop_command():
-                    translation = push_pop_translator.translate_pop(parser.current_command)
+                    if parser.current_command.for_static_memory_segment():
+                        filename_without_extension = vm_file.split(".")[0].split("/")[-1]
+                        translation = push_pop_translator.translate_static_pop(parser.current_command, filename_without_extension)
+                    else:
+                        translation = push_pop_translator.translate_pop(parser.current_command)
                 elif parser.current_command.is_branching_command():
                     translation = branching_translator.translate(parser.current_command)
                 elif parser.current_command.is_function_command():
