@@ -25,11 +25,11 @@ class VMCommand():
             return self.parts()[1]
 
     def function_name(self):
-        if self.is_function_definition_command() or self.is_call_command():
+        if self.is_function_definition_command() or self.is_function_call_command():
             return self.parts()[1]
 
     def num_arguments(self):
-        if self.is_call_command():
+        if self.is_function_call_command():
             return self.parts()[2]
 
     def locals(self):
@@ -42,7 +42,7 @@ class VMCommand():
     def is_function_definition_command(self):
         return self.operation() == 'function'
 
-    def is_call_command(self):
+    def is_function_call_command(self):
         return self.operation() == 'call'
 
     def is_return_command(self):
@@ -458,195 +458,207 @@ class VMFunctionTranslator():
         self.function_count = 0
         self.call_count = 0
 
-    def translate(self, command):
-        if command.is_function_definition_command():
-            self.function_count += 1
+    def init_code(self):
+        return [
+            # set SP = 256
+            '@256',
+            'D=A',
+            '@SP',
+            'M=D',
+            # call Sys.init
+            *self.translate_function_call(VMCommand('call Sys.init 0'))
+        ]
 
-            return [
-                # establish function label -> will be used to jump to spot when called
-                '({})'.format(command.function_name()),
-                ## push onto the stack 0 command.locals() times
-                # initialize loop times
-                '@' + command.locals(),
-                # store in D
-                'D=A',
-                # establish loop label
-                '(LOOP.ADD_LOCALS.{})'.format(self.function_count),
-                # skip if D eq 0
-                '@NO_LOCALS.{}'.format(self.function_count),
-                'D;JEQ',
-                ## push 0 onto stack D times
-                # load stack pointer
-                '@SP',
-                # get pointer address
-                'A=M',
-                # set to 0
-                'M=0',
-                # increment stack pointer
-                '@SP',
-                'M=M+1',
-                # decrement D
-                'D=D-1',
-                # load loop
-                '@LOOP.ADD_LOCALS.{}'.format(self.function_count),
-                # jump back if not 0
-                'D;JNE',
-                '(NO_LOCALS.{})'.format(self.function_count)
-            ]
-        elif command.is_call_command():
-            self.call_count += 1
+    def translate_function_definition(self, command):
+        self.function_count += 1
 
-            return [
-                ## push return address onto stack
-                # load return address label
-                '@RET_ADDRESS.{}'.format(self.call_count),
-                # get address value
-                'D=A',
-                # load stack pointer
-                '@SP',
-                # load address
-                'A=M',
-                # set value at address to D, return address
-                'M=D',
-                # increment stack pointer
-                '@SP',
-                'M=M+1',
-                ## push LCL address onto stack
-                # load LCL
-                '@LCL',
-                # get its address
-                'D=M',
-                # load stack pointer
-                '@SP',
-                # load address
-                'A=M',
-                # set value at address to D, return address
-                'M=D',
-                # increment stack pointer
-                '@SP',
-                'M=M+1',
-                ## push ARG address onto stack
-                # load ARG
-                '@ARG',
-                # get its address
-                'D=M',
-                # load stack pointer
-                '@SP',
-                # load address
-                'A=M',
-                # set value at address to D, return address
-                'M=D',
-                # increment stack pointer
-                '@SP',
-                'M=M+1',
-                ## push THIS address onto stack
-                # load THIS
-                '@THIS',
-                # get its address
-                'D=M',
-                # load stack pointer
-                '@SP',
-                # load address
-                'A=M',
-                # set value at address to D, return address
-                'M=D',
-                # increment stack pointer
-                '@SP',
-                'M=M+1',
-                ## push THAT address onto stack
-                # load THAT
-                '@THAT',
-                # get its address
-                'D=M',
-                # load stack pointer
-                '@SP',
-                # load address
-                'A=M',
-                # set value at address to D, return address
-                'M=D',
-                # increment stack pointer
-                '@SP',
-                'M=M+1',
-                ## ARG = SP - nArgs - 5
-                # get value of SP
-                '@SP',
-                'D=M',
-                # substract num arguments
-                '@{}'.format(command.num_arguments()),
-                'D=D-A',
-                # subtract 5
-                '@{}'.format(self.NUM_SEGMENTS_COPIED_TO_NEW_STACK_FRAME),
-                'D=D-A',
-                # set ARG
-                '@ARG',
-                'M=D',
-                ## LCL = SP reposition LCL
-                '@SP',
-                'D=M',
-                '@LCL',
-                'M=D',
-                ## jump to function (which will run this function's instructions)
-                '@{}'.format(command.function_name()),
-                '0;JMP',
-                ## label for return address
-                '(RET_ADDRESS.{})'.format(self.call_count)
-            ]
-        elif command.is_return_command():
-            return [
-                # FRAME=LCL // FRAME is a temporary variable
-                '@LCL',
-                # store in D
-                'D=M', # Frame
-                # load temp register
-                '@R13',
-                # store Frame in temp register
-                'M=D',
-                # RET=*(FRAME-5) // save return address in a temp. var
-                # load value to subtract
-                '@5',
-                # store value in D
-                'D=A',
-                # load frame from temp
-                '@R13',
-                # get address value into A
-                'A=M-D',
-                # dereference to get value at mem address
-                'D=M',
-                # load into temp reg
-                '@R14',
-                'M=D',
-                # *ARG=pop() // reposition return value for caller
-                # pop of stack off into D
-                '@SP',
-                # decrment address and stack pointer
-                'AM=M-1',
-                # store value at top of stack in D
-                'D=M',
-                # set top of arg stack to return value for caller
-                '@ARG',
-                # get register access at memory address
-                'A=M',
-                # set to D, top of stack value
-                'M=D',
-                #SP=ARG+1 // restore SP for caller
-                '@ARG',
-                # store current address of ARG + 1 in D
-                'D=M+1',
-                # load stack pointer
-                '@SP',
-                # set address to arg + 1
-                'M=D',
-                *self.restore_calling_function('THAT', slots_behind_frame_end=1),
-                *self.restore_calling_function('THIS', slots_behind_frame_end=2),
-                *self.restore_calling_function('ARG', slots_behind_frame_end=3),
-                *self.restore_calling_function('LCL', slots_behind_frame_end=4),
-                #goto RET // GOTO the return-address
-                # load RET
-                '@R14',
-                'A=M',
-                # go to RET
-                '0;JMP'
-            ]
+        return [
+            # establish function label -> will be used to jump to spot when called
+            '({})'.format(command.function_name()),
+            ## push onto the stack 0 command.locals() times
+            # initialize loop times
+            '@' + command.locals(),
+            # store in D
+            'D=A',
+            # establish loop label
+            '(LOOP.ADD_LOCALS.{})'.format(self.function_count),
+            # skip if D eq 0
+            '@NO_LOCALS.{}'.format(self.function_count),
+            'D;JEQ',
+            ## push 0 onto stack D times
+            # load stack pointer
+            '@SP',
+            # get pointer address
+            'A=M',
+            # set to 0
+            'M=0',
+            # increment stack pointer
+            '@SP',
+            'M=M+1',
+            # decrement D
+            'D=D-1',
+            # load loop
+            '@LOOP.ADD_LOCALS.{}'.format(self.function_count),
+            # jump back if not 0
+            'D;JNE',
+            '(NO_LOCALS.{})'.format(self.function_count)
+        ]
+
+    def translate_function_call(self, command):
+        self.call_count += 1
+
+        return [
+            ## push return address onto stack
+            # load return address label
+            '@RET_ADDRESS.{}'.format(self.call_count),
+            # get address value
+            'D=A',
+            # load stack pointer
+            '@SP',
+            # load address
+            'A=M',
+            # set value at address to D, return address
+            'M=D',
+            # increment stack pointer
+            '@SP',
+            'M=M+1',
+            ## push LCL address onto stack
+            # load LCL
+            '@LCL',
+            # get its address
+            'D=M',
+            # load stack pointer
+            '@SP',
+            # load address
+            'A=M',
+            # set value at address to D, return address
+            'M=D',
+            # increment stack pointer
+            '@SP',
+            'M=M+1',
+            ## push ARG address onto stack
+            # load ARG
+            '@ARG',
+            # get its address
+            'D=M',
+            # load stack pointer
+            '@SP',
+            # load address
+            'A=M',
+            # set value at address to D, return address
+            'M=D',
+            # increment stack pointer
+            '@SP',
+            'M=M+1',
+            ## push THIS address onto stack
+            # load THIS
+            '@THIS',
+            # get its address
+            'D=M',
+            # load stack pointer
+            '@SP',
+            # load address
+            'A=M',
+            # set value at address to D, return address
+            'M=D',
+            # increment stack pointer
+            '@SP',
+            'M=M+1',
+            ## push THAT address onto stack
+            # load THAT
+            '@THAT',
+            # get its address
+            'D=M',
+            # load stack pointer
+            '@SP',
+            # load address
+            'A=M',
+            # set value at address to D, return address
+            'M=D',
+            # increment stack pointer
+            '@SP',
+            'M=M+1',
+            ## ARG = SP - nArgs - 5
+            # get value of SP
+            '@SP',
+            'D=M',
+            # substract num arguments
+            '@{}'.format(command.num_arguments()),
+            'D=D-A',
+            # subtract 5
+            '@{}'.format(self.NUM_SEGMENTS_COPIED_TO_NEW_STACK_FRAME),
+            'D=D-A',
+            # set ARG
+            '@ARG',
+            'M=D',
+            ## LCL = SP reposition LCL
+            '@SP',
+            'D=M',
+            '@LCL',
+            'M=D',
+            ## jump to function (which will run this function's instructions)
+            '@{}'.format(command.function_name()),
+            '0;JMP',
+            ## label for return address
+            '(RET_ADDRESS.{})'.format(self.call_count)
+        ]
+
+    def translate_return(self, command):
+        return [
+            # FRAME=LCL // FRAME is a temporary variable
+            '@LCL',
+            # store in D
+            'D=M', # Frame
+            # load temp register
+            '@R13',
+            # store Frame in temp register
+            'M=D',
+            # RET=*(FRAME-5) // save return address in a temp. var
+            # load value to subtract
+            '@5',
+            # store value in D
+            'D=A',
+            # load frame from temp
+            '@R13',
+            # get address value into A
+            'A=M-D',
+            # dereference to get value at mem address
+            'D=M',
+            # load into temp reg
+            '@R14',
+            'M=D',
+            # *ARG=pop() // reposition return value for caller
+            # pop of stack off into D
+            '@SP',
+            # decrment address and stack pointer
+            'AM=M-1',
+            # store value at top of stack in D
+            'D=M',
+            # set top of arg stack to return value for caller
+            '@ARG',
+            # get register access at memory address
+            'A=M',
+            # set to D, top of stack value
+            'M=D',
+            #SP=ARG+1 // restore SP for caller
+            '@ARG',
+            # store current address of ARG + 1 in D
+            'D=M+1',
+            # load stack pointer
+            '@SP',
+            # set address to arg + 1
+            'M=D',
+            *self.restore_calling_function('THAT', slots_behind_frame_end=1),
+            *self.restore_calling_function('THIS', slots_behind_frame_end=2),
+            *self.restore_calling_function('ARG', slots_behind_frame_end=3),
+            *self.restore_calling_function('LCL', slots_behind_frame_end=4),
+            #goto RET // GOTO the return-address
+            # load RET
+            '@R14',
+            'A=M',
+            # go to RET
+            '0;JMP'
+        ]
 
     def restore_calling_function(self, memory_segment, slots_behind_frame_end):
         return [
@@ -684,17 +696,7 @@ class Main():
         elif os.path.isdir(self.input):
             vm_path = os.path.join(self.input, "*.vm")
             vm_files = glob.glob(vm_path)
-            ## add init code only for directories
-            init_code = [
-                # SP = 256
-                '@256',
-                'D=A',
-                '@SP',
-                'M=D',
-                # call Sys.init
-                *self.function_translator.translate(VMCommand('call Sys.init 0'))
-            ]
-
+            init_code = self.function_translator.init_code()
             for line in init_code:
                 writer.write(line)
 
@@ -709,7 +711,6 @@ class Main():
                     continue
 
                 translation = self.find_translation(parser.current_command)
-
                 for line in translation:
                     writer.write(line)
 
@@ -726,10 +727,14 @@ class Main():
                 return self.push_pop_translator.translate_static_pop(current_command, self.current_filename_without_extension())
             else:
                 return self.push_pop_translator.translate_pop(current_command)
+        elif current_command.is_return_command():
+            return self.function_translator.translate_return(current_command)
+        elif current_command.is_function_definition_command():
+            return self.function_translator.translate_function_definition(current_command)
+        elif current_command.is_function_call_command():
+            return self.function_translator.translate_function_call(current_command)
         elif current_command.is_branching_command():
             return self.branching_translator.translate(current_command)
-        elif current_command.is_function_command():
-            return self.function_translator.translate(current_command)
         else: # math / logical operation
             return self.arithmetic_translator.translate(current_command)
 
