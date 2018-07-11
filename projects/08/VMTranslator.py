@@ -105,8 +105,8 @@ class VMParser():
         self.current_command = None
         self.next_command = None
 
-    def has_valid_current_command(self):
-        return not self.current_command.is_whitespace() and not self.current_command.is_comment()
+    def has_invalid_current_command(self):
+        return self.current_command.is_whitespace() or self.current_command.is_comment()
 
     def advance(self):
         self._update_current_command()
@@ -137,7 +137,7 @@ class VMWriter():
         self.output_file = open(self._output_file_name_from(input), 'w')
 
     def write(self, command):
-        self.output_file.write(command)
+        self.output_file.write(command + "\n")
 
     def close_file(self):
         self.output_file.close()
@@ -666,65 +666,77 @@ class VMFunctionTranslator():
             'M=D'
         ]
 
+class Main():
+    def __init__(self, input):
+        self.input = input
+        self.current_file = None
+        # maybe these go inside the translator and wrap up to 1 translate method
+        self.arithmetic_translator = VMArithmeticTranslator()
+        self.push_pop_translator = VMPushPopTranslator()
+        self.branching_translator = VMBranchingTranslator()
+        self.function_translator = VMFunctionTranslator()
 
-if __name__ == "__main__" and len(sys.argv) == 2:
-    # maybe these go inside the translator and wrap up to 1 translate method
-    arithmetic_translator = VMArithmeticTranslator()
-    push_pop_translator = VMPushPopTranslator()
-    branching_translator = VMBranchingTranslator()
-    function_translator = VMFunctionTranslator()
+    def run_program(self):
+        writer = VMWriter(self.input)
 
-    input = sys.argv[1]
+        if os.path.isfile(self.input):
+            vm_files = [self.input]
+        elif os.path.isdir(self.input):
+            vm_path = os.path.join(self.input, "*.vm")
+            vm_files = glob.glob(vm_path)
+            ## add init code only for directories
+            init_code = [
+                # SP = 256
+                '@256',
+                'D=A',
+                '@SP',
+                'M=D',
+                # call Sys.init
+                *self.function_translator.translate(VMCommand('call Sys.init 0'))
+            ]
 
-    writer = VMWriter(input)
+            for line in init_code:
+                writer.write(line)
 
-    if os.path.isfile(input):
-        vm_files = [input]
-    elif os.path.isdir(input):
-        vm_path = os.path.join(input, "*.vm")
-        vm_files = glob.glob(vm_path)
-        ## add init code only for directories
-        init_code = [
-            # SP = 256
-            '@256',
-            'D=A',
-            '@SP',
-            'M=D',
-            # call Sys.init
-            *function_translator.translate(VMCommand('call Sys.init 0'))
-        ]
+        for vm_file in vm_files:
+            self.current_file = vm_file
+            parser = VMParser(vm_file)
 
-        for line in init_code:
-            writer.write(line + "\n")
+            while parser.has_more_commands:
+                parser.advance()
 
+                if parser.has_invalid_current_command():
+                    continue
 
-    for vm_file in vm_files:
-        parser = VMParser(vm_file)
-
-        while parser.has_more_commands:
-            parser.advance()
-
-            if parser.has_valid_current_command():
-                if parser.current_command.is_push_command():
-                    if parser.current_command.for_static_memory_segment():
-                        filename_without_extension = vm_file.split(".")[0].split("/")[-1]
-                        translation = push_pop_translator.translate_static_push(parser.current_command, filename_without_extension)
-                    else:
-                        translation = push_pop_translator.translate_push(parser.current_command)
-                elif parser.current_command.is_pop_command():
-                    if parser.current_command.for_static_memory_segment():
-                        filename_without_extension = vm_file.split(".")[0].split("/")[-1]
-                        translation = push_pop_translator.translate_static_pop(parser.current_command, filename_without_extension)
-                    else:
-                        translation = push_pop_translator.translate_pop(parser.current_command)
-                elif parser.current_command.is_branching_command():
-                    translation = branching_translator.translate(parser.current_command)
-                elif parser.current_command.is_function_command():
-                    translation = function_translator.translate(parser.current_command)
-                else: # math / logical operation
-                    translation = arithmetic_translator.translate(parser.current_command)
+                translation = self.find_translation(parser.current_command)
 
                 for line in translation:
-                    writer.write(line + '\n')
+                    writer.write(line)
 
-    writer.close_file()
+        writer.close_file()
+
+    def find_translation(self, current_command):
+        if current_command.is_push_command():
+            if current_command.for_static_memory_segment():
+                return self.push_pop_translator.translate_static_push(current_command, self.current_filename_without_extension())
+            else:
+                return self.push_pop_translator.translate_push(current_command)
+        elif current_command.is_pop_command():
+            if current_command.for_static_memory_segment():
+                return self.push_pop_translator.translate_static_pop(current_command, self.current_filename_without_extension())
+            else:
+                return self.push_pop_translator.translate_pop(current_command)
+        elif current_command.is_branching_command():
+            return self.branching_translator.translate(current_command)
+        elif current_command.is_function_command():
+            return self.function_translator.translate(current_command)
+        else: # math / logical operation
+            return self.arithmetic_translator.translate(current_command)
+
+    def current_filename_without_extension(self):
+        return self.current_file.split(".")[0].split("/")[-1]
+
+
+if __name__ == "__main__" and len(sys.argv) == 2:
+    input = sys.argv[1]
+    Main(input).run_program()
