@@ -11,34 +11,38 @@ class VMCommand():
     NEWLINE_SYMBOL = '\n'
     EMPTY_SYMBOL = ''
 
-    def __init__(self, text):
-        self.raw_text = text
-        self.text = text.split(self.COMMENT_SYMBOL)[0].strip()
-        self.parts = self.text.split(' ')
+    def __init__(self, raw_text):
+        self.raw_text = raw_text
+
+    def text(self):
+        return self.raw_text.split(self.COMMENT_SYMBOL)[0].strip()
+
+    def parts(self):
+        return self.text().split(' ')
 
     def label(self):
         if not self.is_branching_command():
             return
 
-        return self.parts[1]
+        return self.parts()[1]
 
     def function_name(self):
         if not self.is_function_definition_command() and not self.is_call_command():
             return
 
-        return self.parts[1]
+        return self.parts()[1]
 
     def num_arguments(self):
         if not self.is_call_command():
             return
 
-        return self.parts[2]
+        return self.parts()[2]
 
     def locals(self):
         if not self.is_function_definition_command():
             return
 
-        return self.parts[2]
+        return self.parts()[2]
 
     def is_function_command(self):
         return self.is_function_definition_command() or self.is_call_command() or self.is_return_command()
@@ -79,20 +83,20 @@ class VMCommand():
 
     def segment(self):
         # only for memory access commands
-        if len(self.parts) != 3:
+        if len(self.parts()) != 3:
             return
 
-        return self.parts[1]
+        return self.parts()[1]
 
     def index(self):
         # only for memory access commands
-        if len(self.parts) != 3:
+        if len(self.parts()) != 3:
             return
 
-        return self.parts[2]
+        return self.parts()[2]
 
     def operation(self):
-        return self.parts[0]
+        return self.parts()[0]
 
 class VMParser():
     """
@@ -176,10 +180,10 @@ class VMArithmeticTranslator():
         }
 
     def translate(self, command):
-        if command.text in self.COMP_COMMANDS:
-            return self.comp_translation(command.text)
+        if command.text() in self.COMP_COMMANDS:
+            return self.comp_translation(command.text())
         else:
-            return self.arithmetic_translation(command.text)
+            return self.arithmetic_translation(command.text())
 
     def arithmetic_translation(self, command_text):
         # binary operation
