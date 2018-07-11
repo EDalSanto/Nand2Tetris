@@ -75,6 +75,9 @@ class VMCommand():
     def is_label_command(self):
         return self.operation() == 'label'
 
+    def is_push_or_pop_command(self):
+        return self.is_push_command() or self.is_pop_command()
+
     def is_push_command(self):
         return self.operation() == 'push'
 
@@ -96,13 +99,16 @@ class VMCommand():
     def memory_access_command(self):
         return len(self.parts()) == 3
 
-    def comparison_command(self):
+    def is_logical_command(self):
+        return self.is_comparison_command() or self.is_arithmetic_binary_command() or self.is_arithmetic_unary_command()
+
+    def is_comparison_command(self):
         return self.operation() in self.COMPARISON_OPERATIONS
 
-    def arithmetic_binary_command(self):
+    def is_arithmetic_binary_command(self):
         return self.operation() in self.ARITHMETIC_BINARY_OPERATIONS
 
-    def arithmetic_unary_command(self):
+    def is_arithmetic_unary_command(self):
         return self.operation() in self.ARITHMETIC_UNARY_OPERATIONS
 
 class VMParser():
@@ -145,22 +151,14 @@ class VMWriter():
     """
     simply wrapper for interacting with output file
     """
-    def __init__(self, input):
-        self.output_file = open(self._output_file_name_from(input), 'w')
+    def __init__(self, output_file_name):
+        self.output_file = open(output_file_name, 'w')
 
     def write(self, command):
         self.output_file.write(command + "\n")
 
     def close_file(self):
         self.output_file.close()
-
-    def _output_file_name_from(self, input):
-        if os.path.isfile(input):
-            vm_file_name = input.split('.')[0]
-            return vm_file_name + '.asm'
-        elif os.path.isdir(input):
-            last_dir_name = os.path.basename(input)
-            return input + "/" + last_dir_name + ".asm"
 
 
 class VMLogicalTranslator():
@@ -188,32 +186,32 @@ class VMLogicalTranslator():
 
     def translate_arithmetic_binary(self, command):
         return [
-            *self.pop_top_number_off_stack_instructions(),
+            *self._pop_top_number_off_stack_instructions(),
             # put in temp D for operation
             'D=M',
-            *self.pop_top_number_off_stack_instructions(),
-            self.ARITHMETIC_OPERATIONS_ASM_INSTRUCTIONS[command.text()],
-            *self.increment_stack_pointer_instructions()
+            *self._pop_top_number_off_stack_instructions(),
+            self.ARITHMETIC_OPERATIONS_ASM_INSTRUCTIONS[command.operation()],
+            *self._increment_stack_pointer_instructions()
         ]
 
     def translate_arithmetic_unary(self, command):
         return [
-            *self.pop_top_number_off_stack_instructions(),
-            self.ARITHMETIC_OPERATIONS_ASM_INSTRUCTIONS[command.text()],
-            *self.increment_stack_pointer_instructions()
+            *self._pop_top_number_off_stack_instructions(),
+            self.ARITHMETIC_OPERATIONS_ASM_INSTRUCTIONS[command.operation()],
+            *self._increment_stack_pointer_instructions()
         ]
 
     def translate_comparison(self, command):
-        counter = self.comparison_counters[command.text()]
+        counter = self.comparison_counters[command.operation()]
         counter['count'] += 1
         label_identifier = '{}{}'.format(command.text().upper(), counter['count'])
-        jump_directive = self.COMPARISON_OPERATIONS_JUMP_DIRECTIVES[command.text()]
+        jump_directive = self.COMPARISON_OPERATIONS_JUMP_DIRECTIVES[command.operation()]
 
         return [
-            *self.pop_top_number_off_stack_instructions(),
+            *self._pop_top_number_off_stack_instructions(),
             # set D to top of stack
             'D=M',
-            *self.pop_top_number_off_stack_instructions(),
+            *self._pop_top_number_off_stack_instructions(),
             # set D to x-y
             'D=M-D',
             # load not true label
@@ -240,10 +238,10 @@ class VMLogicalTranslator():
             'M=0',
             # define inc stack pointer label
             '(INC_STACK_POINTER_{})'.format(label_identifier),
-            *self.increment_stack_pointer_instructions()
+            *self._increment_stack_pointer_instructions()
         ]
 
-    def pop_top_number_off_stack_instructions(self):
+    def _pop_top_number_off_stack_instructions(self):
         return [
             # load stack pointer
             '@SP',
@@ -251,7 +249,7 @@ class VMLogicalTranslator():
             'AM=M-1'
         ]
 
-    def increment_stack_pointer_instructions(self):
+    def _increment_stack_pointer_instructions(self):
         return [
             # load stack pointer
             '@SP',
@@ -261,19 +259,15 @@ class VMLogicalTranslator():
 
 
 class VMPushPopTranslator():
-    VIRTUAL_MEMORY_SEGMENTS = {
-        'local'    : { 'base_address_pointer': '1' },
-        'argument' : { 'base_address_pointer': '2' },
-        'this'     : { 'base_address_pointer': '3' },
-        'that'     : { 'base_address_pointer': '4' }
+    VIRTUAL_MEMORY_SEGMENTS_BASE_ADDRESSES = {
+        'local': '1',
+        'argument': '2',
+        'this': '3',
+        'that': '4'
     }
-
     POINTER_SEGMENT_BASE_ADDRESS = '3'
-
-    HOST_SEGMENTS = {
-        'temp'  : { 'base_address': '5' },
-        'static': { 'base_address': '16'}
-    }
+    TEMP_SEGMENT_BASE_ADDRESS = '5'
+    STATIC_SEGMENT_BASE_ADDRESS = '16'
 
     def translate_static_pop(self, command, current_file_name):
         return [
@@ -297,44 +291,45 @@ class VMPushPopTranslator():
     def translate_push(self, command):
         # Push the value of segment[index] onto the stack
         return [
-            *self.load_desired_value_into_D_instructions_for(command),
-            *self.place_value_in_D_on_top_of_stack_instructions(),
-            *self.increment_stack_pointer_instructions()
+            *self._load_desired_value_into_D_instructions_for(command),
+            *self._place_value_in_D_on_top_of_stack_instructions(),
+            *self._increment_stack_pointer_instructions()
         ]
 
     def translate_pop(self, command):
         return [
-            *self.store_top_of_stack_in_D_instructions(),
-            *self.store_top_of_stack_first_temp_register_instructions(),
-            *self.load_base_address_instructions_for(segment=command.segment()),
-            *self.add_index_to_base_address_in_D_instructions(command),
-            *self.store_target_address_in_second_temp_register_instructions(),
-            *self.set_target_address_to_value_instructions()
+            *self._store_top_of_stack_in_D_instructions(),
+            *self._store_top_of_stack_first_temp_register_instructions(),
+            *self._load_base_address_instructions_for(segment=command.segment()),
+            *self._add_index_to_base_address_in_D_instructions(command),
+            *self._store_target_address_in_second_temp_register_instructions(),
+            *self._set_target_address_to_value_instructions()
         ]
 
-    def load_desired_value_into_D_instructions_for(self, command):
+    def _load_desired_value_into_D_instructions_for(self, command):
         if command.segment() == 'constant':
             return [
-                *self.load_value_in_D_instructions(value=command.index())
+                *self._load_value_in_D_instructions(value=command.index())
             ]
         else:
             return [
-                *self.load_base_address_instructions_for(segment=command.segment()),
-                *self.add_index_to_base_address_in_D_instructions(command),
-                *self.load_value_at_memory_address_in_D_instructions()
+                *self._load_base_address_instructions_for(segment=command.segment()),
+                *self._add_index_to_base_address_in_D_instructions(command),
+                *self._load_value_at_memory_address_in_D_instructions()
             ]
 
-    def load_base_address_instructions_for(self, segment):
-        if segment in self.VIRTUAL_MEMORY_SEGMENTS:
-            pointer_to_segment_base_address = self.VIRTUAL_MEMORY_SEGMENTS[segment]['base_address_pointer']
-            return self.load_referenced_value_in_D_instructions(address=pointer_to_segment_base_address)
-        elif segment in self.HOST_SEGMENTS:
-            host_segment_base_address = self.HOST_SEGMENTS[segment]['base_address']
-            return self.load_value_in_D_instructions(value=host_segment_base_address)
+    def _load_base_address_instructions_for(self, segment):
+        if segment in self.VIRTUAL_MEMORY_SEGMENTS_BASE_ADDRESSES:
+            pointer_to_segment_base_address = self.VIRTUAL_MEMORY_SEGMENTS_BASE_ADDRESSES[segment]
+            return self._load_referenced_value_in_D_instructions(address=pointer_to_segment_base_address)
+        elif segment == 'temp':
+            return self.load_value_in_D_instructions(value=self.TEMP_SEGMENT_BASE_ADDRESS)
+        elif segment == 'static':
+            return self.load_value_in_D_instructions(value=self.STATIC_SEGMENT_BASE_ADDRESS)
         elif segment == 'pointer':
             return self.load_value_in_D_instructions(value=self.POINTER_SEGMENT_BASE_ADDRESS)
 
-    def place_value_in_D_on_top_of_stack_instructions(self):
+    def _place_value_in_D_on_top_of_stack_instructions(self):
         return [
             # load stack pointer
             '@SP',
@@ -344,7 +339,7 @@ class VMPushPopTranslator():
             'M=D'
         ]
 
-    def increment_stack_pointer_instructions(self):
+    def _increment_stack_pointer_instructions(self):
         return [
             # load stack pointer
             '@SP',
@@ -352,7 +347,7 @@ class VMPushPopTranslator():
             'M=M+1'
         ]
 
-    def load_value_in_D_instructions(self, value):
+    def _load_value_in_D_instructions(self, value):
         return [
             # load value
             '@' + value,
@@ -360,7 +355,7 @@ class VMPushPopTranslator():
             'D=A'
         ]
 
-    def load_referenced_value_in_D_instructions(self, address):
+    def _load_referenced_value_in_D_instructions(self, address):
         return [
             # load address
             '@' + address,
@@ -368,13 +363,13 @@ class VMPushPopTranslator():
             'D=M'
         ]
 
-    def add_index_to_base_address_in_D_instructions(self, command):
+    def _add_index_to_base_address_in_D_instructions(self, command):
         return [
             '@' + command.index(),
             'D=D+A'
         ]
 
-    def load_value_at_memory_address_in_D_instructions(self):
+    def _load_value_at_memory_address_in_D_instructions(self):
         return [
             # set A to address stored in D
             'A=D',
@@ -382,7 +377,7 @@ class VMPushPopTranslator():
             'D=M'
         ]
 
-    def set_address_to_top_of_stack_instructions(self, address):
+    def _set_address_to_top_of_stack_instructions(self, address):
         return [
             # load segment address
             '@' + address,
@@ -390,7 +385,8 @@ class VMPushPopTranslator():
             'M=D'
         ]
 
-    def set_target_address_to_value_instructions(self):
+    # makes use of temp registers
+    def _set_target_address_to_value_instructions(self):
         return [
             # load top of stack value
             '@R13',
@@ -404,7 +400,8 @@ class VMPushPopTranslator():
             'M=D'
         ]
 
-    def store_target_address_in_second_temp_register_instructions(self):
+    # makes use of temp registers
+    def _store_target_address_in_second_temp_register_instructions(self):
         return [
             # load temp
             '@R14',
@@ -412,8 +409,9 @@ class VMPushPopTranslator():
             'M=D'
         ]
 
+    # makes use of temp registers
     # (when top of stack already in D)
-    def store_top_of_stack_first_temp_register_instructions(self):
+    def _store_top_of_stack_first_temp_register_instructions(self):
         return [
             # load temp register
             '@R13',
@@ -421,7 +419,7 @@ class VMPushPopTranslator():
             'M=D'
         ]
 
-    def store_top_of_stack_in_D_instructions(self):
+    def _store_top_of_stack_in_D_instructions(self):
         return [
             # load stack pointer
             '@SP',
@@ -653,10 +651,10 @@ class VMFunctionTranslator():
             '@SP',
             # set address to arg + 1
             'M=D',
-            *self.restore_calling_function('THAT', slots_behind_frame_end=1),
-            *self.restore_calling_function('THIS', slots_behind_frame_end=2),
-            *self.restore_calling_function('ARG', slots_behind_frame_end=3),
-            *self.restore_calling_function('LCL', slots_behind_frame_end=4),
+            *self._restore_calling_function('THAT', slots_behind_frame_end=1),
+            *self._restore_calling_function('THIS', slots_behind_frame_end=2),
+            *self._restore_calling_function('ARG', slots_behind_frame_end=3),
+            *self._restore_calling_function('LCL', slots_behind_frame_end=4),
             #goto RET // GOTO the return-address
             # load RET
             '@R14',
@@ -665,7 +663,7 @@ class VMFunctionTranslator():
             '0;JMP'
         ]
 
-    def restore_calling_function(self, memory_segment, slots_behind_frame_end):
+    def _restore_calling_function(self, memory_segment, slots_behind_frame_end):
         return [
             # load delta before frame end
             '@{}'.format(slots_behind_frame_end),
@@ -694,13 +692,23 @@ class Main():
         self.function_translator = VMFunctionTranslator()
 
     def run_program(self):
-        writer = VMWriter(self.input)
-
         if os.path.isfile(self.input):
+            # get vm files to translate
             vm_files = [self.input]
+            # get output file name
+            ouput_file_name = input.split('.')[0] + '.asm'
+            # init writer
+            writer = VMWriter(output_file_name)
         elif os.path.isdir(self.input):
+            # get vm files to translate
             vm_path = os.path.join(self.input, "*.vm")
             vm_files = glob.glob(vm_path)
+            # get output file name
+            last_dir_name = os.path.basename(input)
+            output_file_name = input + "/" + last_dir_name + ".asm"
+            # init writer
+            writer = VMWriter(output_file_name)
+            # init code specific for directory
             init_code = self.function_translator.init_code()
             for line in init_code:
                 writer.write(line)
@@ -715,13 +723,13 @@ class Main():
                 if parser.has_invalid_current_command():
                     continue
 
-                translation = self.find_translation(parser.current_command)
+                translation = self.find_translation_for(parser.current_command)
                 for line in translation:
                     writer.write(line)
 
         writer.close_file()
 
-    def find_translation(self, current_command):
+    def find_translation_for(self, current_command):
         if current_command.is_push_command():
             if current_command.for_static_memory_segment():
                 return self.push_pop_translator.translate_static_push(current_command, self.current_filename_without_extension())
@@ -744,15 +752,16 @@ class Main():
             return self.branching_translator.translate_goto(current_command)
         elif current_command.is_ifgoto_command():
             return self.branching_translator.translate_ifgoto(current_command)
-        elif current_command.arithmetic_binary_command():
+        elif current_command.is_arithmetic_binary_command():
             return self.logical_translator.translate_arithmetic_binary(current_command)
-        elif current_command.arithmetic_unary_command():
+        elif current_command.is_arithmetic_unary_command():
             return self.logical_translator.translate_arithmetic_unary(current_command)
-        elif current_command.comparison_command():
+        elif current_command.is_comparison_command():
             return self.logical_translator.translate_comparison(current_command)
 
     def current_filename_without_extension(self):
         return self.current_file.split(".")[0].split("/")[-1]
+
 
 
 if __name__ == "__main__" and len(sys.argv) == 2:
