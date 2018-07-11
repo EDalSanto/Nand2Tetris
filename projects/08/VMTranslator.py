@@ -10,6 +10,9 @@ class VMCommand():
     COMMENT_SYMBOL = '//'
     NEWLINE_SYMBOL = '\n'
     EMPTY_SYMBOL = ''
+    COMPARISON_OPERATIONS = [ 'eq', 'lt', 'gt' ]
+    ARITHMETIC_BINARY_OPERATIONS = [ 'add', 'sub', 'and', 'or' ]
+    ARITHMETIC_UNARY_OPERATIONS = [ 'neg', 'not' ]
 
     def __init__(self, raw_text):
         self.raw_text = raw_text
@@ -34,6 +37,18 @@ class VMCommand():
 
     def locals(self):
         if self.is_function_definition_command():
+            return self.parts()[2]
+
+    def for_static_memory_segment(self):
+        if self.memory_access_command():
+            return self.segment() == 'static'
+
+    def segment(self):
+        if self.memory_access_command():
+            return self.parts()[1]
+
+    def index(self):
+        if self.memory_access_command():
             return self.parts()[2]
 
     def is_function_command(self):
@@ -75,23 +90,20 @@ class VMCommand():
     def is_empty(self):
         return self.raw_text == self.EMPTY_SYMBOL
 
-    def for_static_memory_segment(self):
-        return self.segment() == 'static'
-
-    def segment(self):
-        if self.memory_access_command():
-            return self.parts()[1]
-
-    def index(self):
-        if self.memory_access_command():
-            return self.parts()[2]
-
     def operation(self):
         return self.parts()[0]
 
     def memory_access_command(self):
         return len(self.parts()) == 3
 
+    def comparison_command(self):
+        return self.operation() in self.COMPARISON_OPERATIONS
+
+    def arithmetic_binary_command(self):
+        return self.operation() in self.ARITHMETIC_BINARY_OPERATIONS
+
+    def arithmetic_unary_command(self):
+        return self.operation() in self.ARITHMETIC_UNARY_OPERATIONS
 
 class VMParser():
     """
@@ -151,8 +163,8 @@ class VMWriter():
             return input + "/" + last_dir_name + ".asm"
 
 
-class VMArithmeticTranslator():
-    OPERATION_INSTRUCTIONS = {
+class VMLogicalTranslator():
+    ARITHMETIC_OPERATIONS_ASM_INSTRUCTIONS = {
         'add': 'M=M+D',
         'sub': 'M=M-D',
         'neg': 'M=-M',
@@ -161,48 +173,41 @@ class VMArithmeticTranslator():
         'and': 'M=M&D'
     }
 
-    COMP_COMMANDS = {
-        'eq': { 'jump_directive': 'JNE'},
-        'lt': { 'jump_directive': 'JGE'},
-        'gt': { 'jump_directive': 'JLE'}
+    COMPARISON_OPERATIONS_JUMP_DIRECTIVES = {
+        'eq': 'JNE',
+        'lt': 'JGE',
+        'gt': 'JLE'
     }
 
     def __init__(self):
-        self.comp_counters = {
+        self.comparison_counters = {
             'eq' : { 'count': 0 },
             'lt' : { 'count': 0 },
             'gt' : { 'count': 0 }
         }
 
-    def translate(self, command):
-        if command.text() in self.COMP_COMMANDS:
-            return self.comp_translation(command.text())
-        else:
-            return self.arithmetic_translation(command.text())
+    def translate_arithmetic_binary(self, command):
+        return [
+            *self.pop_top_number_off_stack_instructions(),
+            # put in temp D for operation
+            'D=M',
+            *self.pop_top_number_off_stack_instructions(),
+            self.ARITHMETIC_OPERATIONS_ASM_INSTRUCTIONS[command.text()],
+            *self.increment_stack_pointer_instructions()
+        ]
 
-    def arithmetic_translation(self, command_text):
-        # binary operation
-        if command_text in [ 'add', 'sub', 'and', 'or' ]:
-            return [
-                *self.pop_top_number_off_stack_instructions(),
-                # put in temp D for operation
-                'D=M',
-                *self.pop_top_number_off_stack_instructions(),
-                self.OPERATION_INSTRUCTIONS[command_text],
-                *self.increment_stack_pointer_instructions()
-            ]
-        else: # unary operation
-            return [
-                *self.pop_top_number_off_stack_instructions(),
-                self.OPERATION_INSTRUCTIONS[command_text],
-                *self.increment_stack_pointer_instructions()
-            ]
+    def translate_arithmetic_unary(self, command):
+        return [
+            *self.pop_top_number_off_stack_instructions(),
+            self.ARITHMETIC_OPERATIONS_ASM_INSTRUCTIONS[command.text()],
+            *self.increment_stack_pointer_instructions()
+        ]
 
-    def comp_translation(self, command_text):
-        counter = self.comp_counters[command_text]
+    def translate_comparison(self, command):
+        counter = self.comparison_counters[command.text()]
         counter['count'] += 1
-        label_identifier = '{}{}'.format(command_text.upper(), counter['count'])
-        jump_directive = self.COMP_COMMANDS[command_text]['jump_directive']
+        label_identifier = '{}{}'.format(command.text().upper(), counter['count'])
+        jump_directive = self.COMPARISON_OPERATIONS_JUMP_DIRECTIVES[command.text()]
 
         return [
             *self.pop_top_number_off_stack_instructions(),
@@ -683,7 +688,7 @@ class Main():
         self.input = input
         self.current_file = None
         # maybe these go inside the translator and wrap up to 1 translate method
-        self.arithmetic_translator = VMArithmeticTranslator()
+        self.logical_translator = VMLogicalTranslator()
         self.push_pop_translator = VMPushPopTranslator()
         self.branching_translator = VMBranchingTranslator()
         self.function_translator = VMFunctionTranslator()
@@ -739,8 +744,12 @@ class Main():
             return self.branching_translator.translate_goto(current_command)
         elif current_command.is_ifgoto_command():
             return self.branching_translator.translate_ifgoto(current_command)
-        else: # math / logical operation
-            return self.arithmetic_translator.translate(current_command)
+        elif current_command.arithmetic_binary_command():
+            return self.logical_translator.translate_arithmetic_binary(current_command)
+        elif current_command.arithmetic_unary_command():
+            return self.logical_translator.translate_arithmetic_unary(current_command)
+        elif current_command.comparison_command():
+            return self.logical_translator.translate_comparison(current_command)
 
     def current_filename_without_extension(self):
         return self.current_file.split(".")[0].split("/")[-1]
