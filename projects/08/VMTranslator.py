@@ -21,32 +21,23 @@ class VMCommand():
         return self.text().split(' ')
 
     def label(self):
-        if not self.is_branching_command():
-            return
-
-        return self.parts()[1]
+        if self.is_branching_command():
+            return self.parts()[1]
 
     def function_name(self):
-        if not self.is_function_definition_command() and not self.is_call_command():
-            return
-
-        return self.parts()[1]
+        if self.is_function_definition_command() or self.is_call_command():
+            return self.parts()[1]
 
     def num_arguments(self):
-        if not self.is_call_command():
-            return
-
-        return self.parts()[2]
+        if self.is_call_command():
+            return self.parts()[2]
 
     def locals(self):
-        if not self.is_function_definition_command():
-            return
-
-        return self.parts()[2]
+        if self.is_function_definition_command():
+            return self.parts()[2]
 
     def is_function_command(self):
         return self.is_function_definition_command() or self.is_call_command() or self.is_return_command()
-
 
     def is_function_definition_command(self):
         return self.operation() == 'function'
@@ -69,8 +60,11 @@ class VMCommand():
     def is_label_command(self):
         return self.operation() == 'label'
 
-    def is_pushpop_command(self):
-        return self.operation() == 'push' or self.operation() == 'pop'
+    def is_push_command(self):
+        return self.operation() == 'push'
+
+    def is_pop_command(self):
+        return self.operation() == 'pop'
 
     def is_comment(self):
         return self.raw_text[0:2] == self.COMMENT_SYMBOL
@@ -82,21 +76,19 @@ class VMCommand():
         return self.raw_text == self.EMPTY_SYMBOL
 
     def segment(self):
-        # only for memory access commands
-        if len(self.parts()) != 3:
-            return
-
-        return self.parts()[1]
+        if self.memory_access_command():
+            return self.parts()[1]
 
     def index(self):
-        # only for memory access commands
-        if len(self.parts()) != 3:
-            return
-
-        return self.parts()[2]
+        if self.memory_access_command():
+            return self.parts()[2]
 
     def operation(self):
         return self.parts()[0]
+
+    def memory_access_command(self):
+        return len(self.parts()) == 3
+
 
 class VMParser():
     """
@@ -294,24 +286,23 @@ class VMPushPopTranslator():
                 )
             ]
 
-    def translate(self, command):
-        if command.operation() == 'push':
-            # Push the value of segment[index] onto the stack
+    def translate_push(self, command):
+        # Push the value of segment[index] onto the stack
+        return [
+            *self.load_desired_value_into_D_instructions_for(command),
+            *self.place_value_in_D_on_top_of_stack_instructions(),
+            *self.increment_stack_pointer_instructions()
+        ]
 
-            return [
-                *self.load_desired_value_into_D_instructions_for(command),
-                *self.place_value_in_D_on_top_of_stack_instructions(),
-                *self.increment_stack_pointer_instructions()
-            ]
-        elif command.operation() == 'pop':
-            return [
-                *self.store_top_of_stack_in_D_instructions(),
-                *self.store_top_of_stack_first_temp_register_instructions(),
-                *self.load_base_address_instructions_for(segment=command.segment()),
-                *self.add_index_to_base_address_in_D_instructions(command),
-                *self.store_target_address_in_second_temp_register_instructions(),
-                *self.set_target_address_to_value_instructions()
-            ]
+    def translate_pop(self, command):
+        return [
+            *self.store_top_of_stack_in_D_instructions(),
+            *self.store_top_of_stack_first_temp_register_instructions(),
+            *self.load_base_address_instructions_for(segment=command.segment()),
+            *self.add_index_to_base_address_in_D_instructions(command),
+            *self.store_target_address_in_second_temp_register_instructions(),
+            *self.set_target_address_to_value_instructions()
+        ]
 
     def load_desired_value_into_D_instructions_for(self, command):
         if command.segment() == 'constant':
@@ -713,8 +704,10 @@ if __name__ == "__main__" and len(sys.argv) == 2:
             if parser.has_valid_current_command():
                 if parser.current_command.segment() == 'static':
                     translation = push_pop_translator.translate_static(parser.current_command, vm_file.split(".")[0].split("/")[-1])
-                elif parser.current_command.is_pushpop_command():
-                    translation = push_pop_translator.translate(parser.current_command)
+                elif parser.current_command.is_push_command():
+                    translation = push_pop_translator.translate_push(parser.current_command)
+                elif parser.current_command.is_pop_command():
+                    translation = push_pop_translator.translate_pop(parser.current_command)
                 elif parser.current_command.is_branching_command():
                     translation = branching_translator.translate(parser.current_command)
                 elif parser.current_command.is_function_command():
