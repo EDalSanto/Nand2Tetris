@@ -526,61 +526,13 @@ class VMFunctionTranslator():
             '@SP',
             'M=M+1',
             ## push LCL address onto stack
-            # load LCL
-            '@LCL',
-            # get its address
-            'D=M',
-            # load stack pointer
-            '@SP',
-            # load address
-            'A=M',
-            # set value at address to D, return address
-            'M=D',
-            # increment stack pointer
-            '@SP',
-            'M=M+1',
+            *self._push_referenced_address_onto_stack('LCL'),
             ## push ARG address onto stack
-            # load ARG
-            '@ARG',
-            # get its address
-            'D=M',
-            # load stack pointer
-            '@SP',
-            # load address
-            'A=M',
-            # set value at address to D, return address
-            'M=D',
-            # increment stack pointer
-            '@SP',
-            'M=M+1',
+            *self._push_referenced_address_onto_stack('ARG'),
             ## push THIS address onto stack
-            # load THIS
-            '@THIS',
-            # get its address
-            'D=M',
-            # load stack pointer
-            '@SP',
-            # load address
-            'A=M',
-            # set value at address to D, return address
-            'M=D',
-            # increment stack pointer
-            '@SP',
-            'M=M+1',
+            *self._push_referenced_address_onto_stack('THIS'),
             ## push THAT address onto stack
-            # load THAT
-            '@THAT',
-            # get its address
-            'D=M',
-            # load stack pointer
-            '@SP',
-            # load address
-            'A=M',
-            # set value at address to D, return address
-            'M=D',
-            # increment stack pointer
-            '@SP',
-            'M=M+1',
+            *self._push_referenced_address_onto_stack('THAT'),
             ## ARG = SP - nArgs - 5
             # get value of SP
             '@SP',
@@ -663,6 +615,23 @@ class VMFunctionTranslator():
             '0;JMP'
         ]
 
+    def _push_referenced_address_onto_stack(virtual_memory_segment):
+        return [
+            # load register with address value
+            '@{}'.format(virtual_memory_segment),
+            # get its address
+            'D=M',
+            # load stack pointer
+            '@SP',
+            # load address
+            'A=M',
+            # set value at address to D, return address
+            'M=D',
+            # increment stack pointer
+            '@SP',
+            'M=M+1',
+        ]
+
     def _restore_calling_function(self, memory_segment, slots_behind_frame_end):
         return [
             # load delta before frame end
@@ -723,21 +692,21 @@ class Main():
                 if parser.has_invalid_current_command():
                     continue
 
-                translation = self.find_translation_for(parser.current_command)
+                translation = _self.find_translation_for(parser.current_command)
                 for line in translation:
                     writer.write(line)
 
         writer.close_file()
 
-    def find_translation_for(self, current_command):
+    def _find_translation_for(self, current_command):
         if current_command.is_push_command():
             if current_command.for_static_memory_segment():
-                return self.push_pop_translator.translate_static_push(current_command, self.current_filename_without_extension())
+                return self.push_pop_translator.translate_static_push(current_command, self._current_filename_without_extension())
             else:
                 return self.push_pop_translator.translate_push(current_command)
         elif current_command.is_pop_command():
             if current_command.for_static_memory_segment():
-                return self.push_pop_translator.translate_static_pop(current_command, self.current_filename_without_extension())
+                return self.push_pop_translator.translate_static_pop(current_command, self._current_filename_without_extension())
             else:
                 return self.push_pop_translator.translate_pop(current_command)
         elif current_command.is_return_command():
@@ -759,7 +728,7 @@ class Main():
         elif current_command.is_comparison_command():
             return self.logical_translator.translate_comparison(current_command)
 
-    def current_filename_without_extension(self):
+    def _current_filename_without_extension(self):
         return self.current_file.split(".")[0].split("/")[-1]
 
 
