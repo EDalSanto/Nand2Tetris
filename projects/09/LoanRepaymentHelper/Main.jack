@@ -10,11 +10,13 @@ class Main {
 
       // welcome prompt
       // get principal
-      let principal = Keyboard.readLine("Enter the principal of your loan: ");
+      let principal = Keyboard.readInt("Enter the principal of your loan: ");
       // get interestRate
+      let interestRate = Keyboard.readInt("Enter the interest rate of your loan: ");
       let loan = Loan.new(principal, interestRate);
+      do loan.print();
       // while not exit key pressed
-        // prompt input to pick a mode
+        // prompt input to either set monthly payment or desired months till payoff
         // take input for mode
         // branch on input mode choosen
         // take input for mode picked or exit
@@ -27,7 +29,6 @@ class Main {
           // else if to exit, exit loop
 
   //¦ ¦ do loanHelper.print();
-      do Output.printString("test output");
       return;
    }
 }

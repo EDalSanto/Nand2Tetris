@@ -1,10 +1,50 @@
 class Loan {
-  field int principle, interestRate;
+  field int principle, interestRate, monthlyPayment, monthsTillPayoff;
 
-  constructor Loan new(int principle, int interestRate) {
-    let principle = principle;
-    let interestRate = interestRate;
+  constructor Loan new(int principleAmount, int interestRatePercent) {
+    let principle = principleAmount;
+    let interestRate = interestRatePercent;
 
     return this;
+  }
+
+  method void setMonthlyPayment(int amount) {
+    let monthlyPayment = amount;
+    //do updateMonthsTillPayoffBasedOffPaymentAmount();
+
+    return;
+  }
+
+  method void setMonthsTillPayoff(int months) {
+    let monthsTillPayoff = months;
+    //do updateMonthlyPaymentBasedOffMonthsTillPayoff();
+
+    return;
+  }
+
+  method void updateMonthlyPaymentBasedOffMonthsTillPayoff() {
+    var int newMonthlyPayment;
+    var int newMonthlyPaymentNumerator;
+    var int newMonthlyPaymentDenominator;
+
+    // formula from https://en.wikipedia.org/wiki/Mortgage_calculator#Monthly_payment_formula
+    let newMonthlyPaymentNumerator = Math.multiply(interestRate, principle);
+    let newMonthlyPaymentDenominator = (1 + interestRate); //
+
+    return;
+  }
+
+  method void updateMonthsTillPayoffBasedOffPaymentAmount() {
+    return;
+  }
+
+  method void print() {
+    do Output.printString("principle amount: ");
+    do Output.printInt(principle);
+    do Output.println();
+    do Output.printString("interest rate: ");
+    do Output.printInt(interestRate);
+
+    return;
   }
 }
