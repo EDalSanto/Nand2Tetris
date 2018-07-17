@@ -1,14 +1,18 @@
 // Provides guidance for loan re-payments
 
 class Main {
-  ¦function void main() {
+   function void main() {
       var String userInput;
-  ¦ ¦ //var LoanHelperByPayment loanHelperByPayment;
-  ¦ ¦ //var LoanHelperByTime loanHelperByTime;
-      //var Loan loan;
+      var LoanHelperByPayment loanHelperByPayment;
+      var LoanHelperByTime loanHelperByTime;
+      var Loan loan;
+      var int principal, interestRate;
 
-//      let loan = Loan.new(principal, interestRate);
       // welcome prompt
+      // get principal
+      let principal = Keyboard.readLine("Enter the principal of your loan: ");
+      // get interestRate
+      let loan = Loan.new(principal, interestRate);
       // while not exit key pressed
         // prompt input to pick a mode
         // take input for mode
@@ -24,6 +28,6 @@ class Main {
 
   //¦ ¦ do loanHelper.print();
       do Output.printString("test output");
-  ¦ ¦ return;
-  ¦}
+      return;
+   }
 }

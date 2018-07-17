@@ -1,0 +1,10 @@
+function Loan.new 0
+push constant 2
+call Memory.alloc 1
+pop pointer 0
+push argument 0
+pop argument 0
+push argument 1
+pop argument 1
+push pointer 0
+return

@@ -1,0 +1,10 @@
+class Loan {
+  field int principle, interestRate;
+
+  constructor Loan new(int principle, int interestRate) {
+    let principle = principle;
+    let interestRate = interestRate;
+
+    return this;
+  }
+}
