@@ -1,4 +1,4 @@
-function Main.main 6
+function Main.main 5
 push constant 34
 call String.new 1
 push constant 69
@@ -70,7 +70,7 @@ call String.appendChar 2
 push constant 32
 call String.appendChar 2
 call Keyboard.readInt 1
-pop local 4
+pop local 3
 push constant 38
 call String.new 1
 push constant 69
@@ -150,12 +150,12 @@ call String.appendChar 2
 push constant 32
 call String.appendChar 2
 call Keyboard.readInt 1
-pop local 5
-push local 4
-push local 5
-call Loan.new 2
-pop local 3
+pop local 4
 push local 3
+push local 4
+call Loan.new 2
+pop local 2
+push local 2
 call Loan.print 1
 pop temp 0
 push constant 0

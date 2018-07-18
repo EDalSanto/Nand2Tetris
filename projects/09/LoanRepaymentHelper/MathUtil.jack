@@ -1,0 +1,15 @@
+class MathUtil {
+  function int power(int base, int exponent) {
+    if (exponent = 1) {
+      return base;
+    }
+
+    if (exponent & 1) {
+     // odd
+     return base * MathUtil.power(base, exponent / 2) * MathUtil.power(base, exponent / 2);
+    } else {
+      // even
+      return MathUtil.power(base, exponent / 2) * MathUtil.power(base, exponent / 2);
+    }
+  }
+}

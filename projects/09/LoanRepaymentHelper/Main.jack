@@ -2,7 +2,6 @@
 
 class Main {
    function void main() {
-      var String userInput;
       var LoanHelperByPayment loanHelperByPayment;
       var LoanHelperByTime loanHelperByTime;
       var Loan loan;
@@ -28,7 +27,6 @@ class Main {
           // if input for adusting view, set input to this new value
           // else if to exit, exit loop
 
-  //¦ ¦ do loanHelper.print();
       return;
    }
 }
