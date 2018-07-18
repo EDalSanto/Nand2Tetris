@@ -65,6 +65,23 @@ call Fraction.getDenominator 1
 call Math.multiply 2
 call Fraction.new 2
 return
+function Fraction.multiply 2
+push argument 0
+pop pointer 0
+push this 0
+push argument 1
+call Fraction.getNumerator 1
+call Math.multiply 2
+pop local 0
+push this 1
+push argument 1
+call Fraction.getDenominator 1
+call Math.multiply 2
+pop local 1
+push local 0
+push local 1
+call Fraction.new 2
+return
 function Fraction.dispose 0
 push argument 0
 pop pointer 0

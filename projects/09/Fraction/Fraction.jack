@@ -6,7 +6,7 @@
 /** Represents the Fraction type and related operations. */
 class Fraction {
    field int numerator, denominator;  // field = property = member variable.
-  
+
    /** Constructs a (reduced) fraction from the given numerator and denominator. */
    constructor Fraction new(int x, int y) {
       let numerator = x;
@@ -28,7 +28,7 @@ class Fraction {
 
    /** Accessors. */
    method int getNumerator() { return numerator; }
-   method int getDenominator() { return denominator; }  
+   method int getDenominator() { return denominator; }
 
    /** Returns the sum of this fraction and the other one. */
    method Fraction plus(Fraction other) {
@@ -37,14 +37,25 @@ class Fraction {
       return Fraction.new(sum, denominator * other.getDenominator());
    }
 
+   /** Returns the product of this fraction and the other one. */
+   method Fraction multiply(Fraction other) {
+      var int productOfNumerators;
+      var int productOfDenominators;
+
+      let productOfNumerators = numerator * other.getNumerator();
+      let productOfDenominators = denominator * other.getDenominator();
+
+      return Fraction.new(productOfNumerators, productOfDenominators);
+   }
+
    // More fraction-related methods (minus, times, div, etc.) can be added here.
-  
+
    /** Disposes this fraction. */
    method void dispose() {
       do Memory.deAlloc(this);  // uses an OS routine to recycle the memory held by the object
       return;
    }
-   
+
    /** Prints this fraction in the format x/y. */
    method void print() {
       do Output.printInt(numerator);

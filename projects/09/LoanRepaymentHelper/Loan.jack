@@ -27,11 +27,16 @@ class Loan {
     var int newMonthlyPayment;
     var int newMonthlyPaymentNumerator;
     var int newMonthlyPaymentDenominator;
+    var Fraction onePlusR;
 
     // formula:  https://en.wikipedia.org/wiki/Mortgage_calculator#Monthly_payment_formula
-    do Output.printInt((interestRate * principle) * MathUtil.power((1 + interestRate), monthsTillPayoff));
+    let onePlusR = interestRate.plus(Fraction.new(1, 1));
+    let onePlusR = onePlusR.multiply(Fraction.new(2, 1));
+
+    do Output.printString("Testing");
+    do onePlusR.print();
     do Output.println();
-    let newMonthlyPaymentNumerator = (interestRate * principle) * MathUtil.power((1 + interestRate), monthsTillPayoff);
+    let newMonthlyPaymentNumerator = (interestRate * principle) * MathUtil.power(onePlusR, monthsTillPayoff);
     let newMonthlyPaymentDenominator = MathUtil.power((1 + interestRate), monthsTillPayoff) - interestRate;
     let newMonthlyPayment = newMonthlyPaymentNumerator / newMonthlyPaymentDenominator;
 
