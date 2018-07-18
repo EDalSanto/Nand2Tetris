@@ -156,6 +156,10 @@ push local 4
 call Loan.new 2
 pop local 2
 push local 2
+push constant 12
+call Loan.setMonthsTillPayoff 2
+pop temp 0
+push local 2
 call Loan.print 1
 pop temp 0
 push constant 0

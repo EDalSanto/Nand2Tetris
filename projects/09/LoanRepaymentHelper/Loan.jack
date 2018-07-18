@@ -1,9 +1,10 @@
 class Loan {
-  field int principle, interestRate, monthlyPayment, monthsTillPayoff;
+  field int principle, monthlyPayment, monthsTillPayoff;
+  field Fraction interestRate;
 
   constructor Loan new(int principleAmount, int interestRatePercent) {
     let principle = principleAmount;
-    let interestRate = interestRatePercent;
+    let interestRate = Fraction.new(interestRatePercent, 100);
 
     return this;
   }
@@ -17,19 +18,24 @@ class Loan {
 
   method void setMonthsTillPayoff(int months) {
     let monthsTillPayoff = months;
-    //do updateMonthlyPaymentBasedOffMonthsTillPayoff();
+    do updateMonthlyPaymentBasedOffNewMonthsTillPayoff();
 
     return;
   }
 
-  method void updateMonthlyPaymentBasedOffMonthsTillPayoff() {
+  method void updateMonthlyPaymentBasedOffNewMonthsTillPayoff() {
     var int newMonthlyPayment;
     var int newMonthlyPaymentNumerator;
     var int newMonthlyPaymentDenominator;
 
-    // formula from https://en.wikipedia.org/wiki/Mortgage_calculator#Monthly_payment_formula
-    let newMonthlyPaymentNumerator = Math.multiply(interestRate, principle);
-    let newMonthlyPaymentDenominator = (1 + interestRate); //
+    // formula:  https://en.wikipedia.org/wiki/Mortgage_calculator#Monthly_payment_formula
+    do Output.printInt((interestRate * principle) * MathUtil.power((1 + interestRate), monthsTillPayoff));
+    do Output.println();
+    let newMonthlyPaymentNumerator = (interestRate * principle) * MathUtil.power((1 + interestRate), monthsTillPayoff);
+    let newMonthlyPaymentDenominator = MathUtil.power((1 + interestRate), monthsTillPayoff) - interestRate;
+    let newMonthlyPayment = newMonthlyPaymentNumerator / newMonthlyPaymentDenominator;
+
+    let monthlyPayment = newMonthlyPayment;
 
     return;
   }
@@ -39,11 +45,17 @@ class Loan {
   }
 
   method void print() {
-    do Output.printString("principle amount: ");
+    do Output.printString("Principle: ");
     do Output.printInt(principle);
     do Output.println();
-    do Output.printString("interest rate: ");
-    do Output.printInt(interestRate);
+    do Output.printString("Interest Rate: ");
+    do interestRate.print(); // fraction
+    do Output.println();
+    do Output.printString("Number of Monthly Payments: ");
+    do Output.printInt(monthsTillPayoff);
+    do Output.println();
+    do Output.printString("Monthly Payment: ");
+    do Output.printInt(monthlyPayment);
 
     return;
   }

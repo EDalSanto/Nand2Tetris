@@ -13,6 +13,7 @@ class Main {
       // get interestRate
       let interestRate = Keyboard.readInt("Enter the interest rate of your loan: ");
       let loan = Loan.new(principal, interestRate);
+      do loan.setMonthsTillPayoff(12);
       do loan.print();
       // while not exit key pressed
         // prompt input to either set monthly payment or desired months till payoff
