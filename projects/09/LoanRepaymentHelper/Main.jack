@@ -12,7 +12,7 @@ class Main {
 //      let principal = Keyboard.readInt("Enter the principal of your loan: ");
       // get interestRate
  //     let interestRate = Keyboard.readInt("Enter the interest rate of your loan: ");
-      let loan = Loan.new(42, 3);
+      let loan = Loan.new(10000, 3);
       do loan.setMonthsTillPayoff(12);
       do loan.print();
       // while not exit key pressed

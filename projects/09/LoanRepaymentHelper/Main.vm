@@ -1,10 +1,10 @@
 function Main.main 5
-push constant 42
+push constant 10000
 push constant 3
 call Loan.new 2
 pop local 2
 push local 2
-push constant 12
+push constant 2
 call Loan.setMonthsTillPayoff 2
 pop temp 0
 push local 2

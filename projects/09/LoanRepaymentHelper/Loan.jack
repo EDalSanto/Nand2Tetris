@@ -34,9 +34,7 @@ class Loan {
     let onePlusR = onePlusR.multiply(Fraction.new(2, 1));
 
     do Output.printString("Testing");
-    do onePlusR.print();
-    do Output.println();
-    let onePlusR = MathUtil.power(onePlusR, 2);
+    let onePlusR = MathUtil.power(onePlusR, monthsTillPayoff);
     do onePlusR.print();
     do Output.println();
 

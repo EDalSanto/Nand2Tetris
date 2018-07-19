@@ -61,12 +61,7 @@ call String.appendChar 2
 call Output.printString 1
 pop temp 0
 push local 3
-call Fraction.print 1
-pop temp 0
-call Output.println 0
-pop temp 0
-push local 3
-push constant 2
+push this 2
 call MathUtil.power 2
 pop local 3
 push local 3
