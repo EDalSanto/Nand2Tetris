@@ -65,6 +65,15 @@ call Fraction.print 1
 pop temp 0
 call Output.println 0
 pop temp 0
+push local 3
+push constant 2
+call MathUtil.power 2
+pop local 3
+push local 3
+call Fraction.print 1
+pop temp 0
+call Output.println 0
+pop temp 0
 push this 3
 push this 0
 call Math.multiply 2

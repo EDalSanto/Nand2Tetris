@@ -1,15 +1,21 @@
 class MathUtil {
+  /** uses Fraction to handle non-integers */
   function Fraction power(Fraction base, int exponent) {
+    // need temp because can't chain method calls in Jack
+    var Fraction temp;
+
     if (exponent = 1) {
       return base;
     }
 
     if (exponent & 1) {
-     // odd
-     return base * MathUtil.power(base, exponent / 2) * MathUtil.power(base, exponent / 2);
+      // odd -> base * recurse / 2 * recurse / 2
+      let temp = base.multiply(MathUtil.power(base, exponent / 2));
+      return temp.multiply(MathUtil.power(base, exponent / 2));
     } else {
-      // even
-      return MathUtil.power(base, exponent / 2) * MathUtil.power(base, exponent / 2);
+      // even ->  recurse / 2 * recurse / 2
+      let temp = MathUtil.power(base, exponent / 2);
+      return temp.multiply(MathUtil.power(base, exponent / 2));
     }
   }
 }

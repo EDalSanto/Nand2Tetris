@@ -36,6 +36,10 @@ class Loan {
     do Output.printString("Testing");
     do onePlusR.print();
     do Output.println();
+    let onePlusR = MathUtil.power(onePlusR, 2);
+    do onePlusR.print();
+    do Output.println();
+
     let newMonthlyPaymentNumerator = (interestRate * principle) * MathUtil.power(onePlusR, monthsTillPayoff);
     let newMonthlyPaymentDenominator = MathUtil.power((1 + interestRate), monthsTillPayoff) - interestRate;
     let newMonthlyPayment = newMonthlyPaymentNumerator / newMonthlyPaymentDenominator;

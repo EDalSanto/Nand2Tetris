@@ -25,3 +25,6 @@ Stage2 => modes which you can alter between
       - N - 6 months => decrease by 6 months
       - N + 6 months => increase by 6 months
 */
+
+- current dilemna: dealing with non-integers
+  - idea for solution: expanding Fraction api to include multiple, subtract, as well with integers, converting them to fractions
