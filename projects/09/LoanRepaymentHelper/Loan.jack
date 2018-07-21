@@ -33,18 +33,20 @@ class Loan {
     return;
   }
 
-  method Fraction printPrincipal() {
-    return principal.print();
+  method void printPrincipal() {
+    do principal.print();
+
+    return;
   }
 
-  method void print() {
-    do Output.printString("principal: ");
-    do principal.print();
-    do Output.printString("Number of Monthly Payments: ");
-    do monthsTillPayoff.print();
-    do Output.println();
-    do Output.printString("Monthly Payment: ");
+  method void printMonthlyPayment() {
     do monthlyPayment.print();
+
+    return;
+  }
+
+  method void printMonthsTillPayoff() {
+    do monthsTillPayoff.print();
 
     return;
   }

@@ -1,0 +1,70 @@
+/** handles display for loan helper program */
+
+class View {
+  function void welcomePrompt() {
+    do Output.printString("Welcome to the Loan Repayment helper!");
+    do Output.println();
+    do Output.println();
+    do Output.printString("The point of this program is to help you think about paying back your loan.");
+    do Output.println();
+    do Output.println();
+
+    return;
+  }
+
+  function int getLoanPrincipal() {
+    var int principal;
+
+    let principal = Keyboard.readInt("Enter the principal of your loan: ");
+    do Output.println();
+
+    return principal;
+  }
+
+  function char getInputMode() {
+    var int inputMode;
+
+    do Output.printString("Please select one of the following options.");
+    do Output.printString("ESC to exit, p to enter a monthly payment, m to enter the desired months till payoff");
+    do Output.println();
+    let inputMode = Keyboard.readChar();
+    do Output.println();
+
+    return inputMode;
+  }
+
+  function int getDesiredMonthlyPayment() {
+    return Keyboard.readInt("Payment mode selected! Please enter a desired monthly payment.");
+  }
+
+  function int getDesiredMonthsTillPayoff() {
+     return Keyboard.readInt("Months mode selected! Please enter the desired number of months to pay off your loan by");
+  }
+
+  function void printSummaryExit() {
+    do Output.printString("Hope this has been helpful for paying back your loans!");
+    do Output.println();
+
+    return;
+  }
+
+  function void displayLoanStatusFor(Loan loan) {
+    do Output.printString("YOUR LOAN");
+    do Output.println();
+    // Principal
+    do Output.printString("principal: ");
+    do loan.printPrincipal();
+    do Output.printString(", ");
+    // Monthly Payment
+    do Output.printString("Monthly Payment: ");
+    do loan.printMonthlyPayment();
+    do Output.printString(", ");
+    // Months Till Payoff
+    do Output.printString("Months Till Payoff: ");
+    do loan.printMonthsTillPayoff();
+
+    do Output.println();
+
+    return;
+  }
+}

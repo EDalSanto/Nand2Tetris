@@ -1,4 +1,4 @@
-function Loan.new 0
+function LoanModel.new 0
 push constant 3
 call Memory.alloc 1
 pop pointer 0
@@ -8,7 +8,7 @@ call Fraction.new 2
 pop this 0
 push pointer 0
 return
-function Loan.setMonthlyPayment 0
+function LoanModel.setMonthlyPayment 0
 push argument 0
 pop pointer 0
 push argument 1
@@ -16,11 +16,11 @@ push constant 1
 call Fraction.new 2
 pop this 1
 push pointer 0
-call Loan.updateMonthsTillPayoffBasedOffPaymentAmount 1
+call LoanModel.updateMonthsTillPayoffBasedOffPaymentAmount 1
 pop temp 0
 push constant 0
 return
-function Loan.setMonthsTillPayoff 0
+function LoanModel.setMonthsTillPayoff 0
 push argument 0
 pop pointer 0
 push argument 1
@@ -28,11 +28,11 @@ push constant 1
 call Fraction.new 2
 pop this 2
 push pointer 0
-call Loan.updateMonthlyPaymentBasedOffNewMonthsTillPayoff 1
+call LoanModel.updateMonthlyPaymentBasedOffNewMonthsTillPayoff 1
 pop temp 0
 push constant 0
 return
-function Loan.updateMonthlyPaymentBasedOffNewMonthsTillPayoff 0
+function LoanModel.updateMonthlyPaymentBasedOffNewMonthsTillPayoff 0
 push argument 0
 pop pointer 0
 push this 0
@@ -41,7 +41,7 @@ call Fraction.divideBy 2
 pop this 1
 push constant 0
 return
-function Loan.updateMonthsTillPayoffBasedOffPaymentAmount 0
+function LoanModel.updateMonthsTillPayoffBasedOffPaymentAmount 0
 push argument 0
 pop pointer 0
 push this 0
@@ -50,7 +50,7 @@ call Fraction.divideBy 2
 pop this 2
 push constant 0
 return
-function Loan.printPrincipal 0
+function LoanModel.printPrincipal 0
 push argument 0
 pop pointer 0
 push this 0
@@ -58,7 +58,7 @@ call Fraction.print 1
 pop temp 0
 push constant 0
 return
-function Loan.printMonthlyPayment 0
+function LoanModel.printMonthlyPayment 0
 push argument 0
 pop pointer 0
 push this 1
@@ -66,7 +66,7 @@ call Fraction.print 1
 pop temp 0
 push constant 0
 return
-function Loan.printMonthsTillPayoff 0
+function LoanModel.printMonthsTillPayoff 0
 push argument 0
 pop pointer 0
 push this 2

@@ -1,14 +1,60 @@
-function Main.main 5
-push constant 10000
-push constant 3
-call Loan.new 2
+function Main.main 8
+push constant 140
+pop local 5
+push constant 112
+pop local 6
+push constant 109
+pop local 7
+call View.welcomePrompt 0
+pop temp 0
+call View.getLoanPrincipal 0
+pop local 1
+push local 1
+call Loan.new 1
+pop local 0
+call View.getInputMode 0
+pop local 4
+label WHILE_EXP0
+push local 4
+push local 5
+eq
+not
+not
+if-goto WHILE_END0
+push local 4
+push local 6
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+call View.getDesiredMonthlyPayment 0
 pop local 2
+push local 0
 push local 2
-push constant 2
+call Loan.setMonthlyPayment 2
+pop temp 0
+label IF_FALSE0
+push local 4
+push local 7
+eq
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+call View.getDesiredMonthsTillPayoff 0
+pop local 3
+push local 0
+push local 3
 call Loan.setMonthsTillPayoff 2
 pop temp 0
-push local 2
-call Loan.print 1
+label IF_FALSE1
+push local 0
+call View.displayLoanStatusFor 1
+pop temp 0
+call View.getInputMode 0
+pop temp 0
+goto WHILE_EXP0
+label WHILE_END0
+call View.printSummaryExit 0
 pop temp 0
 push constant 0
 return

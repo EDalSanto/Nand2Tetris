@@ -27,4 +27,8 @@ Stage2 => modes which you can alter between
 */
 
 - current dilemna: dealing with non-integers
-  - idea for solution: expanding Fraction api to include multiple, subtract, as well with integers, converting them to fractions
+  - idea for solution: store everything about loan as Fraction and expand Fraction api as needed, i.e., multiply
+  - valid input
+    - input must be whole numbers greater than or equal to 1
+    - can't be bigger than 2**16
+
