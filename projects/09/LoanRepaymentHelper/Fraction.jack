@@ -37,15 +37,12 @@ class Fraction {
       return Fraction.new(sum, denominator * other.getDenominator());
    }
 
-   /** Returns the product of this fraction and the other one. */
-   method Fraction multiply(Fraction other) {
-      var int productOfNumerators;
-      var int productOfDenominators;
-
-      let productOfNumerators = numerator * other.getNumerator();
-      let productOfDenominators = denominator * other.getDenominator();
-
-      return Fraction.new(productOfNumerators, productOfDenominators);
+   // Returns the division of this fraction and the other one */
+   method Fraction divideBy(Fraction other) {
+      return Fraction.new(
+        numerator * other.getDenominator(),
+        denominator * other.getNumerator()
+      );
    }
 
    // More fraction-related methods (minus, times, div, etc.) can be added here.
