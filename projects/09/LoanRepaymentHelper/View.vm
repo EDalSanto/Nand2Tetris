@@ -583,13 +583,17 @@ call Output.printString 1
 pop temp 0
 call Output.println 0
 pop temp 0
+call Output.println 0
+pop temp 0
 call Keyboard.readChar 0
 pop local 0
 call Output.println 0
 pop temp 0
+call Output.println 0
+pop temp 0
 push local 0
 return
-function View.getDesiredMonthlyPayment 0
+function View.getDesiredMonthlyPayment 1
 push constant 62
 call String.new 1
 push constant 80
@@ -717,8 +721,12 @@ call String.appendChar 2
 push constant 46
 call String.appendChar 2
 call Keyboard.readInt 1
+pop local 0
+call Output.println 0
+pop temp 0
+push local 0
 return
-function View.getDesiredMonthsTillPayoff 0
+function View.getDesiredMonthsTillPayoff 1
 push constant 87
 call String.new 1
 push constant 77
@@ -896,6 +904,10 @@ call String.appendChar 2
 push constant 121
 call String.appendChar 2
 call Keyboard.readInt 1
+pop local 0
+call Output.println 0
+pop temp 0
+push local 0
 return
 function View.printSummaryExit 0
 push constant 54
@@ -1015,15 +1027,13 @@ pop temp 0
 push constant 0
 return
 function View.displayLoanStatusFor 0
-push constant 9
+push constant 15
 call String.new 1
-push constant 89
+push constant 78
 call String.appendChar 2
-push constant 79
+push constant 69
 call String.appendChar 2
-push constant 85
-call String.appendChar 2
-push constant 82
+push constant 87
 call String.appendChar 2
 push constant 32
 call String.appendChar 2
@@ -1034,6 +1044,20 @@ call String.appendChar 2
 push constant 65
 call String.appendChar 2
 push constant 78
+call String.appendChar 2
+push constant 32
+call String.appendChar 2
+push constant 83
+call String.appendChar 2
+push constant 84
+call String.appendChar 2
+push constant 65
+call String.appendChar 2
+push constant 84
+call String.appendChar 2
+push constant 85
+call String.appendChar 2
+push constant 83
 call String.appendChar 2
 call Output.printString 1
 pop temp 0
@@ -1171,6 +1195,8 @@ call Output.printString 1
 pop temp 0
 push argument 0
 call Loan.printMonthsTillPayoff 1
+pop temp 0
+call Output.println 0
 pop temp 0
 call Output.println 0
 pop temp 0

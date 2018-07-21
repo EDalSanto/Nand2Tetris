@@ -34,19 +34,31 @@ class Loan {
   }
 
   method void printPrincipal() {
-    do principal.print();
+    if (principal.getDenominator() = 1) {
+      do Output.printInt(principal.getNumerator());
+    } else {
+      do principal.printAsMixedFraction();
+    }
 
     return;
   }
 
   method void printMonthlyPayment() {
-    do monthlyPayment.print();
+    if (monthlyPayment.getDenominator() = 1) {
+      do Output.printInt(monthlyPayment.getNumerator());
+    } else {
+      do monthlyPayment.printAsMixedFraction();
+    }
 
     return;
   }
 
   method void printMonthsTillPayoff() {
-    do monthsTillPayoff.print();
+    if (monthsTillPayoff.getDenominator() = 1) {
+      do Output.printInt(monthsTillPayoff.getNumerator());
+    } else {
+      do monthsTillPayoff.printAsMixedFraction();
+    }
 
     return;
   }

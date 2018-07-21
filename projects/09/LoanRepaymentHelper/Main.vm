@@ -47,6 +47,8 @@ push local 3
 call Loan.setMonthsTillPayoff 2
 pop temp 0
 label IF_FALSE1
+call Screen.clearScreen 0
+pop temp 0
 push local 0
 call View.displayLoanStatusFor 1
 pop temp 0
@@ -55,6 +57,9 @@ pop local 4
 goto WHILE_EXP0
 label WHILE_END0
 call View.printSummaryExit 0
+pop temp 0
+push local 0
+call Memory.deAlloc 1
 pop temp 0
 push constant 0
 return

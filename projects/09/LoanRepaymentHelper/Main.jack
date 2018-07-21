@@ -1,4 +1,4 @@
-// Provides guidance for loan re-payments
+// Provides guidance for loan repayment (assuming no interest rate because of limitation of Hack Computer)
 
 class Main {
    function void main() {
@@ -32,17 +32,15 @@ class Main {
           do loan.setMonthsTillPayoff(desiredMonthsTillPayoff);
         }
 
+        do Screen.clearScreen();
         do View.displayLoanStatusFor(loan);
         let inputMode = View.getInputMode();
       }
 
       do View.printSummaryExit();
 
-      // if input for adusting view, set input to this new value
-        // 5% increase / decrease if monthly payment
-        // 1 month increase / decrease if months till payoff
-        // option to set either manually
-      // else if to exit, exit loop
+      // free
+      do Memory.deAlloc(loan);
 
       return;
    }

@@ -37,6 +37,7 @@ class Fraction {
       return Fraction.new(sum, denominator * other.getDenominator());
    }
 
+   // ADDED BY ME
    // Returns the division of this fraction and the other one */
    method Fraction divideBy(Fraction other) {
       return Fraction.new(numerator * other.getDenominator(), denominator * other.getNumerator());
@@ -55,6 +56,23 @@ class Fraction {
       do Output.printInt(numerator);
       do Output.printString("/");
       do Output.printInt(denominator);
+      return;
+   }
+
+   // ADDED BY ME
+   /** Displays as whole number and fraction */
+   method void printAsMixedFraction() {
+      var int wholeNumber;
+      var Fraction fraction;
+
+      let wholeNumber = numerator / denominator;
+      let fraction = Fraction.new(numerator - (wholeNumber * denominator), denominator);
+
+      do Output.printInt(wholeNumber);
+      do Output.printString(" ");
+      do fraction.print();
+
+      do fraction.dispose();
       return;
    }
 

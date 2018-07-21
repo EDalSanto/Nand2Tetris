@@ -27,18 +27,30 @@ class View {
     do Output.printString("Please select one of the following options.");
     do Output.printString("ESC to exit, p to enter a monthly payment, m to enter the desired months till payoff");
     do Output.println();
+    do Output.println();
     let inputMode = Keyboard.readChar();
+    do Output.println();
     do Output.println();
 
     return inputMode;
   }
 
   function int getDesiredMonthlyPayment() {
-    return Keyboard.readInt("Payment mode selected! Please enter a desired monthly payment.");
+    var int monthlyPaymentInput;
+
+    let monthlyPaymentInput = Keyboard.readInt("Payment mode selected! Please enter a desired monthly payment.");
+    do Output.println();
+
+    return monthlyPaymentInput;
   }
 
   function int getDesiredMonthsTillPayoff() {
-     return Keyboard.readInt("Months mode selected! Please enter the desired number of months to pay off your loan by");
+     var int monthsTillPayoffInput;
+
+     let monthsTillPayoffInput = Keyboard.readInt("Months mode selected! Please enter the desired number of months to pay off your loan by");
+     do Output.println();
+
+     return monthsTillPayoffInput;
   }
 
   function void printSummaryExit() {
@@ -64,15 +76,8 @@ class View {
     do loan.printMonthsTillPayoff();
 
     do Output.println();
+    do Output.println();
 
     return;
-  }
-
-  // Use instead of Output.printString("Whatever") to prevent memory leaks.
-  function void printStringConst(String str) {
-    do Output.printString(str);
-    do str.dispose();
-    return;
-
   }
 }

@@ -54,23 +54,65 @@ function Loan.printPrincipal 0
 push argument 0
 pop pointer 0
 push this 0
-call Fraction.print 1
+call Fraction.getDenominator 1
+push constant 1
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push this 0
+call Fraction.getNumerator 1
+call Output.printInt 1
 pop temp 0
+goto IF_END0
+label IF_FALSE0
+push this 0
+call Fraction.printAsMixedFraction 1
+pop temp 0
+label IF_END0
 push constant 0
 return
 function Loan.printMonthlyPayment 0
 push argument 0
 pop pointer 0
 push this 1
-call Fraction.print 1
+call Fraction.getDenominator 1
+push constant 1
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push this 1
+call Fraction.getNumerator 1
+call Output.printInt 1
 pop temp 0
+goto IF_END0
+label IF_FALSE0
+push this 1
+call Fraction.printAsMixedFraction 1
+pop temp 0
+label IF_END0
 push constant 0
 return
 function Loan.printMonthsTillPayoff 0
 push argument 0
 pop pointer 0
 push this 2
-call Fraction.print 1
+call Fraction.getDenominator 1
+push constant 1
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push this 2
+call Fraction.getNumerator 1
+call Output.printInt 1
 pop temp 0
+goto IF_END0
+label IF_FALSE0
+push this 2
+call Fraction.printAsMixedFraction 1
+pop temp 0
+label IF_END0
 push constant 0
 return
