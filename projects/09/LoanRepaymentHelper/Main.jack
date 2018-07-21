@@ -2,19 +2,49 @@
 
 class Main {
    function void main() {
-      var LoanHelperByPayment loanHelperByPayment;
-      var LoanHelperByTime loanHelperByTime;
+      //var LoanHelperByPayment loanHelperByPayment;
+      //var LoanHelperByTime loanHelperByTime;
       var Loan loan;
-      var int principal, interestRate;
+      var int principal, monthlyPaymentAmount, monthsTillPayoff;
+      var char inputMode, ESCCode, PaymentCode, MonthsCode; // exit, monthlypayment, or months till payoff
 
       // welcome prompt
       // get principal
-//      let principal = Keyboard.readInt("Enter the principal of your loan: ");
-      // get interestRate
- //     let interestRate = Keyboard.readInt("Enter the interest rate of your loan: ");
-      let loan = Loan.new(10000, 3);
-      do loan.setMonthsTillPayoff(12);
-      do loan.print();
+      let principal = Keyboard.readInt("Enter the principal of your loan: ");
+      let loan = Loan.new(principal);
+      // prompt about choice
+      do Output.printString("Your loan principal is: ");
+      do loan.printPrincipal();
+      do Output.println();
+      do Output.println();
+
+      do Output.printString("Keyboard Options: ESC to exit, p to enter a monthly payment, m to enter the desired months till payoff");
+      do Output.println();
+      let inputMode = Keyboard.readChar();
+      do Output.println();
+      let ESCCode = 140;
+      let PaymentCode = 112;
+      let MonthsCode = 109;
+
+      while (~(inputMode = ESCCode)) {
+        if (inputMode = PaymentCode) {
+          do Output.printString("Payment mode selected! Please enter a desired monthly payment.");
+        }
+
+        if (inputMode = MonthsCode) {
+          do Output.printString("Months mode selected! Please enter the desired number of months to pay off your loan by.");
+        }
+
+        do Output.println();
+
+        do Output.printString("Keyboard Options: ESC to exit, p to enter a monthly payment, m to enter the desired months till payoff");
+        let inputMode = Keyboard.readChar();
+
+        do Output.println();
+      }
+
+      do Output.printString("Hope this has been helpful for paying back your loans!");
+
       // while not exit key pressed
         // prompt input to either set monthly payment or desired months till payoff
         // take input for mode
@@ -26,6 +56,9 @@ class Main {
           // prompt with status and option for input / exit
           // take input
           // if input for adusting view, set input to this new value
+            // 5% increase / decrease if monthly payment
+            // 1 month increase / decrease if months till payoff
+            // option to set either manually
           // else if to exit, exit loop
 
       return;
