@@ -1,68 +1,50 @@
 class Loan {
-  field int principle, monthlyPayment, monthsTillPayoff;
-  field Fraction interestRate;
+  field Fraction principal, monthlyPayment, monthsTillPayoff;
 
-  constructor Loan new(int principleAmount, int interestRatePercent) {
-    let principle = principleAmount;
-    let interestRate = Fraction.new(interestRatePercent, 100);
+  constructor Loan new(int principalAmount) {
+    let principal = Fraction.new(principalAmount, 1);
 
     return this;
   }
 
   method void setMonthlyPayment(int amount) {
-    let monthlyPayment = amount;
-    //do updateMonthsTillPayoffBasedOffPaymentAmount();
+    let monthlyPayment = Fraction.new(amount, 1);
+    do updateMonthsTillPayoffBasedOffPaymentAmount();
 
     return;
   }
 
   method void setMonthsTillPayoff(int months) {
-    let monthsTillPayoff = months;
+    let monthsTillPayoff = Fraction.new(months, 1);
     do updateMonthlyPaymentBasedOffNewMonthsTillPayoff();
 
     return;
   }
 
   method void updateMonthlyPaymentBasedOffNewMonthsTillPayoff() {
-    var int newMonthlyPayment;
-    var int newMonthlyPaymentNumerator;
-    var int newMonthlyPaymentDenominator;
-    var Fraction onePlusR;
-
-    // formula:  https://en.wikipedia.org/wiki/Mortgage_calculator#Monthly_payment_formula
-    let onePlusR = interestRate.plus(Fraction.new(1, 1));
-    let onePlusR = onePlusR.multiply(Fraction.new(2, 1));
-
-    do Output.printString("Testing");
-    let onePlusR = MathUtil.power(onePlusR, monthsTillPayoff);
-    do onePlusR.print();
-    do Output.println();
-
-    let newMonthlyPaymentNumerator = (interestRate * principle) * MathUtil.power(onePlusR, monthsTillPayoff);
-    let newMonthlyPaymentDenominator = MathUtil.power((1 + interestRate), monthsTillPayoff) - interestRate;
-    let newMonthlyPayment = newMonthlyPaymentNumerator / newMonthlyPaymentDenominator;
-
-    let monthlyPayment = newMonthlyPayment;
+    let monthlyPayment = principal.divideBy(monthsTillPayoff);
 
     return;
   }
 
   method void updateMonthsTillPayoffBasedOffPaymentAmount() {
+    let monthsTillPayoff = principal.divideBy(monthlyPayment);
+
     return;
   }
 
+  method Fraction printPrincipal() {
+    return principal.print();
+  }
+
   method void print() {
-    do Output.printString("Principle: ");
-    do Output.printInt(principle);
-    do Output.println();
-    do Output.printString("Interest Rate: ");
-    do interestRate.print(); // fraction
-    do Output.println();
+    do Output.printString("principal: ");
+    do principal.print();
     do Output.printString("Number of Monthly Payments: ");
-    do Output.printInt(monthsTillPayoff);
+    do monthsTillPayoff.print();
     do Output.println();
     do Output.printString("Monthly Payment: ");
-    do Output.printInt(monthlyPayment);
+    do monthlyPayment.print();
 
     return;
   }
