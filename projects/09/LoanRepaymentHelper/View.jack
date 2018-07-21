@@ -49,7 +49,7 @@ class View {
   }
 
   function void displayLoanStatusFor(Loan loan) {
-    do Output.printString("YOUR LOAN");
+    do Output.printString("NEW LOAN STATUS");
     do Output.println();
     // Principal
     do Output.printString("principal: ");
@@ -66,5 +66,13 @@ class View {
     do Output.println();
 
     return;
+  }
+
+  // Use instead of Output.printString("Whatever") to prevent memory leaks.
+  function void printStringConst(String str) {
+    do Output.printString(str);
+    do str.dispose();
+    return;
+
   }
 }

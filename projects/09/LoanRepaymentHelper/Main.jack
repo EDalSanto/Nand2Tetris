@@ -8,8 +8,8 @@ class Main {
 
       // CONSTANTS
       let ESCCode = 140;
-      let PaymentCode = 112;
-      let MonthsCode = 109;
+      let PaymentCode = 80;
+      let MonthsCode = 77;
 
       // Initialize View
       do View.welcomePrompt();
@@ -33,7 +33,7 @@ class Main {
         }
 
         do View.displayLoanStatusFor(loan);
-        do View.getInputMode();
+        let inputMode = View.getInputMode();
       }
 
       do View.printSummaryExit();

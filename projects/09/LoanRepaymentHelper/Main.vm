@@ -1,9 +1,9 @@
 function Main.main 8
 push constant 140
 pop local 5
-push constant 112
+push constant 80
 pop local 6
-push constant 109
+push constant 77
 pop local 7
 call View.welcomePrompt 0
 pop temp 0
@@ -51,7 +51,7 @@ push local 0
 call View.displayLoanStatusFor 1
 pop temp 0
 call View.getInputMode 0
-pop temp 0
+pop local 4
 goto WHILE_EXP0
 label WHILE_END0
 call View.printSummaryExit 0

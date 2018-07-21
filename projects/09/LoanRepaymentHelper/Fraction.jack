@@ -39,10 +39,7 @@ class Fraction {
 
    // Returns the division of this fraction and the other one */
    method Fraction divideBy(Fraction other) {
-      return Fraction.new(
-        numerator * other.getDenominator(),
-        denominator * other.getNumerator()
-      );
+      return Fraction.new(numerator * other.getDenominator(), denominator * other.getNumerator());
    }
 
    // More fraction-related methods (minus, times, div, etc.) can be added here.
