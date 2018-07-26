@@ -18,9 +18,9 @@
 ![JackGrammar](./images/JackGrammar.png)
 
 ### Parse Tree
-![ParseTreeJack](./images/ParseTreeJack)
+![ParseTreeJack](./images/ParseTreeJack.png)
 * parse tree -> recursive data type, where values may contain other values of the same type
-![ParseTreeJackExpression](./images/ParseTreeJackExpression)
+![ParseTreeJackExpression](./images/ParseTreeJackExpression.png)
 
 ### Parser Logic
 ![ParsingLogic](./images/ParsingLogic.png)
