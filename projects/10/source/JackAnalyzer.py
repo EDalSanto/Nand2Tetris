@@ -1,4 +1,5 @@
-from JackTokenizer import *
+from JackTokenizer import JackTokenizer
+from CompilationEngine  import CompilationEngine
 import sys
 import os
 import glob
@@ -14,7 +15,8 @@ class JackAnalyzer():
 
         for file in files:
             tokenizer = JackTokenizer(input)
-            output_file = cls.output_file_for(input)
+            output_file_name = cls.output_file_for(input)
+            output_file = open(output_file_name, 'w')
             compiler = CompilationEngine(tokenizer, output_file)
             compiler.compile_class()
 
@@ -24,7 +26,6 @@ class JackAnalyzer():
         file_name = os.path.basename(file).split(".")[0]
         ext_name = ".xml"
         dir_name = os.path.dirname(file)
-        import pdb; pdb.set_trace();
         return dir_name + "/" + file_name + ext_name
 
 
