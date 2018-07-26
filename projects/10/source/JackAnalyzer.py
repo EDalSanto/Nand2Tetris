@@ -1,34 +1,34 @@
-from JackTokenizer import JackTokenizer
-from CompilationEngine  import CompilationEngine
+from source.JackTokenizer import JackTokenizer
+from source.CompilationEngine  import CompilationEngine
 import sys
 import os
 import glob
 
 class JackAnalyzer():
     @classmethod
-    def run(cls, input):
-        if os.path.isfile(input):
-            files = [input]
-        elif os.path.isdir(input):
-            jack_path = os.path.join(input, "*.jack")
+    def run(cls, arg):
+        if os.path.isfile(arg):
+            files = [arg]
+        elif os.path.isdir(arg):
+            jack_path = os.path.join(arg, "*.jack")
             files = glob.glob(jack_path)
 
-        for file in files:
-            tokenizer = JackTokenizer(input)
-            output_file_name = cls.output_file_for(input)
+        for input_file in files:
+            tokenizer = JackTokenizer(input_file)
+            output_file_name = cls.xml_output_file_for(input_file)
             output_file = open(output_file_name, 'w')
             compiler = CompilationEngine(tokenizer, output_file)
             compiler.compile_class()
 
 
     @classmethod
-    def output_file_for(cls, file):
-        file_name = os.path.basename(file).split(".")[0]
+    def xml_output_file_for(cls, input_file):
+        file_name = os.path.basename(input_file).split(".")[0]
         ext_name = ".xml"
-        dir_name = os.path.dirname(file)
+        dir_name = os.path.dirname(input_file)
         return dir_name + "/" + file_name + ext_name
 
 
 if __name__ == "__main__" and len(sys.argv) == 2:
-    input = sys.argv[1]
-    JackAnalyzer.run(input)
+    arg = sys.argv[1]
+    JackAnalyzer.run(arg)
