@@ -6,20 +6,10 @@ import glob
 
 class JackAnalyzer():
     @classmethod
-    def run(cls, arg):
-        if os.path.isfile(arg):
-            files = [arg]
-        elif os.path.isdir(arg):
-            jack_path = os.path.join(arg, "*.jack")
-            files = glob.glob(jack_path)
-
-        for input_file in files:
-            tokenizer = JackTokenizer(input_file)
-            output_file_name = cls.xml_output_file_for(input_file)
-            output_file = open(output_file_name, 'w')
-            compiler = CompilationEngine(tokenizer, output_file)
-            compiler.compile_class()
-
+    def run(cls, input_file, output_file):
+        tokenizer = JackTokenizer(input_file)
+        compiler = CompilationEngine(tokenizer, output_file)
+        compiler.compile_class()
 
     @classmethod
     def xml_output_file_for(cls, input_file):
@@ -31,4 +21,16 @@ class JackAnalyzer():
 
 if __name__ == "__main__" and len(sys.argv) == 2:
     arg = sys.argv[1]
-    JackAnalyzer.run(arg)
+
+    # determine output file names
+    if os.path.isfile(arg):
+        files = [arg]
+    elif os.path.isdir(arg):
+        jack_path = os.path.join(arg, "*.jack")
+        files = glob.glob(jack_path)
+
+    for input_file in files:
+        output_file_name = JackAnalyzer.xml_output_file_for(input_file)
+        output_file = open(output_file_name, 'w')
+        JackAnalyzer.run(input_file, output_file)
+
