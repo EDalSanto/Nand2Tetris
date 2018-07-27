@@ -19,27 +19,28 @@ class TestJackTokenizer(unittest.TestCase):
 
     def test_advance(self):
         tokenizer = JackTokenizer(self.input_file)
-        # it gets the first token
-        tokenizer.advance()
-        self.assertEqual('if', tokenizer.current_token)
-        # it gets the second token
-        tokenizer.advance()
-        self.assertEqual('(', tokenizer.current_token)
-        # it gets the third token
-        tokenizer.advance()
-        self.assertEqual('x', tokenizer.current_token)
-        # it gets the fourth token
-        tokenizer.advance()
-        self.assertEqual('<', tokenizer.current_token)
-        # it gets the fifth token
-        tokenizer.advance()
-        self.assertEqual('0', tokenizer.current_token)
-        # it gets the sixth token
-        tokenizer.advance()
-        self.assertEqual(')', tokenizer.current_token)
-        # it gets the seventh token
-        tokenizer.advance()
-        self.assertEqual('{', tokenizer.current_token)
+        expected_tokens = [
+            "if",
+            "(",
+            "x",
+            "<",
+            "0",
+            ")",
+            "{",
+            "let",
+            "state",
+            "=",
+            "negative",
+            ";",
+            "}"
+        ]
+        tokens = []
+        while tokenizer.has_more_tokens:
+            tokenizer.advance()
+            if tokenizer.current_token:
+                tokens.append(tokenizer.current_token)
+
+        self.assertEqual(tokens, expected_tokens)
 
 
 if __name__ == "__main__":

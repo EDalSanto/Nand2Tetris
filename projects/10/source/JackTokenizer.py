@@ -6,27 +6,54 @@ class JackTokenizer():
     def __init__(self, input_file):
         self.input_file = input_file
         self.current_token = ""
+        self.current_token_type = None
         self.has_more_tokens = True
 
     def advance(self):
         if self.has_more_tokens:
-            token_found = False
-            self.current_token = ""
+            char = self.input_file.read(1)
 
-            while not token_found:
-                # read 1 char
-                c = self.input_file.read(1)
-                # if whitespace or new line continue
-                if c.isspace():
-                    continue
+            # guard clause to check if done
+            if not char:
+                self.has_more_tokens = False
+                self.current_token = None
+                return
 
-                # if alphanumeric, add to current_token until word done
-                if c.isalnum():
-                    while c.isalnum():
-                        self.current_token += c
-                        c = self.input_file.read(1)
-                else:
-                    # else set current c as current token
-                    self.current_token = c
+            # skip all whitespace
+            while char.isspace():
+                char = self.input_file.read(1)
+                continue
 
-                token_found = True
+            # process found token
+            token = ""
+            # double quotes that start string
+            if char == "\"":
+                # get rest of string until closing "
+                # skip past first "
+                char = self.input_file.read(1)
+                while char != "\"":
+                    token += char
+                    char = self.input_file.read(1)
+                #self.current_token_type = "STRING_CONST"
+            elif char.isalnum():
+                # get full word
+                while char.isalnum():
+                    token += char
+                    char = self.input_file.read(1)
+                # go back 1 char that was peek ahead
+                self.input_file.seek(self.input_file.tell() - 1)
+            else:
+                # else set current c as current token
+                token = char
+
+            self.current_token = token
+
+
+    def current_token_type(self):
+        if self.current_token in cls.KEYWORDS:
+            return "KEYWORD"
+        elif self.current_token in cls.SYMBOLS:
+            return "SYMBOLS"
+        elif self.current_token.isdigit():
+            return "INT_CONSTANT"
+#        elif
