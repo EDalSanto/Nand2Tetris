@@ -28,14 +28,16 @@ class JackTokenizer():
             token = ""
             # double quotes that start string
             if char == "\"":
+                self.current_token_type = "STRING_CONST"
+
                 # get rest of string until closing "
                 # skip past first "
                 char = self.input_file.read(1)
                 while char != "\"":
                     token += char
                     char = self.input_file.read(1)
-                #self.current_token_type = "STRING_CONST"
             elif char.isalnum():
+                #self.current_token_type = "
                 # get full word
                 while char.isalnum():
                     token += char
