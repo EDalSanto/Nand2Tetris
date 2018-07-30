@@ -9,6 +9,8 @@ from source.JackTokenizer import JackTokenizer
 
 class TestJackTokenizer(unittest.TestCase):
     def test_advance(self):
+        ## IT TOKENIZES INPUT
+
         # setup input_file and source
         source_code = """\
         if (x < 0) {
@@ -31,7 +33,7 @@ class TestJackTokenizer(unittest.TestCase):
             "let",
             "state",
             "=",
-            "negative",
+            "\"negative\"",
             ";",
             "}"
         ]
@@ -44,27 +46,34 @@ class TestJackTokenizer(unittest.TestCase):
         # test
         self.assertEqual(tokens, expected_tokens)
 
-    def test_current_token_type(self):
-        # it identifies keyword
-        source_code = "if"
+        ## IT SETS THE CURRENT TOKEN TYPE
+        source_code = "if { 42 \"hi\" x"
 
         input_file = StringIO()
         input_file.write(source_code)
         input_file.seek(0)
 
+        tokenizer = JackTokenizer(input_file)
+
+        # it works with keyword
+        tokenizer.advance()
+        self.assertEqual(tokenizer.current_token_type, "KEYWORD")
+
         # it works with symbol
-        source_code = "{"
+        tokenizer.advance()
+        self.assertEqual(tokenizer.current_token_type, "SYMBOL")
 
         # it works with INT
-        source_code = 42
+        tokenizer.advance()
+        self.assertEqual(tokenizer.current_token_type, "INT_CONST")
 
         # it works with STRING_CONSTANT
-        source_code = "\"hi\""
+        tokenizer.advance()
+        self.assertEqual(tokenizer.current_token_type, "STRING_CONST")
 
         # it works with identifier
-        source_code = "x"
-
-
+        tokenizer.advance()
+        self.assertEqual(tokenizer.current_token_type, "IDENTIFIER")
 
 if __name__ == "__main__":
     unittest.main()
