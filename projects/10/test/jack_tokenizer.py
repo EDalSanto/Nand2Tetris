@@ -8,9 +8,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 from source.JackTokenizer import JackTokenizer
 
 class TestJackTokenizer(unittest.TestCase):
-    def test_advance(self):
-        ## IT TOKENIZES INPUT
-
+    def setUp(self):
         # setup input_file and source
         source_code = """\
         if (x < 0) {
@@ -20,8 +18,10 @@ class TestJackTokenizer(unittest.TestCase):
         input_file.write(source_code)
         input_file.seek(0)
         # tokenize
-        tokenizer = JackTokenizer(input_file)
-#        expected_token_types?
+        self.tokenizer = JackTokenizer(input_file)
+
+    def test_advance(self):
+        ## IT TOKENIZES INPUT
         expected_tokens = [
             "if",
             "(",
@@ -38,42 +38,37 @@ class TestJackTokenizer(unittest.TestCase):
             "}"
         ]
         tokens = []
-        while tokenizer.has_more_tokens:
-            tokenizer.advance()
-            if tokenizer.current_token:
-                tokens.append(tokenizer.current_token)
+        while self.tokenizer.has_more_tokens:
+            self.tokenizer.advance()
+            if self.tokenizer.current_token:
+                tokens.append(self.tokenizer.current_token)
 
-        # test
         self.assertEqual(tokens, expected_tokens)
 
-        ## IT SETS THE CURRENT TOKEN TYPE
-        source_code = "if { 42 \"hi\" x"
+    def test_current_token_type(self):
+        expected_token_types = [
+            "KEYWORD",
+            "SYMBOL",
+            "IDENTIFIER",
+            "SYMBOL",
+            "INT_CONST",
+            "SYMBOL",
+            "SYMBOL",
+            "KEYWORD",
+            "IDENTIFIER",
+            "SYMBOL",
+            "STRING_CONST",
+            "SYMBOL",
+            "SYMBOL"
+        ]
+        token_types = []
+        while self.tokenizer.has_more_tokens:
+            self.tokenizer.advance()
+            if self.tokenizer.current_token:
+                token_types.append(self.tokenizer.current_token_type())
 
-        input_file = StringIO()
-        input_file.write(source_code)
-        input_file.seek(0)
+        self.assertEqual(token_types, expected_token_types)
 
-        tokenizer = JackTokenizer(input_file)
-
-        # it works with keyword
-        tokenizer.advance()
-        self.assertEqual(tokenizer.current_token_type, "KEYWORD")
-
-        # it works with symbol
-        tokenizer.advance()
-        self.assertEqual(tokenizer.current_token_type, "SYMBOL")
-
-        # it works with INT
-        tokenizer.advance()
-        self.assertEqual(tokenizer.current_token_type, "INT_CONST")
-
-        # it works with STRING_CONSTANT
-        tokenizer.advance()
-        self.assertEqual(tokenizer.current_token_type, "STRING_CONST")
-
-        # it works with identifier
-        tokenizer.advance()
-        self.assertEqual(tokenizer.current_token_type, "IDENTIFIER")
 
 if __name__ == "__main__":
     unittest.main()
