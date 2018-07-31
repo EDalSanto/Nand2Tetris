@@ -44,7 +44,7 @@ class JackTokenizer():
         # guard clause - if no char means no more tokens left
         if not char:
             self.has_more_tokens, self.current_token = False, None
-            return
+            return False
 
         # process found token
         token = ""
@@ -73,6 +73,7 @@ class JackTokenizer():
             token = char
 
         self.current_token = token
+        return True
 
     def current_token_type(self):
         if self.current_token[0] == "\"":

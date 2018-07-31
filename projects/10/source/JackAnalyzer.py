@@ -1,5 +1,5 @@
-from source.JackTokenizer import JackTokenizer
-from source.CompilationEngine  import CompilationEngine
+from JackTokenizer import JackTokenizer
+from CompilationEngine  import CompilationEngine
 import sys
 import os
 import glob
@@ -16,7 +16,7 @@ class JackAnalyzer():
         file_name = os.path.basename(input_file).split(".")[0]
         ext_name = ".xml"
         dir_name = os.path.dirname(input_file)
-        return dir_name + "/" + file_name + ext_name
+        return "." + dir_name + "/" + file_name + ext_name
 
 
 if __name__ == "__main__" and len(sys.argv) == 2:
