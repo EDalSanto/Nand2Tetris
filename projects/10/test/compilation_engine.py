@@ -26,12 +26,38 @@ class TestCompilationEngine(unittest.TestCase):
 
         expected_compiled = (
             "<class>\n"
+            "  <keyword>class</keyword>\n"
             "  <identifier>Foo</identifier>\n"
             "  <symbol>{</symbol>\n"
             "  <symbol>}</symbol>\n"
             "</class>\n"
         )
         self.assertEqual(self.output_file.read(), expected_compiled)
+
+        ## IT RETURNS A COMPILED CLASS WITH CLASS VARIABLE
+        source_code = (
+            "class Foo {\n"
+            "  static boolean test;\n"
+            "}\n"
+        )
+        self.set_up(source_code)
+
+        expected_compiled = (
+            "<class>\n"
+            "  <keyword>class</keyword>\n"
+            "  <identifier>Foo</identifier>\n"
+            "  <symbol>{</symbol>\n"
+            "  <classvarDec>\n"
+            "    <keyword>static</keyword>\n"
+            "    <keyword>boolean</keyword>\n"
+            "    <identifier>test</identifier>\n"
+            "    <symbol>;</symbol>\n"
+            "  </classvarDec>\n"
+            "  <symbol>}</symbol>\n"
+            "</class>\n"
+        )
+        self.assertEqual(self.output_file.read(), expected_compiled)
+
 
 if __name__ == "__main__":
     unittest.main()

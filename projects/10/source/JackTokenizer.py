@@ -87,6 +87,10 @@ class JackTokenizer():
         else:
             return "SYMBOL"
 
+    def keyword(self):
+        if self.current_token_type() == "KEYWORD":
+            return self.current_token
+
     def symbol(self):
         if self.current_token_type() == "SYMBOL":
             return self.current_token
