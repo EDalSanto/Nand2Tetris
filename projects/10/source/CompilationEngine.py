@@ -45,6 +45,51 @@ class CompilationEngine():
 
         self._write_current_outer_tag(indent=indent, body="/classvarDec")
 
+    def compile_subroutine(self, indent):
+        terminating_token = "}"
+        # logic for subroutine
+
+    def compile_parameter_list(self, indent):
+        terminating_token = ")"
+        # logic for paramter list
+
+    def compile_var_dec(self, indent):
+        terminating_token = ";"
+        # logic for var dec
+
+    def compile_statements(self, indent):
+        terminating_token = "}"
+        # logic for statements
+
+    def compile_do(self, indent):
+        terminating_token = ";"
+        # logic for do
+
+    def compile_let(self, indent):
+        terminating_token = ";"
+        # logic for let
+
+    def compile_while(self, indent):
+        terminating_token = "}"
+        # logic for while
+
+    def compile_return(self, indent):
+        terminating_token = ";"
+        # logic for return
+
+    def compile_if(self, indent):
+        terminating_token = ";"
+        # logic for if
+
+    def compile_expression(self, indent):
+        terminating_token = "?"
+        # logic for expression
+
+    def compile_term(self, indent):
+        # ?
+
+    def compile_expression_list(self, indent):
+        # ?
 
     def _write_current_outer_tag(self, indent, body):
         spaces = (indent - self.INDENT_SPACE_SIZE) * " "
