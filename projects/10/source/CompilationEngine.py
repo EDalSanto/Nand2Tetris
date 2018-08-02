@@ -1,41 +1,66 @@
 class CompilationEngine():
-    """
+    INDENT_SPACE_SIZE = 2
+    TERMINAL_TOKEN_TYPES = [ "STRING_CONST", "INT_CONST", "IDENTIFIER", "SYMBOL"]
+    NON_TERMINAL_TOKEN_TYPES = [ "KEYWORD" ]
+    TERMINAL_KEYWORDS = [ "boolean", "class" ]
+    CLASS_VAR_DEC_TOKENS = [ "static", "field" ]
 
     """
+    compiles a jack source file from a jack tokenizer into xml form in output_file
+    """
+
     def __init__(self, tokenizer, output_file):
         self.tokenizer = tokenizer
         self.output_file = output_file
 
-    def compile_class(self, indent=2, terminating_token="}", outer="class", inner="class"):
+    def compile_class(self, indent=2):
         """
-        everything needed to compile file class
+        everything needed to compile a class, the basic unit of compilation
         """
-        outer_spaces = (indent - 2) * " "
-        inner_spaces = indent * " "
-        # write outer tag
-        self.output_file.write("{}<{}>\n".format(outer_spaces, outer))
-        # write inner keyword
-        self.output_file.write("{}<keyword>{}</keyword>\n".format(inner_spaces, inner))
+        terminating_token = "}"
+        self._write_current_outer_tag(indent=indent, body="class")
+        # maybe class token should already be read here to match other compileXXX?
 
         while self.tokenizer.current_token != terminating_token:
             self.tokenizer.advance()
 
-            if self.tokenizer.identifier():
-                self.output_file.write(
-                    "{}<identifier>{}</identifier>\n".format(inner_spaces, self.tokenizer.identifier())
-                )
-            elif self.tokenizer.symbol():
-                self.output_file.write(
-                    "{}<symbol>{}</symbol>\n".format(inner_spaces, self.tokenizer.symbol())
-                )
-            elif self.tokenizer.keyword():
-                # self.compile_keyword()
-                # class_var_dec
-                if self.tokenizer.keyword() in [ "static", "field" ]:
-                    # write outer
-                    self.compile_class(indent=indent + 2, terminating_token=";", outer="classvarDec", inner=self.tokenizer.keyword())
-                elif self.tokenizer.keyword() == "boolean":
-                    self.output_file.write("{}<keyword>boolean</keyword>\n".format(inner_spaces))
+            if self.tokenizer.current_token_type() in self.TERMINAL_TOKEN_TYPES:
+                self._write_current_terminal_token(indent=indent)
+            elif self.tokenizer.current_token_type() in self.NON_TERMINAL_TOKEN_TYPES:
+                if self.tokenizer.current_token in self.CLASS_VAR_DEC_TOKENS:
+                    self.compile_class_var_dec(indent=indent + self.INDENT_SPACE_SIZE)
+                elif self.tokenizer.current_token in self.TERMINAL_KEYWORDS:
+                    self._write_current_terminal_token(indent=indent)
 
-        # write closing of outer
-        self.output_file.write("{}</{}>\n".format(outer_spaces, outer))
+        self._write_current_outer_tag(indent=indent, body="/class")
+
+    def compile_class_var_dec(self, indent):
+        terminating_token = ";"
+        self._write_current_outer_tag(indent=indent, body="classvarDec")
+        self._write_current_terminal_token(indent=indent)
+
+        while self.tokenizer.current_token != terminating_token:
+            self.tokenizer.advance()
+            self._write_current_terminal_token(indent=indent)
+
+        self._write_current_outer_tag(indent=indent, body="/classvarDec")
+
+
+    def _write_current_outer_tag(self, indent, body):
+        spaces = (indent - self.INDENT_SPACE_SIZE) * " "
+        self.output_file.write("{}<{}>\n".format(spaces, body))
+
+
+    def _write_current_terminal_token(self, indent):
+       spaces = indent * " "
+
+       self.output_file.write(
+           "{}<{}>{}</{}>\n".format(
+               spaces,
+               self.tokenizer.current_token_type().lower(),
+               self.tokenizer.current_token,
+               self.tokenizer.current_token_type().lower()
+           )
+       )
+
+

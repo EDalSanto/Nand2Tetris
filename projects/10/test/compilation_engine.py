@@ -20,6 +20,7 @@ class TestCompilationEngine(unittest.TestCase):
         self.output_file.seek(0)
 
     def test_compile_class(self):
+        self.maxDiff = None
         ## IT RETURNS A COMPILED CLASS
         source_code = "class Foo {}"
         self.set_up(source_code)
@@ -57,6 +58,55 @@ class TestCompilationEngine(unittest.TestCase):
             "</class>\n"
         )
         self.assertEqual(self.output_file.read(), expected_compiled)
+
+        ## IT RETURNS A COMPILED CLASS WITH A CLASS VAR AND FUNCTION
+        source_code = (
+            "class Foo {\n"
+            "  static boolean test;\n"
+            "\n"
+            "  function void main(int x) {\n"
+            "    var SquareGame game;\n"
+            "    return;\n"
+            "  }\n"
+            "}\n"
+        )
+        self.set_up(source_code)
+
+        expected_compiled = (
+            "<class>\n"
+            "  <keyword>class</keyword>\n"
+            "  <identifier>Foo</identifier>\n"
+            "  <symbol>{</symbol>\n"
+            "  <classvarDec>\n"
+            "    <keyword>static</keyword>\n"
+            "    <keyword>boolean</keyword>\n"
+            "    <identifier>test</identifier>\n"
+            "    <symbol>;</symbol>\n"
+            "  </classvarDec>\n"
+            "  <subroutineDec>\n"
+            "    <keyword>function</keyword>\n"
+            "    <keyword>void</keyword>\n"
+            "    <identifier>main</identifier>\n"
+            "    <symbol>(</symbol>\n"
+            "    <parameterList>\n"
+            "      <keyword>int</keyword>\n"
+            "      <identifier>x</identifier>\n"
+            "    </parameterList>\n"
+            "    <symbol>)</symbol>\n"
+            "    <subroutineBody>\n"
+            "      <symbol>{</symbol>\n"
+            "      <varDec>\n"
+            "        <keyword>SquareGame</keyword>\n"
+            "        <identifier>game</identifier>\n"
+            "        <symbol>;</symbol>\n"
+            "      </varDec>\n"
+            "      <keyword>return</keyword>\n"
+            "      <symbol>;</symbol>\n"
+            "    </subroutineBody>\n"
+            "  </subroutineDec>\n"
+            "</class>\n"
+        )
+#        self.assertEqual(self.output_file.read(), expected_compiled)
 
 
 if __name__ == "__main__":
