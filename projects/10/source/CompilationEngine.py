@@ -1,9 +1,17 @@
 class CompilationEngine():
     INDENT_SPACE_SIZE = 2
     TERMINAL_TOKEN_TYPES = [ "STRING_CONST", "INT_CONST", "IDENTIFIER", "SYMBOL"]
-    TERMINAL_KEYWORDS = [ "boolean", "class" ]
+    TERMINAL_KEYWORDS = [ "boolean", "class", "void", "int" ]
     CLASS_VAR_DEC_TOKENS = [ "static", "field" ]
     SUBROUTINE_TOKENS = [ "function", "method", "constructor" ]
+    STATEMENT_TOKENS = [ 'do', 'let', 'while', 'return', 'if' ]
+    STARTING_TOKENS = {
+        'var_dec': 'var',
+        'parameter_list': '(',
+        'subroutine_body': '{',
+        'expression_list': '(',
+        'expression': '='
+    }
     TERMINATING_TOKENS = {
         'class': '}',
         'class_var_dec': ';',
@@ -15,9 +23,9 @@ class CompilationEngine():
         'while': ';',
         'if': ';',
         'var_dec': ';',
-        'return': ';'
+        'return': ';',
+        'expression': ';'
     }
-    STATEMENT_TOKENS = [ 'do', 'let', 'while', 'return', 'if' ]
 
     """
     compiles a jack source file from a jack tokenizer into xml form in output_file
@@ -44,7 +52,7 @@ class CompilationEngine():
             elif self.tokenizer.current_token in self.SUBROUTINE_TOKENS:
                 self.compile_subroutine(indent=indent + self.INDENT_SPACE_SIZE)
             elif self.tokenizer.current_token in self.TERMINAL_KEYWORDS:
-                    self._write_current_terminal_token(indent=indent)
+                self._write_current_terminal_token(indent=indent)
 
         self._write_current_outer_tag(indent=indent, body="/class")
 
@@ -59,15 +67,15 @@ class CompilationEngine():
         self._write_current_outer_tag(indent=indent, body="/classvarDec")
 
     def compile_subroutine(self, indent):
-        # logic for compiling subroutine
         self._write_current_outer_tag(indent=indent, body="subroutineDec")
         self._write_current_terminal_token(indent=indent)
 
         while self.tokenizer.current_token != self.TERMINATING_TOKENS['subroutine']:
             self.tokenizer.advance()
-            if self.tokenizer.current_token == '(':
+
+            if self.tokenizer.current_token == self.STARTING_TOKENS['parameter_list']:
                 self.compile_parameter_list(indent + self.INDENT_SPACE_SIZE)
-            elif self.tokenizer.current_token == '{':
+            elif self.tokenizer.current_token == self.STARTING_TOKENS['subroutine_body']:
                 self.compile_subroutine_body(indent + self.INDENT_SPACE_SIZE)
             else:
                 self._write_current_terminal_token(indent=indent)
@@ -75,8 +83,10 @@ class CompilationEngine():
         self._write_current_outer_tag(indent=indent, body="/subroutineDec")
 
     def compile_parameter_list(self, indent):
+        # write starting (
         self._write_current_terminal_token(indent=indent - self.INDENT_SPACE_SIZE)
         self.tokenizer.advance()
+
         self._write_current_outer_tag(indent=indent, body="parameterList")
 
         while self.tokenizer.current_token != self.TERMINATING_TOKENS['parameter_list']:
@@ -84,22 +94,22 @@ class CompilationEngine():
             self.tokenizer.advance()
 
         self._write_current_outer_tag(indent=indent, body="/parameterList")
+
+        # write closing )
         self._write_current_terminal_token(indent=indent - self.INDENT_SPACE_SIZE)
 
     def compile_subroutine_body(self, indent):
-        # logic for compiling subroutine
         self._write_current_outer_tag(indent=indent, body="subroutineBody")
+        # write opening {
         self._write_current_terminal_token(indent=indent)
 
         while self.tokenizer.current_token != self.TERMINATING_TOKENS['subroutine']:
             self.tokenizer.advance()
 
-            if self.tokenizer.current_token == 'var':
-                self.compile_var_dec(indent + self.INDENT_SPACE_SIZE)
-            elif self.tokenizer.current_token == 'return':
-                self.compile_return(indent)
+            if self.tokenizer.current_token == self.STARTING_TOKENS['var_dec']:
+                self.compile_var_dec(indent=indent + self.INDENT_SPACE_SIZE)
             elif self.tokenizer.current_token in self.STATEMENT_TOKENS:
-                self.compile_statements(indent)
+                self.compile_statements(indent=indent + self.INDENT_SPACE_SIZE)
             else:
                 self._write_current_terminal_token(indent=indent)
 
@@ -117,45 +127,119 @@ class CompilationEngine():
         self._write_current_outer_tag(indent=indent, body="/varDec")
 
     def compile_statements(self, indent):
-        # logic for statements
+        self._write_current_outer_tag(indent=indent, body="statements")
 
-        return
+        while self.tokenizer.current_token != self.TERMINATING_TOKENS['subroutine']:
+            if self.tokenizer.current_token == "if":
+                self.compile_if(indent=indent + self.INDENT_SPACE_SIZE)
+            elif self.tokenizer.current_token == "do":
+                self.compile_do(indent=indent + self.INDENT_SPACE_SIZE)
+            elif self.tokenizer.current_token == "let":
+                self.compile_let(indent=indent + self.INDENT_SPACE_SIZE)
+            elif self.tokenizer.current_token == "while":
+                self.compile_while(indent=indent + self.INDENT_SPACE_SIZE)
+            elif self.tokenizer.current_token == "return":
+                self.compile_return(indent=indent + self.INDENT_SPACE_SIZE)
+
+            self.tokenizer.advance()
+
+        self._write_current_outer_tag(indent=indent, body="/statements")
+        self._write_current_terminal_token(indent=indent - self.INDENT_SPACE_SIZE)
 
     def compile_do(self, indent):
-        # logic for do
-        return
+        self._write_current_outer_tag(indent=indent, body="doStatement")
+        self._write_current_terminal_token(indent=indent)
+
+        while self.tokenizer.current_token != self.TERMINATING_TOKENS['do']:
+            self.tokenizer.advance()
+
+            if self.tokenizer.current_token == self.STARTING_TOKENS['expression_list']:
+                self._write_current_terminal_token(indent=indent)
+                self.compile_expression_list(indent=indent+self.INDENT_SPACE_SIZE)
+            else:
+                self._write_current_terminal_token(indent=indent)
+
+        self._write_current_outer_tag(indent=indent, body="/doStatement")
 
     def compile_let(self, indent):
-        # logic for let
-        return
+        self._write_current_outer_tag(indent=indent, body="letStatement")
+        self._write_current_terminal_token(indent=indent)
+
+        while self.tokenizer.current_token != self.TERMINATING_TOKENS['let']:
+            self.tokenizer.advance()
+
+            if self.tokenizer.current_token == self.STARTING_TOKENS['expression']:
+                self._write_current_terminal_token(indent=indent)
+                self.compile_expression(indent=indent+self.INDENT_SPACE_SIZE)
+            else:
+                self._write_current_terminal_token(indent=indent)
+
+        self._write_current_outer_tag(indent=indent, body="/letStatement")
 
     def compile_while(self, indent):
-        # logic for while
-        return
+        self._write_current_outer_tag(indent=indent, body="whileStatement")
+
+        while self.tokenizer.current_token != self.TERMINATING_TOKENS['while']:
+            self.tokenizer.advance()
+
+            if self.tokenizer.current_token == self.STARTING_TOKENS['expression']:
+                self.compile_expression(indent=indent)
+            elif self.tokenizer.current_token in self.STATEMENT_TOKENS:
+                self.compile_statements(indent=indent)
+            else:
+                self._write_current_terminal_token(indent=indent)
+
+        self._write_current_outer_tag(indent=indent, body="/whileStatement")
+
 
     def compile_if(self, indent):
-        # logic for if
-        return
+        self._write_current_outer_tag(indent=indent, body="ifStatement")
+
+        while self.tokenizer.current_token != self.TERMINATING_TOKENS['if']:
+            self.tokenizer.advance()
+
+            if self.tokenizer.current_token == self.STARTING_TOKENS['expression']:
+                self.compile_expression(indent=indent)
+            elif self.tokenizer.current_token in self.STATEMENT_TOKENS:
+                self.compile_statements(indent=indent)
+            else:
+                self._write_current_terminal_token(indent=indent)
+
+        self._write_current_outer_tag(indent=indent, body="/ifStatement")
 
     def compile_return(self, indent):
         # logic for return => prob need to add expression checker
+        self._write_current_outer_tag(indent=indent, body="returnStatement")
         self._write_current_terminal_token(indent=indent)
 
         while self.tokenizer.current_token != self.TERMINATING_TOKENS['return']:
             self.tokenizer.advance()
             self._write_current_terminal_token(indent=indent)
 
+        self._write_current_outer_tag(indent=indent, body="/returnStatement")
+
     def compile_expression(self, indent):
-        # logic for expression
-        return
+        self._write_current_outer_tag(indent=indent, body="expression")
+        self.tokenizer.advance()
+
+        while self.tokenizer.current_token != self.TERMINATING_TOKENS['expression']:
+            self.compile_term(indent=indent+self.INDENT_SPACE_SIZE)
+            self.tokenizer.advance()
+
+        self._write_current_outer_tag(indent=indent, body="/expression")
+        self._write_current_terminal_token(indent=indent - self.INDENT_SPACE_SIZE)
 
     def compile_term(self, indent):
-        # ?
-        return
+        if self.tokenizer.current_token_type() == 'SYMBOL':
+            self._write_current_terminal_token(indent=indent)
+        else:
+            self._write_current_outer_tag(indent=indent, body="term")
+            self._write_current_terminal_token(indent=indent)
+            self._write_current_outer_tag(indent=indent, body="/term")
 
     def compile_expression_list(self, indent):
-        # ?
-        return
+        self._write_current_outer_tag(indent=indent, body="expressionList")
+        self._write_current_outer_tag(indent=indent, body="/expressionList")
 
     def _write_current_outer_tag(self, indent, body):
         spaces = (indent - self.INDENT_SPACE_SIZE) * " "
