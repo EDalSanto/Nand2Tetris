@@ -17,6 +17,7 @@ class CompilationEngine():
         'var_dec': ';',
         'return': ';'
     }
+    STATEMENT_TOKENS = [ 'do', 'let', 'while', 'return', 'if' ]
 
     """
     compiles a jack source file from a jack tokenizer into xml form in output_file
@@ -97,6 +98,8 @@ class CompilationEngine():
                 self.compile_var_dec(indent + self.INDENT_SPACE_SIZE)
             elif self.tokenizer.current_token == 'return':
                 self.compile_return(indent)
+            elif self.tokenizer.current_token in self.STATEMENT_TOKENS:
+                self.compile_statements(indent)
             else:
                 self._write_current_terminal_token(indent=indent)
 
@@ -113,16 +116,9 @@ class CompilationEngine():
 
         self._write_current_outer_tag(indent=indent, body="/varDec")
 
-    def compile_return(self, indent):
-        # logic for return => prob need to add expression checker
-        self._write_current_terminal_token(indent=indent)
-
-        while self.tokenizer.current_token != self.TERMINATING_TOKENS['return']:
-            self.tokenizer.advance()
-            self._write_current_terminal_token(indent=indent)
-
     def compile_statements(self, indent):
         # logic for statements
+
         return
 
     def compile_do(self, indent):
@@ -140,6 +136,14 @@ class CompilationEngine():
     def compile_if(self, indent):
         # logic for if
         return
+
+    def compile_return(self, indent):
+        # logic for return => prob need to add expression checker
+        self._write_current_terminal_token(indent=indent)
+
+        while self.tokenizer.current_token != self.TERMINATING_TOKENS['return']:
+            self.tokenizer.advance()
+            self._write_current_terminal_token(indent=indent)
 
     def compile_expression(self, indent):
         # logic for expression
@@ -162,7 +166,7 @@ class CompilationEngine():
        spaces = indent * " "
 
        self.output_file.write(
-           "{}<{}>{}</{}>\n".format(
+           "{}<{}> {} </{}>\n".format(
                spaces,
                self.tokenizer.current_token_type().lower(),
                self.tokenizer.current_token,
