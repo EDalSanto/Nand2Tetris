@@ -96,17 +96,19 @@ class TestCompilationEngine(unittest.TestCase):
             "    <subroutineBody>\n"
             "      <symbol>{</symbol>\n"
             "      <varDec>\n"
-            "        <keyword>SquareGame</keyword>\n"
+            "        <keyword>var</keyword>\n"
+            "        <identifier>SquareGame</identifier>\n"
             "        <identifier>game</identifier>\n"
             "        <symbol>;</symbol>\n"
             "      </varDec>\n"
             "      <keyword>return</keyword>\n"
             "      <symbol>;</symbol>\n"
+            "      <symbol>}</symbol>\n"
             "    </subroutineBody>\n"
             "  </subroutineDec>\n"
             "</class>\n"
         )
-#        self.assertEqual(self.output_file.read(), expected_compiled)
+        self.assertEqual(self.output_file.read(), expected_compiled)
 
 
 if __name__ == "__main__":
