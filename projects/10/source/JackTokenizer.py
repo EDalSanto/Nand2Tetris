@@ -29,24 +29,26 @@ class JackTokenizer():
     """
     def __init__(self, input_file):
         self.input_file = input_file
-        self.current_token = ""
+        self.current_token = None
+        self.next_token = None
         self.has_more_tokens = True
 
     def advance(self):
         # read first char
         char = self.input_file.read(1)
 
-        # skip all whitespace
-        while char.isspace():
-            char = self.input_file.read(1)
+        # skip all whitespace and comments
+        while char.isspace() or char == "/":
+            if char.isspace():
+                char = self.input_file.read(1)
+            elif char == "/":
+                # read whole line
+                self.input_file.readline()
+                # read next char
+                char = self.input_file.read(1)
             continue
 
-        # guard clause - if no char means no more tokens left
-        if not char:
-            self.has_more_tokens, self.current_token = False, None
-            return False
-
-        # process found token
+       # process found token
         token = ""
 
         if self._is_string_const_delimeter(char):
@@ -72,8 +74,20 @@ class JackTokenizer():
         else: # symbol
             token = char
 
-        self.current_token = token
-        return True
+        if self.current_token:
+            self.current_token = self.next_token
+            self.next_token = token
+        else: # initial setup
+            self.current_token = token
+            self.next_token = token
+            # update next token
+            self.advance()
+
+        if not len(self.next_token) > 0:
+            self.has_more_tokens = False
+            return False
+        else:
+            return True
 
     def current_token_type(self):
         if self.current_token[0] == "\"":

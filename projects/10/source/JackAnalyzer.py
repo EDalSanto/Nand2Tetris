@@ -16,7 +16,8 @@ class JackAnalyzer():
         file_name = os.path.basename(input_file).split(".")[0]
         ext_name = ".xml"
         dir_name = os.path.dirname(input_file)
-        return "." + dir_name + "/" + file_name + ext_name
+        # output file overwriting existing file..
+        return "./res/" + file_name + ext_name
 
 
 if __name__ == "__main__" and len(sys.argv) == 2:
@@ -29,9 +30,14 @@ if __name__ == "__main__" and len(sys.argv) == 2:
         jack_path = os.path.join(arg, "*.jack")
         files = glob.glob(jack_path)
 
+    try:
+        os.mkdir("./res")
+    except FileExistsError:
+        print("res directory already exists. continuing")
+
     for input_file_name in files:
         output_file_name = JackAnalyzer.xml_output_file_for(input_file_name)
         output_file = open(output_file_name, 'w')
-        input_file = open(input_file_name, 'w')
+        input_file = open(input_file_name, 'r')
         JackAnalyzer.run(input_file, output_file)
 
