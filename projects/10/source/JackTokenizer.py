@@ -67,13 +67,15 @@ class JackTokenizer():
             # get rest of token
             while self._is_alnum_or_underscore(char):
                 token += char
+                last_pos = self.input_file.tell()
                 char = self.input_file.read(1)
 
             # go back 1 char that was peek ahead
-            self.input_file.seek(self.input_file.tell() - 1)
+            self.input_file.seek(last_pos)
         else: # symbol
             token = char
 
+        # set tokens
         if self.current_token:
             self.current_token = self.next_token
             self.next_token = token

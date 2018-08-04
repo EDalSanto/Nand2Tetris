@@ -21,7 +21,7 @@ class CompilationEngine():
         'statements': '}',
         'do': ';',
         'let': ';',
-        'while': ';',
+        'while': '}',
         'if': '}',
         'var_dec': ';',
         'return': ';',
@@ -178,19 +178,22 @@ class CompilationEngine():
 
     def compile_while(self, indent):
         self._write_current_outer_tag(indent=indent, body="whileStatement")
+        # write keyword while
+        self._write_current_terminal_token(indent=indent)
+        # compile expression in ()
+        self.tokenizer.advance()
+        self._write_current_terminal_token(indent=indent)
+        self.compile_expression(indent=indent+self.INDENT_SPACE_SIZE)
 
         while self.tokenizer.current_token != self.TERMINATING_TOKENS['while']:
             self.tokenizer.advance()
 
-            if self.tokenizer.current_token == self.STARTING_TOKENS['expression']:
-                self.compile_expression(indent=indent)
-            elif self.tokenizer.current_token in self.STATEMENT_TOKENS:
+            if self.tokenizer.current_token in self.STATEMENT_TOKENS:
                 self.compile_statements(indent=indent)
             else:
                 self._write_current_terminal_token(indent=indent)
 
         self._write_current_outer_tag(indent=indent, body="/whileStatement")
-
 
     def compile_if(self, indent):
         self._write_current_outer_tag(indent=indent, body="ifStatement")
