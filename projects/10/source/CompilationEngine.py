@@ -10,7 +10,7 @@ class CompilationEngine():
         'parameter_list': '(',
         'subroutine_body': '{',
         'expression_list': '(',
-        'expression': '='
+        'expression': ['=', '[', '(']
     }
     TERMINATING_TOKENS = {
         'class': '}',
@@ -25,8 +25,20 @@ class CompilationEngine():
         'if': '}',
         'var_dec': ';',
         'return': ';',
-        'expression': [';', ')']
+        'expression': [';', ')', ']']
     }
+    OPERATORS = [
+        '+',
+        '-',
+        '*',
+        '/',
+        '&',
+        '|',
+        '<',
+        '>',
+        '='
+    ]
+    UNARY_OPERATORS = [ '-', '~' ]
 
     """
     compiles a jack source file from a jack tokenizer into xml form in output_file
@@ -167,13 +179,13 @@ class CompilationEngine():
         while self.tokenizer.current_token != self.TERMINATING_TOKENS['let']:
             self.tokenizer.advance()
 
-            if self.tokenizer.current_token == self.STARTING_TOKENS['expression']:
+            if self.tokenizer.current_token in self.STARTING_TOKENS['expression']:
                 self._write_current_terminal_token(indent=indent)
                 self.compile_expression(indent=indent+self.INDENT_SPACE_SIZE)
             else:
                 self._write_current_terminal_token(indent=indent)
+
         # write terminal
-        self._write_current_terminal_token(indent=indent)
         self._write_current_outer_tag(indent=indent, body="/letStatement")
 
     def compile_while(self, indent):
@@ -202,12 +214,13 @@ class CompilationEngine():
         self._write_current_outer_tag(indent=indent, body="ifStatement")
         # write keyword if
         self._write_current_terminal_token(indent=indent)
-        # compile expression in ()
+        # write (
         self.tokenizer.advance()
         self._write_current_terminal_token(indent=indent)
+        # compile expression in ()
         self.compile_expression(indent=indent+self.INDENT_SPACE_SIZE)
 
-        while self.tokenizer.current_token != self.TERMINATING_TOKENS['if']:
+        while not self.tokenizer.current_token == self.TERMINATING_TOKENS['if'] or self.tokenizer.next_token == "else":
             self.tokenizer.advance()
 
             if self.tokenizer.current_token in self.STATEMENT_TOKENS:
@@ -223,19 +236,35 @@ class CompilationEngine():
         self._write_current_outer_tag(indent=indent, body="expression")
 
         while self.tokenizer.current_token not in self.TERMINATING_TOKENS['expression']:
+            prev = self.tokenizer.current_token
             self.tokenizer.advance()
-            self.compile_term(indent=indent+self.INDENT_SPACE_SIZE)
+
+            # operator but not as unary..
+            if self.tokenizer.current_token in self.OPERATORS and prev not in self.STARTING_TOKENS['expression']:
+                self._write_current_terminal_token(indent=indent)
+            else:
+                self.compile_term(indent=indent+self.INDENT_SPACE_SIZE)
 
         self._write_current_outer_tag(indent=indent, body="/expression")
+        # write terminal token
+        self._write_current_terminal_token(indent=indent-self.INDENT_SPACE_SIZE)
 
     def compile_term(self, indent):
         self._write_current_outer_tag(indent=indent, body="term")
 
-        while not self.tokenizer.current_token == ";":
-            if self.tokenizer.current_token == self.STARTING_TOKENS['expression_list']:
+        while self.tokenizer.current_token not in self.TERMINATING_TOKENS['expression']:
+            if self.tokenizer.current_token == self.STARTING_TOKENS['expression_list'] and self.tokenizer.next_token not in self.UNARY_OPERATORS:
                 self.compile_expression_list(indent=indent+self.INDENT_SPACE_SIZE)
-            elif self.tokenizer.current_token_type() in self.TERMINAL_TOKEN_TYPES:
+            elif self.tokenizer.current_token in self.STARTING_TOKENS['expression']:
+                # write starting
                 self._write_current_terminal_token(indent=indent)
+                self.compile_expression(indent=indent+self.INDENT_SPACE_SIZE)
+            else:
+                self._write_current_terminal_token(indent=indent)
+
+            # remove ghetto
+            if self.tokenizer.next_token in self.OPERATORS and self.tokenizer.current_token != '(':
+                break
 
             self.tokenizer.advance()
 
@@ -287,12 +316,24 @@ class CompilationEngine():
     def _write_current_terminal_token(self, indent):
        spaces = indent * " "
 
+       if self.tokenizer.current_token_type() == "STRING_CONST":
+           tag_name = "stringConstant"
+       elif self.tokenizer.current_token_type() == "INT_CONST":
+           tag_name = "integerConstant"
+       else:
+            tag_name = self.tokenizer.current_token_type().lower()
+
+       if self.tokenizer.current_token_type() == "STRING_CONST":
+           value = self.tokenizer.current_token.replace("\"", "")
+       else:
+           value = self.tokenizer.current_token
+
        self.output_file.write(
            "{}<{}> {} </{}>\n".format(
                spaces,
-               self.tokenizer.current_token_type().lower(),
-               self.tokenizer.current_token,
-               self.tokenizer.current_token_type().lower()
+               tag_name,
+               value,
+               tag_name
            )
        )
 

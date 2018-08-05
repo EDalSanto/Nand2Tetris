@@ -12,7 +12,7 @@ class JackTokenizer():
         'boolean',
         'void',
         'true',
-        'false'
+        'false',
         'null',
         'this',
         'let',
