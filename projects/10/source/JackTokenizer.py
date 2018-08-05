@@ -105,13 +105,13 @@ class JackTokenizer():
         if self.current_token:
             self.current_token = self.next_token
             self.next_token = token
+            self.tokens_found.append(token)
         else: # initial setup
             self.current_token = token
             self.next_token = token
             # update next token
             self.advance()
 
-        self.tokens_found.append(token)
         if not len(self.next_token) > 0:
             self.has_more_tokens = False
             return False
@@ -122,7 +122,7 @@ class JackTokenizer():
         if len(self.tokens_found) < 3:
             return False
 
-        index = len(self.tokens_found) - 3
+        index = len(self.tokens_found) - 4
         token = self.tokens_found[index]
 
         if token == ".":

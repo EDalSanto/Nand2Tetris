@@ -316,13 +316,7 @@ class CompilationEngine():
 
         while self.tokenizer.current_token not in self.TERMINATING_TOKENS['expression']:
             if self.tokenizer.current_token == self.STARTING_TOKENS['expression_list']:
-                # empty expression list
-                if self.tokenizer.next_token == self.TERMINATING_TOKENS['expression_list']:
-                    self.compile_expression_list()
-                # number param
-                elif self.tokenizer.next_token.isnumeric():
-                    self.compile_expression_list()
-                elif self.tokenizer.part_of_subroutine_call():
+                if self.tokenizer.part_of_subroutine_call():
                     self.compile_expression_list()
                 else: # expression
                     # write starting
