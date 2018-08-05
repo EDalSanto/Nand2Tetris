@@ -516,6 +516,36 @@
 <symbol> , </symbol>
 <expression>
 <term>
+<symbol> ( </symbol>
+<expression>
+<term>
+<identifier> y </identifier>
+</term>
+<symbol> + </symbol>
+<term>
+<identifier> size </identifier>
+</term>
+</expression>
+<symbol> ) </symbol>
+</term>
+<symbol> - </symbol>
+<term>
+<integerConstant> 1 </integerConstant>
+</term>
+</expression>
+<symbol> , </symbol>
+<expression>
+<term>
+<identifier> x </identifier>
+</term>
+<symbol> + </symbol>
+<term>
+<identifier> size </identifier>
+</term>
+</expression>
+<symbol> , </symbol>
+<expression>
+<term>
 <identifier> y </identifier>
 </term>
 <symbol> + </symbol>
@@ -524,17 +554,6 @@
 </term>
 </expression>
 </expressionList>
-<symbol> ) </symbol>
-<symbol> - </symbol>
-<integerConstant> 1 </integerConstant>
-<symbol> , </symbol>
-<identifier> x </identifier>
-<symbol> + </symbol>
-<identifier> size </identifier>
-<symbol> , </symbol>
-<identifier> y </identifier>
-<symbol> + </symbol>
-<identifier> size </identifier>
 <symbol> ) </symbol>
 <symbol> ; </symbol>
 </doStatement>
@@ -762,6 +781,36 @@
 <symbol> , </symbol>
 <expression>
 <term>
+<symbol> ( </symbol>
+<expression>
+<term>
+<identifier> y </identifier>
+</term>
+<symbol> + </symbol>
+<term>
+<identifier> size </identifier>
+</term>
+</expression>
+<symbol> ) </symbol>
+</term>
+<symbol> - </symbol>
+<term>
+<integerConstant> 1 </integerConstant>
+</term>
+</expression>
+<symbol> , </symbol>
+<expression>
+<term>
+<identifier> x </identifier>
+</term>
+<symbol> + </symbol>
+<term>
+<identifier> size </identifier>
+</term>
+</expression>
+<symbol> , </symbol>
+<expression>
+<term>
 <identifier> y </identifier>
 </term>
 <symbol> + </symbol>
@@ -770,17 +819,6 @@
 </term>
 </expression>
 </expressionList>
-<symbol> ) </symbol>
-<symbol> - </symbol>
-<integerConstant> 1 </integerConstant>
-<symbol> , </symbol>
-<identifier> x </identifier>
-<symbol> + </symbol>
-<identifier> size </identifier>
-<symbol> , </symbol>
-<identifier> y </identifier>
-<symbol> + </symbol>
-<identifier> size </identifier>
 <symbol> ) </symbol>
 <symbol> ; </symbol>
 </doStatement>

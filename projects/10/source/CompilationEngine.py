@@ -260,35 +260,38 @@ class CompilationEngine():
         self._write_current_outer_tag(body="/expression")
         self._write_current_terminal_token()
 
+    def compile_expression_in_expression_list(self):
+        self._write_current_outer_tag(body="expression")
+
+        # go till , or (
+        while self.tokenizer.current_token not in self.TERMINATING_TOKENS['expression']:
+            if self.tokenizer.current_token in [',']:
+                self.tokenizer.advance()
+
+            if self.tokenizer.current_token in self.OPERATORS:
+                self._write_current_terminal_token()
+                self.tokenizer.advance()
+            else:
+                self.compile_term()
+
+        self._write_current_outer_tag(body="/expression")
+        # only write , if multiple
+        if self.tokenizer.current_token == ",":
+            self._write_current_terminal_token()
+            self.tokenizer.advance() # advance here to avoid next check
+
     # (expression (',' expression)* )?
     def compile_expression_list(self):
         # write (
         self._write_current_terminal_token()
         self._write_current_outer_tag(body="expressionList")
 
-        if not self.tokenizer.next_token == self.TERMINATING_TOKENS['expression_list']:
+        # skip initial (
+        self.tokenizer.advance()
+
+        if not self.tokenizer.current_token == self.TERMINATING_TOKENS['expression_list']:
             while not self.tokenizer.current_token == self.TERMINATING_TOKENS['expression_list']:
-                self._write_current_outer_tag(body="expression")
-
-                # go till , or (
-                while self.tokenizer.current_token not in self.TERMINATING_TOKENS['expression']:
-                    if self.tokenizer.current_token in [',', '(']:
-                        self.tokenizer.advance()
-
-                    if self.tokenizer.current_token in self.OPERATORS:
-                        self._write_current_terminal_token()
-                        self.tokenizer.advance()
-                    else:
-                        self.compile_term()
-
-                self._write_current_outer_tag(body="/expression")
-                # only write , if multiple
-                if self.tokenizer.current_token == ",":
-                    self._write_current_terminal_token()
-                    self.tokenizer.advance() # advance here to avoid next check
-        else:
-            self.tokenizer.advance()
-
+                self.compile_expression_in_expression_list()
         # write )
         self._write_current_outer_tag(body="/expressionList")
         self._write_current_terminal_token()
