@@ -43,14 +43,23 @@ class JackTokenizer():
         # read first char
         char = self.input_file.read(1)
 
-        # skip all whitespace and comments
-        while char.isspace() or char == "/":
+        # skip whitespace and comments
+         # if space
+             # read 1 char bc we don't know what's next
+         # if start of comment
+             # check that not operator
+             # if not, read whole line
+
+        while char.isspace() or char in ["/", "*"]:
             if char.isspace():
                 char = self.input_file.read(1)
-            elif char == "/":
-                # make sure not divide operator
+            elif char in ["/", "*"]:
+                # make sure not operator
                 last_pos = self.input_file.tell()
-                if self.input_file.read(1) not in ["/", "*"]:
+                next_2_chars = self.input_file.read(2)
+                # number or expression start
+                is_operator = next_2_chars[1].isnumeric() or next_2_chars[1] == "("
+                if is_operator:
                     # go back
                     self.input_file.seek(last_pos)
                     break

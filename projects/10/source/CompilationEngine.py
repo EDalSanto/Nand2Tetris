@@ -183,9 +183,6 @@ class CompilationEngine():
                 # write =
                 self._write_current_terminal_token()
 
-                # enter expression
-                #self.tokenizer.advance()
-
                 self.compile_expression()
             else:
                 self._write_current_terminal_token()
@@ -201,9 +198,6 @@ class CompilationEngine():
         # write (
         self.tokenizer.advance()
         self._write_current_terminal_token()
-
-        # enter expression
-        #self.tokenizer.advance()
 
         # compile expression in ()
         self.compile_expression()
@@ -228,9 +222,6 @@ class CompilationEngine():
         # write (
         self.tokenizer.advance()
         self._write_current_terminal_token()
-
-        # enter expression
-        #self.tokenizer.advance()
 
         # compile expression in ()
         self.compile_expression()
@@ -328,12 +319,9 @@ class CompilationEngine():
             # empty expression list
             if self.tokenizer.current_token == self.STARTING_TOKENS['expression_list'] and self.tokenizer.next_token == self.TERMINATING_TOKENS['expression_list']:
                 self.compile_expression_list()
-            #if self.tokenizer.current_token == self.STARTING_TOKENS['expression_list'] and (self.tokenizer.next_token in self.OPERATORS:
             elif self.tokenizer.current_token in self.STARTING_TOKENS['expression']:
                 # write starting
                 self._write_current_terminal_token()
-                #self.tokenizer.advance()
-                # compile expression
                 self.compile_expression()
             elif self.tokenizer.current_token in self.UNARY_OPERATORS:
                 self._write_current_terminal_token()
