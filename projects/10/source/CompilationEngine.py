@@ -240,24 +240,29 @@ class CompilationEngine():
 
     # term (op term)*
     def compile_expression(self):
-        # write starter if not part expression list..
-        if not self.tokenizer.current_token == "(" and not self.tokenizer.current_token == ",":
-            self._write_current_terminal_token()
-
-        self._write_current_outer_tag(body="expression")
-
-        while self.tokenizer.current_token not in self.TERMINATING_TOKENS['expression']:
+        # special for expression list
+        if self.tokenizer.current_token in ["(", ","]:
+            self._write_current_outer_tag(body="expression")
             self.tokenizer.advance()
+            while self.tokenizer.current_token not in [")", ","]:
+                if self.tokenizer.current_token in self.OPERATORS:
+                    self._write_current_terminal_token()
+                else:
+                    self.compile_term()
+                self.tokenizer.advance()
+            self._write_current_outer_tag(body="/expression")
+        else:
+            self._write_current_terminal_token()
+            self._write_current_outer_tag(body="expression")
 
-            if self.tokenizer.current_token in self.OPERATORS:
-                self._write_current_terminal_token()
-            else:
-                self.compile_term()
+            while self.tokenizer.current_token not in self.TERMINATING_TOKENS['expression']:
+                self.tokenizer.advance()
 
-        self._write_current_outer_tag(body="/expression")
-
-        # write terminal token if not list..
-        if not self.tokenizer.current_token == ")":
+                if self.tokenizer.current_token in self.OPERATORS:
+                    self._write_current_terminal_token()
+                else:
+                    self.compile_term()
+            self._write_current_outer_tag(body="/expression")
             self._write_current_terminal_token()
 
     # (expression (',' expression)* )?
