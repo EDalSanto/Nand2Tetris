@@ -35,6 +35,7 @@ class JackTokenizer():
     """
     def __init__(self, input_file):
         self.input_file = input_file
+        self.tokens_found = []
         self.current_token = None
         self.next_token = None
         self.has_more_tokens = True
@@ -110,11 +111,24 @@ class JackTokenizer():
             # update next token
             self.advance()
 
+        self.tokens_found.append(token)
         if not len(self.next_token) > 0:
             self.has_more_tokens = False
             return False
         else:
             return True
+
+    def part_of_subroutine_call(self):
+        if len(self.tokens_found) < 3:
+            return False
+
+        index = len(self.tokens_found) - 3
+        token = self.tokens_found[index]
+
+        if token == ".":
+            return True
+        else:
+            return False
 
     def current_token_type(self):
         if self.current_token[0] == "\"":

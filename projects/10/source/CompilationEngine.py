@@ -182,7 +182,6 @@ class CompilationEngine():
             if self.tokenizer.current_token in self.STARTING_TOKENS['expression']:
                 # write =
                 self._write_current_terminal_token()
-
                 self.compile_expression()
             else:
                 self._write_current_terminal_token()
@@ -322,6 +321,8 @@ class CompilationEngine():
                     self.compile_expression_list()
                 # number param
                 elif self.tokenizer.next_token.isnumeric():
+                    self.compile_expression_list()
+                elif self.tokenizer.part_of_subroutine_call():
                     self.compile_expression_list()
                 else: # expression
                     # write starting
