@@ -58,12 +58,14 @@ class JackTokenizer():
                 # make sure not operator
                 last_pos = self.input_file.tell()
                 next_2_chars = self.input_file.read(2)
-                # number or expression start
-                is_operator = next_2_chars[1].isnumeric() or next_2_chars[1] == "("
-                if is_operator:
+                single_line_comment = next_2_chars[0] == "/"
+                multi_line_comment = char == "/" and next_2_chars[0] == "*" and next_2_chars[1] == "*"
+                if not single_line_comment and not multi_line_comment:
                     # go back
                     self.input_file.seek(last_pos)
                     break
+
+                multi_line_comment = False
                 # read whole line
                 self.input_file.readline()
                 # read next char
