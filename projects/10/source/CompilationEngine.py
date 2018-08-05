@@ -56,14 +56,12 @@ class CompilationEngine():
         while self.tokenizer.has_more_tokens:
             self.tokenizer.advance()
 
-            if self.tokenizer.current_token_type() in self.TERMINAL_TOKEN_TYPES:
+            if self.tokenizer.current_token_type() in self.TERMINAL_TOKEN_TYPES or self.tokenizer.current_token in self.TERMINAL_KEYWORDS:
                 self._write_current_terminal_token()
             elif self.tokenizer.current_token in self.CLASS_VAR_DEC_TOKENS:
                 self.compile_class_var_dec()
             elif self.tokenizer.current_token in self.SUBROUTINE_TOKENS:
                 self.compile_subroutine()
-            elif self.tokenizer.current_token in self.TERMINAL_KEYWORDS:
-                self._write_current_terminal_token()
 
         self._write_current_outer_tag(body="/class")
 
@@ -98,7 +96,7 @@ class CompilationEngine():
         self._write_current_terminal_token()
         self._write_current_outer_tag(body="parameterList")
 
-        while self.tokenizer.next_token != self.TERMINATING_TOKENS['parameter_list']:
+        while not self.tokenizer.next_token == self.TERMINATING_TOKENS['parameter_list']:
             self.tokenizer.advance()
             self._write_current_terminal_token()
 
@@ -108,29 +106,32 @@ class CompilationEngine():
         # write closing )
         self._write_current_terminal_token()
 
+    # '{' varDec* statements '}'
     def compile_subroutine_body(self):
         self._write_current_outer_tag(body="subroutineBody")
         # write opening {
         self._write_current_terminal_token()
 
-        while self.tokenizer.current_token != self.TERMINATING_TOKENS['subroutine']:
+        while not self.tokenizer.current_token == self.TERMINATING_TOKENS['subroutine']:
             self.tokenizer.advance()
 
             if self.tokenizer.current_token == self.STARTING_TOKENS['var_dec']:
                 self.compile_var_dec()
-            elif self.tokenizer.next_token in self.STATEMENT_TOKENS:
+            elif self.tokenizer.current_token in self.STATEMENT_TOKENS:
                 self.compile_statements()
             else:
                 self._write_current_terminal_token()
 
+        # write closing }
+        self._write_current_terminal_token()
         self._write_current_outer_tag(body="/subroutineBody")
 
+    # 'var' type varName (',' varName)* ';'
     def compile_var_dec(self):
-        # logic for var dec
         self._write_current_outer_tag(body="varDec")
         self._write_current_terminal_token()
 
-        while self.tokenizer.current_token != self.TERMINATING_TOKENS['var_dec']:
+        while not self.tokenizer.current_token == self.TERMINATING_TOKENS['var_dec']:
             self.tokenizer.advance()
             self._write_current_terminal_token()
 
@@ -139,10 +140,7 @@ class CompilationEngine():
     def compile_statements(self):
         self._write_current_outer_tag(body="statements")
 
-        # statements last thing expected by compiler in subroutine
-        while self.tokenizer.current_token != self.TERMINATING_TOKENS['subroutine']:
-            self.tokenizer.advance()
-
+        while not self.tokenizer.current_token == self.TERMINATING_TOKENS['subroutineBody']:
             if self.tokenizer.current_token == "if":
                 self.compile_if()
             elif self.tokenizer.current_token == "do":
@@ -155,13 +153,13 @@ class CompilationEngine():
                 self.compile_return()
 
         self._write_current_outer_tag(body="/statements")
-        self._write_current_terminal_token()
+        #self._write_current_terminal_token()
 
     def compile_do(self):
         self._write_current_outer_tag(body="doStatement")
         self._write_current_terminal_token()
 
-        while self.tokenizer.current_token != self.TERMINATING_TOKENS['do']:
+        while not self.tokenizer.current_token == self.TERMINATING_TOKENS['do']:
             self.tokenizer.advance()
 
             if self.tokenizer.current_token == self.STARTING_TOKENS['expression_list']:
@@ -171,31 +169,35 @@ class CompilationEngine():
 
         self._write_current_outer_tag(body="/doStatement")
 
+    # 'let' varName ('[' expression ']')? '=' expression ';'
     def compile_let(self):
         self._write_current_outer_tag(body="letStatement")
+        # write let keyword
         self._write_current_terminal_token()
 
-        while self.tokenizer.current_token != self.TERMINATING_TOKENS['let']:
+        while not self.tokenizer.current_token == self.TERMINATING_TOKENS['let']:
             self.tokenizer.advance()
 
             if self.tokenizer.current_token in self.STARTING_TOKENS['expression']:
+                # write =
                 self._write_current_terminal_token()
                 self.compile_expression()
             else:
                 self._write_current_terminal_token()
 
-        # write terminal
         self._write_current_outer_tag(body="/letStatement")
 
+    # 'while' '(' expression ')' '{' statements '}'
     def compile_while(self):
         self._write_current_outer_tag(body="whileStatement")
         # write keyword while
-        self._write_current_terminal_token()
-        # write (
-        self.tokenizer.advance()
-        self._write_current_terminal_token()
-        # compile expression in ()
-        self.compile_expression()
+        #self._write_current_terminal_token()
+
+        ## write (
+        #self.tokenizer.advance()
+        #self._write_current_terminal_token()
+        ## compile expression in ()
+        #self.compile_expression()
 
         while self.tokenizer.current_token != self.TERMINATING_TOKENS['while']:
             self.tokenizer.advance()
