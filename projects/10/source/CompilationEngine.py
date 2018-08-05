@@ -259,6 +259,11 @@ class CompilationEngine():
                 # write starting
                 self._write_current_terminal_token(indent=indent)
                 self.compile_expression(indent=indent+self.INDENT_SPACE_SIZE)
+            elif self.tokenizer.current_token in self.UNARY_OPERATORS:
+                self._write_current_terminal_token(indent=indent)
+                # write inner term
+                self.tokenizer.advance()
+                self.compile_term(indent=indent + self.INDENT_SPACE_SIZE)
             else:
                 self._write_current_terminal_token(indent=indent)
 

@@ -180,19 +180,16 @@
                 <expression>
                   <term>
                     <symbol> - </symbol>
-                    <identifier> j </identifier>
+                    <term>
+                      <identifier> j </identifier>
+                    </term>
                   </term>
                 </expression>
-                <symbol> ) </symbol>
+                <symbol> ; </symbol>
+                <keyword> let </keyword>
+                <identifier> j </identifier>
               </term>
-            </expression>
-            <symbol> ; </symbol>
-          </letStatement>
-          <letStatement>
-            <keyword> let </keyword>
-            <identifier> j </identifier>
-            <symbol> = </symbol>
-            <expression>
+              <symbol> = </symbol>
               <term>
                 <identifier> j </identifier>
                 <keyword> let </keyword>
