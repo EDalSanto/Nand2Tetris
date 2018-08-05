@@ -197,10 +197,28 @@
             <expression>
               <term>
                 <identifier> j </identifier>
-                <keyword> let </keyword>
-                <identifier> i </identifier>
               </term>
-              <symbol> = </symbol>
+              <symbol> / </symbol>
+              <term>
+                <symbol> ( </symbol>
+                <expression>
+                  <term>
+                    <symbol> - </symbol>
+                  <term>
+                    <integerConstant> 2 </integerConstant>
+                  </term>
+                  </term>
+                </expression>
+                <symbol> ) </symbol>
+              </term>
+            </expression>
+            <symbol> ; </symbol>
+          </letStatement>
+          <letStatement>
+            <keyword> let </keyword>
+            <identifier> i </identifier>
+            <symbol> = </symbol>
+            <expression>
               <term>
                 <identifier> i </identifier>
               </term>
@@ -212,7 +230,6 @@
             <symbol> ; </symbol>
           </letStatement>
           </statements>
-          <symbol> } </symbol>
           <symbol> } </symbol>
         </ifStatement>
         <returnStatement>

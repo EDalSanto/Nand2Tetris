@@ -42,6 +42,12 @@ class JackTokenizer():
             if char.isspace():
                 char = self.input_file.read(1)
             elif char == "/":
+                # make sure not divide operator
+                last_pos = self.input_file.tell()
+                if self.input_file.read(1) not in ["/", "*"]:
+                    # go back
+                    self.input_file.seek(last_pos)
+                    break
                 # read whole line
                 self.input_file.readline()
                 # read next char

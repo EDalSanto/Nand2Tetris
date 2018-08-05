@@ -229,7 +229,7 @@ class CompilationEngine():
                 self._write_current_terminal_token(indent=indent)
 
         # write terminal token
-        self._write_current_terminal_token(indent=indent)
+        #self._write_current_terminal_token(indent=indent)
         self._write_current_outer_tag(indent=indent, body="/ifStatement")
 
     def compile_expression(self, indent):
@@ -270,7 +270,9 @@ class CompilationEngine():
                 self._write_current_terminal_token(indent=indent)
 
             # remove ghetto
+            # if next token is op and prev isn't start of expression symbol
             if self.tokenizer.next_token in self.OPERATORS and self.tokenizer.current_token != '(':
+
                 break
 
             self.tokenizer.advance()
