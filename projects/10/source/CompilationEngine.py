@@ -181,10 +181,9 @@ class CompilationEngine():
             self.tokenizer.advance()
 
             if self.tokenizer.current_token in self.STARTING_TOKENS['expression']:
-                ## write =
-                #self._write_current_terminal_token()
-                ## advance to expression
-                #self.tokenizer.advance()
+                # write =
+                self._write_current_terminal_token()
+
                 self.compile_expression()
             else:
                 self._write_current_terminal_token()
@@ -198,8 +197,8 @@ class CompilationEngine():
         self._write_current_terminal_token()
 
         # write (
-        #self.tokenizer.advance()
-        #self._write_current_terminal_token()
+        self.tokenizer.advance()
+        self._write_current_terminal_token()
 
         # compile expression in ()
         self.compile_expression()
@@ -221,8 +220,8 @@ class CompilationEngine():
         # write keyword if
         self._write_current_terminal_token()
         # write (
-        #self.tokenizer.advance()
-        #self._write_current_terminal_token()
+        self.tokenizer.advance()
+        self._write_current_terminal_token()
 
         # compile expression in ()
         self.compile_expression()
@@ -240,30 +239,21 @@ class CompilationEngine():
 
     # term (op term)*
     def compile_expression(self):
-        # special for expression list
-        if self.tokenizer.current_token in ["(", ","]:
-            self._write_current_outer_tag(body="expression")
+        # write starter of expression ,i.e., =
+#        self._write_current_terminal_token()
+
+        self._write_current_outer_tag(body="expression")
+
+        while self.tokenizer.current_token not in self.TERMINATING_TOKENS['expression']:
             self.tokenizer.advance()
-            while self.tokenizer.current_token not in [")", ","]:
-                if self.tokenizer.current_token in self.OPERATORS:
-                    self._write_current_terminal_token()
-                else:
-                    self.compile_term()
-                self.tokenizer.advance()
-            self._write_current_outer_tag(body="/expression")
-        else:
-            self._write_current_terminal_token()
-            self._write_current_outer_tag(body="expression")
 
-            while self.tokenizer.current_token not in self.TERMINATING_TOKENS['expression']:
-                self.tokenizer.advance()
+            if self.tokenizer.current_token in self.OPERATORS:
+                self._write_current_terminal_token()
+            else:
+                self.compile_term()
 
-                if self.tokenizer.current_token in self.OPERATORS:
-                    self._write_current_terminal_token()
-                else:
-                    self.compile_term()
-            self._write_current_outer_tag(body="/expression")
-            self._write_current_terminal_token()
+        self._write_current_outer_tag(body="/expression")
+        self._write_current_terminal_token()
 
     # (expression (',' expression)* )?
     def compile_expression_list(self):
@@ -272,8 +262,25 @@ class CompilationEngine():
         self._write_current_outer_tag(body="expressionList")
 
         if not self.tokenizer.next_token == self.TERMINATING_TOKENS['expression_list']:
-            while not self.tokenizer.current_token in self.TERMINATING_TOKENS['expression_list']:
-                self.compile_expression()
+            while not self.tokenizer.current_token == self.TERMINATING_TOKENS['expression_list']:
+                self._write_current_outer_tag(body="expression")
+
+                # go till , or (
+                while self.tokenizer.current_token not in self.TERMINATING_TOKENS['expression']:
+                    if self.tokenizer.current_token in [',', '(']:
+                        self.tokenizer.advance()
+
+                    if self.tokenizer.current_token in self.OPERATORS:
+                        self._write_current_terminal_token()
+                        self.tokenizer.advance()
+                    else:
+                        self.compile_term()
+
+                self._write_current_outer_tag(body="/expression")
+                # only write , if multiple
+                if self.tokenizer.current_token == ",":
+                    self._write_current_terminal_token()
+                    self.tokenizer.advance() # advance here to avoid next check
         else:
             self.tokenizer.advance()
 
@@ -287,9 +294,9 @@ class CompilationEngine():
         self._write_current_outer_tag(body="term")
 
         while self.tokenizer.current_token not in self.TERMINATING_TOKENS['expression']:
-            if self.tokenizer.current_token == self.STARTING_TOKENS['expression_list'] and self.tokenizer.next_token not in self.UNARY_OPERATORS:
-                self.compile_expression_list()
-            elif self.tokenizer.current_token in self.STARTING_TOKENS['expression']:
+            #if self.tokenizer.current_token == self.STARTING_TOKENS['expression_list'] and self.tokenizer.next_token not in self.UNARY_OPERATORS:
+            #    self.compile_expression_list()
+            if self.tokenizer.current_token in self.STARTING_TOKENS['expression']:
                 # write starting
                 self._write_current_terminal_token()
                 self.compile_expression()
@@ -306,6 +313,7 @@ class CompilationEngine():
             # remove ghetto
             # if next token is op and prev isn't start of expression symbol
             if self.tokenizer.next_token in self.OPERATORS and self.tokenizer.current_token != '(':
+                self.tokenizer.advance()
                 break
 
             self.tokenizer.advance()
@@ -315,10 +323,12 @@ class CompilationEngine():
     def compile_return(self):
         self._write_current_outer_tag(body="returnStatement")
 
+        # write return
+        self._write_current_terminal_token()
+
         if not self.tokenizer.next_token == self.TERMINATING_TOKENS['return']:
             self.compile_expression()
         else: # write ; for void
-            self._write_current_terminal_token()
             self.tokenizer.advance()
             self._write_current_terminal_token()
 
