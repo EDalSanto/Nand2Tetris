@@ -17,7 +17,7 @@ class JackAnalyzer():
         ext_name = ".xml"
         dir_name = os.path.dirname(input_file)
         # output file overwriting existing file..
-        return "./res/" + file_name + ext_name
+        return dir_name + "/" + file_name + ext_name
 
 
 if __name__ == "__main__" and len(sys.argv) == 2:
