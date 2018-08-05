@@ -594,11 +594,16 @@
 </expression>
 <symbol> ) </symbol>
 </term>
+</term>
+</expression>
+<symbol> ) </symbol>
 <symbol> { </symbol>
+<statements>
+<letStatement>
 <keyword> let </keyword>
 <identifier> key </identifier>
-</term>
 <symbol> = </symbol>
+<expression>
 <term>
 <identifier> Keyboard </identifier>
 <symbol> . </symbol>
@@ -610,7 +615,7 @@
 </term>
 </expression>
 <symbol> ; </symbol>
-<statements>
+</letStatement>
 <doStatement>
 <keyword> do </keyword>
 <identifier> moveSquare </identifier>

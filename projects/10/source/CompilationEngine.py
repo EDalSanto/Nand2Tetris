@@ -333,9 +333,11 @@ class CompilationEngine():
                 self.compile_expression()
             elif self.tokenizer.current_token in self.UNARY_OPERATORS:
                 self._write_current_terminal_token()
+
                 if self.tokenizer.next_token in self.STARTING_TOKENS['expression']:
                     self.tokenizer.advance()
                     self.compile_term()
+                    break
                 else:
                     # write inner term - ghetto
                     self.tokenizer.advance()
