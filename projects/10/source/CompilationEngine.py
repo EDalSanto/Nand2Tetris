@@ -31,10 +31,10 @@ class CompilationEngine():
         '-',
         '*',
         '/',
-        '&',
+        '&amp;',
         '|',
-        '<',
-        '>',
+        '&lt;',
+        '&gt;',
         '='
     ]
     UNARY_OPERATORS = [ '-', '~' ]
@@ -245,10 +245,12 @@ class CompilationEngine():
         self._write_current_outer_tag(body="expression")
 
         while self.tokenizer.current_token not in self.TERMINATING_TOKENS['expression']:
-            self.tokenizer.advance()
+            if self.tokenizer.current_token in self.STARTING_TOKENS['expression']:
+                self.tokenizer.advance()
 
             if self.tokenizer.current_token in self.OPERATORS:
                 self._write_current_terminal_token()
+                self.tokenizer.advance()
             else:
                 self.compile_term()
 
@@ -325,11 +327,11 @@ class CompilationEngine():
 
         # write return
         self._write_current_terminal_token()
+        self.tokenizer.advance()
 
-        if not self.tokenizer.next_token == self.TERMINATING_TOKENS['return']:
+        if not self.tokenizer.current_token == self.TERMINATING_TOKENS['return']:
             self.compile_expression()
         else: # write ; for void
-            self.tokenizer.advance()
             self._write_current_terminal_token()
 
         # write end

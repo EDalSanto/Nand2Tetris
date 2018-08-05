@@ -303,40 +303,40 @@
 <term>
 <identifier> y </identifier>
 </term>
+<symbol> + </symbol>
 <term>
 <identifier> size </identifier>
 </term>
 </expression>
 <symbol> ) </symbol>
 </term>
+<symbol> &lt; </symbol>
 <term>
 <integerConstant> 254 </integerConstant>
 </term>
 </expression>
 <symbol> ) </symbol>
 </term>
-<term>
-<symbol> ( </symbol>
-<expression>
+<symbol> &amp; </symbol>
 <term>
 <symbol> ( </symbol>
 <expression>
 <term>
 <identifier> x </identifier>
 </term>
+<symbol> + </symbol>
 <term>
 <identifier> size </identifier>
 </term>
 </expression>
 <symbol> ) </symbol>
 </term>
+<symbol> &lt; </symbol>
 <term>
 <integerConstant> 510 </integerConstant>
 </term>
 </expression>
 <symbol> ) </symbol>
-</term>
-</expression>
 <symbol> ) </symbol>
 <symbol> { </symbol>
 <statements>
@@ -357,6 +357,7 @@
 <term>
 <identifier> size </identifier>
 </term>
+<symbol> + </symbol>
 <term>
 <integerConstant> 2 </integerConstant>
 </term>
@@ -400,6 +401,7 @@
 <term>
 <identifier> size </identifier>
 </term>
+<symbol> &gt; </symbol>
 <term>
 <integerConstant> 2 </integerConstant>
 </term>
@@ -424,6 +426,7 @@
 <term>
 <identifier> size </identifier>
 </term>
+<symbol> - </symbol>
 <term>
 <integerConstant> 2 </integerConstant>
 </term>
@@ -467,6 +470,7 @@
 <term>
 <identifier> y </identifier>
 </term>
+<symbol> &gt; </symbol>
 <term>
 <integerConstant> 1 </integerConstant>
 </term>
@@ -535,6 +539,7 @@
 <term>
 <identifier> y </identifier>
 </term>
+<symbol> - </symbol>
 <term>
 <integerConstant> 2 </integerConstant>
 </term>
@@ -630,12 +635,14 @@
 <term>
 <identifier> y </identifier>
 </term>
+<symbol> + </symbol>
 <term>
 <identifier> size </identifier>
 </term>
 </expression>
 <symbol> ) </symbol>
 </term>
+<symbol> &lt; </symbol>
 <term>
 <integerConstant> 254 </integerConstant>
 </term>
@@ -709,6 +716,7 @@
 <term>
 <identifier> y </identifier>
 </term>
+<symbol> + </symbol>
 <term>
 <integerConstant> 2 </integerConstant>
 </term>
@@ -796,6 +804,7 @@
 <term>
 <identifier> x </identifier>
 </term>
+<symbol> &gt; </symbol>
 <term>
 <integerConstant> 1 </integerConstant>
 </term>
@@ -833,6 +842,7 @@
 <term>
 <identifier> x </identifier>
 </term>
+<symbol> + </symbol>
 <term>
 <identifier> size </identifier>
 </term>
@@ -882,6 +892,7 @@
 <term>
 <identifier> x </identifier>
 </term>
+<symbol> - </symbol>
 <term>
 <integerConstant> 2 </integerConstant>
 </term>
@@ -977,12 +988,14 @@
 <term>
 <identifier> x </identifier>
 </term>
+<symbol> + </symbol>
 <term>
 <identifier> size </identifier>
 </term>
 </expression>
 <symbol> ) </symbol>
 </term>
+<symbol> &lt; </symbol>
 <term>
 <integerConstant> 510 </integerConstant>
 </term>
@@ -1056,6 +1069,7 @@
 <term>
 <identifier> x </identifier>
 </term>
+<symbol> + </symbol>
 <term>
 <integerConstant> 2 </integerConstant>
 </term>
@@ -1092,6 +1106,7 @@
 <term>
 <identifier> x </identifier>
 </term>
+<symbol> + </symbol>
 <term>
 <identifier> size </identifier>
 </term>
