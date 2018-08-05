@@ -155,7 +155,6 @@ class CompilationEngine():
             self.tokenizer.advance()
 
         self._write_current_outer_tag(body="/statements")
-        #self._write_current_terminal_token()
 
     def compile_do(self):
         self._write_current_outer_tag(body="doStatement")
@@ -183,6 +182,8 @@ class CompilationEngine():
             if self.tokenizer.current_token in self.STARTING_TOKENS['expression']:
                 # write =
                 self._write_current_terminal_token()
+                # enter expression
+                self.tokenizer.advance()
 
                 self.compile_expression()
             else:
@@ -199,6 +200,9 @@ class CompilationEngine():
         # write (
         self.tokenizer.advance()
         self._write_current_terminal_token()
+
+        # enter expression
+        self.tokenizer.advance()
 
         # compile expression in ()
         self.compile_expression()
@@ -219,9 +223,13 @@ class CompilationEngine():
         self._write_current_outer_tag(body="ifStatement")
         # write keyword if
         self._write_current_terminal_token()
+
         # write (
         self.tokenizer.advance()
         self._write_current_terminal_token()
+
+        # enter expression
+        self.tokenizer.advance()
 
         # compile expression in ()
         self.compile_expression()
@@ -235,19 +243,14 @@ class CompilationEngine():
                 self._write_current_terminal_token()
 
         # write terminal token
+        self._write_current_terminal_token()
         self._write_current_outer_tag(body="/ifStatement")
 
     # term (op term)*
     def compile_expression(self):
-        # write starter of expression ,i.e., =
-#        self._write_current_terminal_token()
-
         self._write_current_outer_tag(body="expression")
 
         while self.tokenizer.current_token not in self.TERMINATING_TOKENS['expression']:
-            if self.tokenizer.current_token in self.STARTING_TOKENS['expression']:
-                self.tokenizer.advance()
-
             if self.tokenizer.current_token in self.OPERATORS:
                 self._write_current_terminal_token()
                 self.tokenizer.advance()
@@ -301,6 +304,7 @@ class CompilationEngine():
             if self.tokenizer.current_token in self.STARTING_TOKENS['expression']:
                 # write starting
                 self._write_current_terminal_token()
+                self.tokenizer.advance()
                 self.compile_expression()
             elif self.tokenizer.current_token in self.UNARY_OPERATORS:
                 self._write_current_terminal_token()

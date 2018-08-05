@@ -322,6 +322,9 @@
 <symbol> ( </symbol>
 <expression>
 <term>
+<symbol> ( </symbol>
+<expression>
+<term>
 <identifier> x </identifier>
 </term>
 <symbol> + </symbol>
@@ -337,6 +340,8 @@
 </term>
 </expression>
 <symbol> ) </symbol>
+</term>
+</expression>
 <symbol> ) </symbol>
 <symbol> { </symbol>
 <statements>
@@ -374,6 +379,7 @@
 <symbol> ; </symbol>
 </doStatement>
 </statements>
+<symbol> } </symbol>
 </ifStatement>
 <returnStatement>
 <keyword> return </keyword>
@@ -443,6 +449,7 @@
 <symbol> ; </symbol>
 </doStatement>
 </statements>
+<symbol> } </symbol>
 </ifStatement>
 <returnStatement>
 <keyword> return </keyword>
@@ -605,6 +612,7 @@
 <symbol> ; </symbol>
 </doStatement>
 </statements>
+<symbol> } </symbol>
 </ifStatement>
 <returnStatement>
 <keyword> return </keyword>
@@ -777,6 +785,7 @@
 <symbol> ; </symbol>
 </doStatement>
 </statements>
+<symbol> } </symbol>
 </ifStatement>
 <returnStatement>
 <keyword> return </keyword>
@@ -958,6 +967,7 @@
 <symbol> ; </symbol>
 </doStatement>
 </statements>
+<symbol> } </symbol>
 </ifStatement>
 <returnStatement>
 <keyword> return </keyword>
@@ -1149,6 +1159,7 @@
 <symbol> ; </symbol>
 </doStatement>
 </statements>
+<symbol> } </symbol>
 </ifStatement>
 <returnStatement>
 <keyword> return </keyword>
