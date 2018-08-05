@@ -35,18 +35,28 @@
 <symbol> . </symbol>
 <identifier> new </identifier>
 <symbol> ( </symbol>
+<expressionList>
 <expression>
 <term>
 <integerConstant> 0 </integerConstant>
 </term>
 </expression>
 <symbol> , </symbol>
+<expression>
+<term>
 <integerConstant> 0 </integerConstant>
 </term>
 </expression>
 <symbol> , </symbol>
+<expression>
+<term>
 <integerConstant> 30 </integerConstant>
+</term>
+</expression>
+</expressionList>
 <symbol> ) </symbol>
+</term>
+</expression>
 <symbol> ; </symbol>
 </letStatement>
 <letStatement>

@@ -316,9 +316,17 @@ class CompilationEngine():
         self._write_current_outer_tag(body="term")
 
         while self.tokenizer.current_token not in self.TERMINATING_TOKENS['expression']:
-            # empty expression list
-            if self.tokenizer.current_token == self.STARTING_TOKENS['expression_list'] and self.tokenizer.next_token == self.TERMINATING_TOKENS['expression_list']:
-                self.compile_expression_list()
+            if self.tokenizer.current_token == self.STARTING_TOKENS['expression_list']:
+                # empty expression list
+                if self.tokenizer.next_token == self.TERMINATING_TOKENS['expression_list']:
+                    self.compile_expression_list()
+                # number param
+                elif self.tokenizer.next_token.isnumeric():
+                    self.compile_expression_list()
+                else: # expression
+                    # write starting
+                    self._write_current_terminal_token()
+                    self.compile_expression()
             elif self.tokenizer.current_token in self.STARTING_TOKENS['expression']:
                 # write starting
                 self._write_current_terminal_token()
