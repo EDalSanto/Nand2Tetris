@@ -32,7 +32,7 @@ if __name__ == "__main__" and len(sys.argv) == 2:
 
     try:
         os.mkdir("./res")
-    except FileExistsError:
+    except OSError:
         print("res directory already exists. continuing")
 
     for input_file_name in files:
