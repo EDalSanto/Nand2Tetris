@@ -229,7 +229,6 @@ class CompilationEngine():
                 self._write_current_terminal_token(indent=indent)
 
         # write terminal token
-        #self._write_current_terminal_token(indent=indent)
         self._write_current_outer_tag(indent=indent, body="/ifStatement")
 
     def compile_expression(self, indent):
