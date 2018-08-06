@@ -58,9 +58,13 @@ class JackTokenizer():
                 # make sure not operator
                 last_pos = self.input_file.tell()
                 next_2_chars = self.input_file.read(2)
+                # comment of form: // or */
                 single_line_comment = next_2_chars[0] == "/"
+                # comment of form: /**
                 multi_line_comment = char == "/" and next_2_chars[0] == "*" and next_2_chars[1] == "*"
-                if not single_line_comment and not multi_line_comment:
+                # comment of form:  * comment
+                part_of_multi_line_comment = char == "*" and next_2_chars[0] == " " and next_2_chars[1] != '('
+                if not single_line_comment and not multi_line_comment and not part_of_multi_line_comment:
                     # go back
                     self.input_file.seek(last_pos)
                     break
