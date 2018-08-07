@@ -327,12 +327,13 @@ class CompilationEngine():
             if self._starting_token_for('expression_list'):
                 if self.tokenizer.part_of_subroutine_call():
                     self.compile_expression_list()
-                else: # expression
-                    # write starting
+                else: # expression, i.e., (3 + 4)
+                    # handling special form of expression start here for now since only occurs here
+                    # maybe can remove this
                     self._write_current_terminal_token()
                     self.compile_expression()
             elif self._starting_token_for('expression'):
-                # write starting
+                # also here look to remove
                 self._write_current_terminal_token()
                 self.compile_expression()
             elif self.tokenizer.current_token in self.UNARY_OPERATORS:
@@ -382,6 +383,7 @@ class CompilationEngine():
 
 
     def _write_current_terminal_token(self):
+        # conform to expected xml
        if self.tokenizer.current_token_type() == "STRING_CONST":
            tag_name = "stringConstant"
        elif self.tokenizer.current_token_type() == "INT_CONST":
