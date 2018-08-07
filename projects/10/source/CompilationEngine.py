@@ -159,15 +159,19 @@ class CompilationEngine():
         self._write_current_outer_tag(body="doStatement")
         self._write_current_terminal_token()
 
-        while self._not_terminal_token_for('do'):
-            self.tokenizer.advance()
+        # experimental
+        def do_terminator_func():
+            return self._not_terminal_token_for('do')
+        def do_condition_func():
+            return self._starting_token_for('expression_list')
+        def do_do_something_func():
+            return self.compile_expression_list()
 
-            if self._starting_token_for('expression_list'):
-                self.compile_expression_list()
-            else:
-                self._write_current_terminal_token()
+        self.compile_statement_body(do_terminator_func, do_condition_func, do_do_something_func)
 
         self._write_current_outer_tag(body="/doStatement")
+
+    # LEAVING UNDRY FOR NOW TO SEE WHAT NEXT PROJECT BRINGS
 
     # 'let' varName ('[' expression ']')? '=' expression ';'
     def compile_let(self):
@@ -224,28 +228,24 @@ class CompilationEngine():
         # compile expression in ()
         self.compile_expression()
 
-        while self._not_terminal_token_for('if'):
-            self.tokenizer.advance()
-
-            if self._statement_token():
-                self.compile_statements()
-            else:
-                self._write_current_terminal_token()
+        def not_terminate_func():
+            return self._not_terminal_token_for('if')
+        def condition_func():
+            return self._statement_token()
+        def do_something_special_func():
+            return self.compile_statements()
+        self.compile_statement_body(not_terminate_func, condition_func, do_something_special_func)
 
         # compile else
         if self.tokenizer.next_token == "else":
+            # write closing {
             self._write_current_terminal_token()
-            # skip closing {
+            # past closing {
             self.tokenizer.advance()
             # write else
             self._write_current_terminal_token()
-            while self._not_terminal_token_for('if'):
-                self.tokenizer.advance()
-
-                if self._statement_token():
-                    self.compile_statements()
-                else:
-                    self._write_current_terminal_token()
+            # same as above
+            self.compile_statement_body(not_terminate_func, condition_func, do_something_special_func)
 
         # write terminal token
         self._write_current_terminal_token()
@@ -411,3 +411,14 @@ class CompilationEngine():
 
     def _statement_token(self):
         return self.tokenizer.current_token in self.STATEMENT_TOKENS
+
+    # statements dry idea
+    def compile_statement_body(self, not_terminate_func, condition_func, do_something_special_func):
+        while not_terminate_func():
+            self.tokenizer.advance()
+
+            if condition_func():
+                do_something_special_func()
+            else:
+                self._write_current_terminal_token()
+
