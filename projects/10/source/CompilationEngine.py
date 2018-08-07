@@ -323,7 +323,7 @@ class CompilationEngine():
     def compile_term(self):
         self._write_current_outer_tag(body="term")
 
-        while self._not_terminal_token_for('expression'): # expression happens to cover all bases
+        while self._not_terminal_condition_for_term():
             if self._starting_token_for('expression_list'):
                 if self.tokenizer.part_of_subroutine_call():
                     self.compile_expression_list()
@@ -437,3 +437,11 @@ class CompilationEngine():
 
     def _another_expression_coming(self):
         return self.tokenizer.current_token == ","
+
+    def _not_terminal_condition_for_term(self):
+        # expression happens to cover all bases
+        return self._not_terminal_token_for('expression')# and self._not_operation_in_parens()
+
+    def _not_operation_in_parens(self):
+        #if self._operator_token(position='next') and not self._starting_token_for('expression'):
+        return not (self._operator_token(position='next') and not self.tokenizer.current_token == '(')
