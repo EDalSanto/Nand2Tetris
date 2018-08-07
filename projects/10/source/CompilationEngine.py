@@ -56,7 +56,7 @@ class CompilationEngine():
         while self.tokenizer.has_more_tokens:
             self.tokenizer.advance()
 
-            if self.tokenizer.current_token_type() in self.TERMINAL_TOKEN_TYPES or self.tokenizer.current_token in self.TERMINAL_KEYWORDS:
+            if self._terminal_token_type() or self._terminal_keyword():
                 self._write_current_terminal_token()
             elif self.tokenizer.current_token in self.CLASS_VAR_DEC_TOKENS:
                 self.compile_class_var_dec()
@@ -69,7 +69,7 @@ class CompilationEngine():
         self._write_current_outer_tag(body="classVarDec")
         self._write_current_terminal_token()
 
-        while self.tokenizer.current_token != self.TERMINATING_TOKENS['class_var_dec']:
+        while self._not_terminal_token_for('class_var_dec'):
             self.tokenizer.advance()
             self._write_current_terminal_token()
 
@@ -79,12 +79,12 @@ class CompilationEngine():
         self._write_current_outer_tag(body="subroutineDec")
         self._write_current_terminal_token()
 
-        while self.tokenizer.current_token != self.TERMINATING_TOKENS['subroutine']:
+        while self._not_terminal_token_for('subroutine'):
             self.tokenizer.advance()
 
-            if self.tokenizer.current_token == self.STARTING_TOKENS['parameter_list']:
+            if self._starting_token_for('parameter_list'):
                 self.compile_parameter_list()
-            elif self.tokenizer.current_token == self.STARTING_TOKENS['subroutine_body']:
+            elif self._starting_token_for('subroutine_body'):
                 self.compile_subroutine_body()
             else:
                 self._write_current_terminal_token()
@@ -395,3 +395,14 @@ class CompilationEngine():
        )
 
 
+    def _terminal_token_type(self):
+        return self.tokenizer.current_token_type() in self.TERMINAL_TOKEN_TYPES
+
+    def _terminal_keyword(self):
+        return self.tokenizer.current_token in self.TERMINAL_KEYWORDS
+
+    def _not_terminal_token_for(self, keyword_token):
+        return not self.tokenizer.current_token == self.TERMINATING_TOKENS[keyword_token]
+
+    def _starting_token_for(self, keyword_token):
+        return self.tokenizer.current_token == self.STARTING_TOKENS[keyword_token]
