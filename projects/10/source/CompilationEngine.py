@@ -12,18 +12,18 @@ class CompilationEngine():
         'expression': ['=', '[', '(']
     }
     TERMINATING_TOKENS = {
-        'class': '}',
-        'class_var_dec': ';',
-        'subroutine': '}',
-        'parameter_list': ')',
-        'expression_list': ')',
-        'statements': '}',
-        'do': ';',
-        'let': ';',
-        'while': '}',
-        'if': '}',
-        'var_dec': ';',
-        'return': ';',
+        'class': ['}'],
+        'class_var_dec': [';'],
+        'subroutine': ['}'],
+        'parameter_list': [')'],
+        'expression_list': [')'],
+        'statements': ['}'],
+        'do': [';'],
+        'let': [';'],
+        'while': ['}'],
+        'if': ['}'],
+        'var_dec': [';'],
+        'return': [';'],
         'expression': [';', ')', ']', ',']
     }
     OPERATORS = [
@@ -155,6 +155,16 @@ class CompilationEngine():
 
         self._write_current_outer_tag(body="/statements")
 
+    # statements dry idea -> maybe a little confusing
+    def compile_statement_body(self, not_terminate_func, condition_func, do_something_special_func):
+        while not_terminate_func():
+            self.tokenizer.advance()
+
+            if condition_func():
+                do_something_special_func()
+            else:
+                self._write_current_terminal_token()
+
     def compile_do(self):
         self._write_current_outer_tag(body="doStatement")
         self._write_current_terminal_token()
@@ -255,15 +265,15 @@ class CompilationEngine():
     def compile_expression(self):
         self._write_current_outer_tag(body="expression")
 
-        # check starting
-        if self.tokenizer.current_token == "(" and self.tokenizer.next_token == "-":
-            unary_negative = True
+        # check starting for unary negative
+        if self._starting_token_for('expression') and self._next_token_is_negative_unary_operator():
+            unary_negative_token = True
         else:
-            unary_negative = False
+            unary_negative_token = False
         self.tokenizer.advance()
 
-        while self.tokenizer.current_token not in self.TERMINATING_TOKENS['expression']:
-            if self.tokenizer.current_token in self.OPERATORS and not unary_negative:
+        while self._not_terminal_token_for('expression'):
+            if self._operator_token() and not unary_negative_token:
                 self._write_current_terminal_token()
                 self.tokenizer.advance()
             else:
@@ -272,25 +282,21 @@ class CompilationEngine():
         self._write_current_outer_tag(body="/expression")
         self._write_current_terminal_token()
 
+    # separeted out of compile_expression because of some edge cases
     def compile_expression_in_expression_list(self):
         self._write_current_outer_tag(body="expression")
 
         # go till , or (
-        while self.tokenizer.current_token not in self.TERMINATING_TOKENS['expression']:
-            if self.tokenizer.current_token in [',']:
-                self.tokenizer.advance()
-
-            if self.tokenizer.current_token in self.OPERATORS:
+        while self._not_terminal_token_for('expression'):
+            if self._operator_token():
                 self._write_current_terminal_token()
                 self.tokenizer.advance()
             else:
                 self.compile_term()
+                # term takes care of advancing..
 
         self._write_current_outer_tag(body="/expression")
-        # only write , if multiple
-        if self.tokenizer.current_token == ",":
-            self._write_current_terminal_token()
-            self.tokenizer.advance() # advance here to avoid next check
+
 
     # (expression (',' expression)* )?
     def compile_expression_list(self):
@@ -301,11 +307,15 @@ class CompilationEngine():
         # skip initial (
         self.tokenizer.advance()
 
-        if not self.tokenizer.current_token == self.TERMINATING_TOKENS['expression_list']:
-            while not self.tokenizer.current_token == self.TERMINATING_TOKENS['expression_list']:
-                self.compile_expression_in_expression_list()
-        # write )
+        while self._not_terminal_token_for('expression_list'):
+            self.compile_expression_in_expression_list()
+            # current token could be , or ) to end expression list
+            if self._another_expression_coming():
+                self._write_current_terminal_token()
+                self.tokenizer.advance()
+
         self._write_current_outer_tag(body="/expressionList")
+        # write )
         self._write_current_terminal_token()
 
     # integerConstant | stringConstant | keywordConstant | varName |
@@ -358,7 +368,7 @@ class CompilationEngine():
         self._write_current_terminal_token()
 #        self.tokenizer.advance()
 
-        if not self.tokenizer.next_token == self.TERMINATING_TOKENS['return']:
+        if not self.tokenizer.next_token in self.TERMINATING_TOKENS['return']:
             self.compile_expression()
         else: # write ; for void
             self.tokenizer.advance()
@@ -402,9 +412,9 @@ class CompilationEngine():
 
     def _not_terminal_token_for(self, keyword_token, position='current'):
         if position == 'current':
-            return not self.tokenizer.current_token == self.TERMINATING_TOKENS[keyword_token]
+            return not self.tokenizer.current_token in self.TERMINATING_TOKENS[keyword_token]
         elif position == 'next':
-            return not self.tokenizer.next_token == self.TERMINATING_TOKENS[keyword_token]
+            return not self.tokenizer.next_token in self.TERMINATING_TOKENS[keyword_token]
 
     def _starting_token_for(self, keyword_token):
         return self.tokenizer.current_token in self.STARTING_TOKENS[keyword_token]
@@ -412,13 +422,11 @@ class CompilationEngine():
     def _statement_token(self):
         return self.tokenizer.current_token in self.STATEMENT_TOKENS
 
-    # statements dry idea
-    def compile_statement_body(self, not_terminate_func, condition_func, do_something_special_func):
-        while not_terminate_func():
-            self.tokenizer.advance()
+    def _operator_token(self):
+        return self.tokenizer.current_token in self.OPERATORS
 
-            if condition_func():
-                do_something_special_func()
-            else:
-                self._write_current_terminal_token()
+    def _next_token_is_negative_unary_operator(self):
+        return self.tokenizer.next_token == "-"
 
+    def _another_expression_coming(self):
+        return self.tokenizer.current_token == ","
