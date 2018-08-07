@@ -5,10 +5,10 @@ class CompilationEngine():
     SUBROUTINE_TOKENS = [ "function", "method", "constructor" ]
     STATEMENT_TOKENS = [ 'do', 'let', 'while', 'return', 'if' ]
     STARTING_TOKENS = {
-        'var_dec': 'var',
-        'parameter_list': '(',
-        'subroutine_body': '{',
-        'expression_list': '(',
+        'var_dec': ['var'],
+        'parameter_list': ['('],
+        'subroutine_body': ['{'],
+        'expression_list': ['('],
         'expression': ['=', '[', '(']
     }
     TERMINATING_TOKENS = {
@@ -96,14 +96,13 @@ class CompilationEngine():
         self._write_current_terminal_token()
         self._write_current_outer_tag(body="parameterList")
 
-        while not self.tokenizer.next_token == self.TERMINATING_TOKENS['parameter_list']:
+        while self._not_terminal_token_for(position='next', keyword_token='parameter_list'):
             self.tokenizer.advance()
             self._write_current_terminal_token()
 
         self._write_current_outer_tag(body="/parameterList")
         # advance to closing )
         self.tokenizer.advance()
-        # write closing )
         self._write_current_terminal_token()
 
     # '{' varDec* statements '}'
@@ -112,12 +111,12 @@ class CompilationEngine():
         # write opening {
         self._write_current_terminal_token()
 
-        while not self.tokenizer.current_token == self.TERMINATING_TOKENS['subroutine']:
+        while self._not_terminal_token_for('subroutine'):
             self.tokenizer.advance()
 
-            if self.tokenizer.current_token == self.STARTING_TOKENS['var_dec']:
+            if self._starting_token_for('var_dec'):
                 self.compile_var_dec()
-            elif self.tokenizer.current_token in self.STATEMENT_TOKENS:
+            elif self._statement_token() :
                 self.compile_statements()
             else:
                 self._write_current_terminal_token()
@@ -131,7 +130,7 @@ class CompilationEngine():
         self._write_current_outer_tag(body="varDec")
         self._write_current_terminal_token()
 
-        while not self.tokenizer.current_token == self.TERMINATING_TOKENS['var_dec']:
+        while self._not_terminal_token_for('var_dec'):
             self.tokenizer.advance()
             self._write_current_terminal_token()
 
@@ -140,7 +139,7 @@ class CompilationEngine():
     def compile_statements(self):
         self._write_current_outer_tag(body="statements")
 
-        while not self.tokenizer.current_token == self.TERMINATING_TOKENS['subroutine']:
+        while self._not_terminal_token_for('subroutine'):
             if self.tokenizer.current_token == "if":
                 self.compile_if()
             elif self.tokenizer.current_token == "do":
@@ -160,10 +159,10 @@ class CompilationEngine():
         self._write_current_outer_tag(body="doStatement")
         self._write_current_terminal_token()
 
-        while not self.tokenizer.current_token == self.TERMINATING_TOKENS['do']:
+        while self._not_terminal_token_for('do'):
             self.tokenizer.advance()
 
-            if self.tokenizer.current_token == self.STARTING_TOKENS['expression_list']:
+            if self._starting_token_for('expression_list'):
                 self.compile_expression_list()
             else:
                 self._write_current_terminal_token()
@@ -176,10 +175,10 @@ class CompilationEngine():
         # write let keyword
         self._write_current_terminal_token()
 
-        while not self.tokenizer.current_token == self.TERMINATING_TOKENS['let']:
+        while self._not_terminal_token_for('let'):
             self.tokenizer.advance()
 
-            if self.tokenizer.current_token in self.STARTING_TOKENS['expression']:
+            if self._starting_token_for('expression'):
                 # write =
                 self._write_current_terminal_token()
                 self.compile_expression()
@@ -201,10 +200,10 @@ class CompilationEngine():
         # compile expression in ()
         self.compile_expression()
 
-        while not self.tokenizer.current_token == self.TERMINATING_TOKENS['while']:
+        while self._not_terminal_token_for('while'):
             self.tokenizer.advance()
 
-            if self.tokenizer.current_token in self.STATEMENT_TOKENS:
+            if self._statement_token():
                 self.compile_statements()
             else:
                 self._write_current_terminal_token()
@@ -225,10 +224,10 @@ class CompilationEngine():
         # compile expression in ()
         self.compile_expression()
 
-        while not self.tokenizer.current_token == self.TERMINATING_TOKENS['if']:
+        while self._not_terminal_token_for('if'):
             self.tokenizer.advance()
 
-            if self.tokenizer.current_token in self.STATEMENT_TOKENS:
+            if self._statement_token():
                 self.compile_statements()
             else:
                 self._write_current_terminal_token()
@@ -240,10 +239,10 @@ class CompilationEngine():
             self.tokenizer.advance()
             # write else
             self._write_current_terminal_token()
-            while not self.tokenizer.current_token == self.TERMINATING_TOKENS['if']:
+            while self._not_terminal_token_for('if'):
                 self.tokenizer.advance()
 
-                if self.tokenizer.current_token in self.STATEMENT_TOKENS:
+                if self._statement_token():
                     self.compile_statements()
                 else:
                     self._write_current_terminal_token()
@@ -315,7 +314,7 @@ class CompilationEngine():
         self._write_current_outer_tag(body="term")
 
         while self.tokenizer.current_token not in self.TERMINATING_TOKENS['expression']:
-            if self.tokenizer.current_token == self.STARTING_TOKENS['expression_list']:
+            if self.tokenizer.current_token in self.STARTING_TOKENS['expression_list']:
                 if self.tokenizer.part_of_subroutine_call():
                     self.compile_expression_list()
                 else: # expression
@@ -401,8 +400,14 @@ class CompilationEngine():
     def _terminal_keyword(self):
         return self.tokenizer.current_token in self.TERMINAL_KEYWORDS
 
-    def _not_terminal_token_for(self, keyword_token):
-        return not self.tokenizer.current_token == self.TERMINATING_TOKENS[keyword_token]
+    def _not_terminal_token_for(self, keyword_token, position='current'):
+        if position == 'current':
+            return not self.tokenizer.current_token == self.TERMINATING_TOKENS[keyword_token]
+        elif position == 'next':
+            return not self.tokenizer.next_token == self.TERMINATING_TOKENS[keyword_token]
 
     def _starting_token_for(self, keyword_token):
-        return self.tokenizer.current_token == self.STARTING_TOKENS[keyword_token]
+        return self.tokenizer.current_token in self.STARTING_TOKENS[keyword_token]
+
+    def _statement_token(self):
+        return self.tokenizer.current_token in self.STATEMENT_TOKENS
