@@ -28,6 +28,7 @@ class JackTokenizer():
         '\"': '&quot;',
         '&': '&amp;'
     }
+    COMMENT_OPERATORS = ["/", "*"]
 
     """
     goes through a .jack input file and produces a stream of tokens
@@ -45,31 +46,19 @@ class JackTokenizer():
         char = self.input_file.read(1)
 
         # skip whitespace and comments
-         # if space
-             # read 1 char bc we don't know what's next
-         # if start of comment
-             # check that not operator
-             # if not, read whole line
-
-        while char.isspace() or char in ["/", "*"]:
+        while char.isspace() or char in self.COMMENT_OPERATORS:
             if char.isspace():
+                # read 1 char bc we don't know what's next
                 char = self.input_file.read(1)
-            elif char in ["/", "*"]:
+            elif char in self.COMMENT_OPERATORS:
                 # make sure not operator
                 last_pos = self.input_file.tell()
                 next_2_chars = self.input_file.read(2)
-                # comment of form: // or */
-                single_line_comment = next_2_chars[0] == "/"
-                # comment of form: /**
-                multi_line_comment = char == "/" and next_2_chars[0] == "*" and next_2_chars[1] == "*"
-                # comment of form:  * comment
-                part_of_multi_line_comment = char == "*" and next_2_chars[0] == " " and next_2_chars[1] != '('
-                if not single_line_comment and not multi_line_comment and not part_of_multi_line_comment:
+                if not self._is_start_of_comment(char, next_2_chars):
                     # go back
                     self.input_file.seek(last_pos)
                     break
 
-                multi_line_comment = False
                 # read whole line
                 self.input_file.readline()
                 # read next char
@@ -115,6 +104,7 @@ class JackTokenizer():
         else: # initial setup
             self.current_token = token
             self.next_token = token
+            self.tokens_found.append(token)
             # update next token
             self.advance()
 
@@ -148,28 +138,17 @@ class JackTokenizer():
         else:
             return "SYMBOL"
 
-    def keyword(self):
-        if self.current_token_type() == "KEYWORD":
-            return self.current_token
-
-    def symbol(self):
-        if self.current_token_type() == "SYMBOL":
-            return self.current_token
-
-    def identifier(self):
-        if self.current_token_type() == "IDENTIFIER":
-            return self.current_token
-
-    def int_val(self):
-        if self.current_token_type() == "INT_CONST":
-            return self.current_token
-
-    def string_val(self):
-        if self.current_token_type() == "STRING_CONST":
-            return self.current_token
-
     def _is_alnum_or_underscore(self, char):
         return char.isalnum() or char == "_"
 
     def _is_string_const_delimeter(self, char):
         return char == "\""
+
+    def _is_start_of_comment(self, char, next_2_chars):
+       # comment of form: // or */
+       single_line_comment = next_2_chars[0] == self.COMMENT_OPERATORS[0]
+       # comment of form: /**
+       multi_line_comment = char == self.COMMENT_OPERATORS[0] and next_2_chars == "**"
+       # comment of form:  * comment
+       part_of_multi_line_comment = char == self.COMMENT_OPERATORS[1] and next_2_chars[0].isspace() and next_2_chars[1] != '('
+       return single_line_comment or multi_line_comment or part_of_multi_line_comment
