@@ -323,22 +323,22 @@ class CompilationEngine():
     def compile_term(self):
         self._write_current_outer_tag(body="term")
 
-        while self.tokenizer.current_token not in self.TERMINATING_TOKENS['expression']:
-            if self.tokenizer.current_token in self.STARTING_TOKENS['expression_list']:
+        while self._not_terminal_token_for('expression'): # expression happens to cover all bases
+            if self._starting_token_for('expression_list'):
                 if self.tokenizer.part_of_subroutine_call():
                     self.compile_expression_list()
                 else: # expression
                     # write starting
                     self._write_current_terminal_token()
                     self.compile_expression()
-            elif self.tokenizer.current_token in self.STARTING_TOKENS['expression']:
+            elif self._starting_token_for('expression'):
                 # write starting
                 self._write_current_terminal_token()
                 self.compile_expression()
             elif self.tokenizer.current_token in self.UNARY_OPERATORS:
                 self._write_current_terminal_token()
 
-                if self.tokenizer.next_token in self.STARTING_TOKENS['expression']:
+                if self._starting_token_for(keyword_token='expression', position='next'):
                     self.tokenizer.advance()
                     self.compile_term()
                     break
@@ -353,7 +353,7 @@ class CompilationEngine():
 
             # remove ghetto
             # if next token is op and prev isn't start of expression symbol
-            if self.tokenizer.next_token in self.OPERATORS and self.tokenizer.current_token != '(':
+            if self._operator_token(position='next') and not self._starting_token_for('expression'):
                 self.tokenizer.advance()
                 break
 
@@ -366,9 +366,8 @@ class CompilationEngine():
 
         # write return
         self._write_current_terminal_token()
-#        self.tokenizer.advance()
 
-        if not self.tokenizer.next_token in self.TERMINATING_TOKENS['return']:
+        if self._not_terminal_token_for(keyword_token='return', position='next'):
             self.compile_expression()
         else: # write ; for void
             self.tokenizer.advance()
@@ -416,14 +415,20 @@ class CompilationEngine():
         elif position == 'next':
             return not self.tokenizer.next_token in self.TERMINATING_TOKENS[keyword_token]
 
-    def _starting_token_for(self, keyword_token):
-        return self.tokenizer.current_token in self.STARTING_TOKENS[keyword_token]
+    def _starting_token_for(self, keyword_token, position='current'):
+        if position == 'current':
+            return self.tokenizer.current_token in self.STARTING_TOKENS[keyword_token]
+        elif position == 'next':
+            return self.tokenizer.next_token in self.STARTING_TOKENS[keyword_token]
 
     def _statement_token(self):
         return self.tokenizer.current_token in self.STATEMENT_TOKENS
 
-    def _operator_token(self):
-        return self.tokenizer.current_token in self.OPERATORS
+    def _operator_token(self, position='current'):
+        if position == 'current':
+            return self.tokenizer.current_token in self.OPERATORS
+        elif position == 'next':
+            return self.tokenizer.next_token in self.OPERATORS
 
     def _next_token_is_negative_unary_operator(self):
         return self.tokenizer.next_token == "-"
