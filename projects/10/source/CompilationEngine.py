@@ -193,8 +193,6 @@ class CompilationEngine():
             self.tokenizer.advance()
 
             if self._starting_token_for('expression'):
-                # write =
-                self._write_current_terminal_token()
                 self.compile_expression()
             else:
                 self._write_current_terminal_token()
@@ -207,9 +205,8 @@ class CompilationEngine():
         # write keyword while
         self._write_current_terminal_token()
 
-        # write (
+        # advance to expression start (
         self.tokenizer.advance()
-        self._write_current_terminal_token()
 
         # compile expression in ()
         self.compile_expression()
@@ -231,9 +228,8 @@ class CompilationEngine():
         # write keyword if
         self._write_current_terminal_token()
 
-        # write (
+        # advance to expression start
         self.tokenizer.advance()
-        self._write_current_terminal_token()
 
         # compile expression in ()
         self.compile_expression()
@@ -263,6 +259,7 @@ class CompilationEngine():
 
     # term (op term)*
     def compile_expression(self):
+        self._write_current_terminal_token()
         self._write_current_outer_tag(body="expression")
 
         # check starting for unary negative
@@ -319,22 +316,14 @@ class CompilationEngine():
         self._write_current_terminal_token()
 
     # integerConstant | stringConstant | keywordConstant | varName |
-    # varName '[' expression']' | subroutineCall | '(' expression ')' | unaryOp term
+    # varName '[' expression ']' | subroutineCall | '(' expression ')' | unaryOp term
     def compile_term(self):
         self._write_current_outer_tag(body="term")
 
         while self._not_terminal_condition_for_term():
-            if self._starting_token_for('expression_list'):
-                if self.tokenizer.part_of_subroutine_call():
-                    self.compile_expression_list()
-                else: # expression, i.e., (3 + 4)
-                    # handling special form of expression start here for now since only occurs here
-                    # maybe can remove this
-                    self._write_current_terminal_token()
-                    self.compile_expression()
+            if self.tokenizer.part_of_subroutine_call():
+                self.compile_expression_list()
             elif self._starting_token_for('expression'):
-                # also here look to remove
-                self._write_current_terminal_token()
                 self.compile_expression()
             elif self.tokenizer.current_token in self.UNARY_OPERATORS:
                 self._write_current_terminal_token()
@@ -344,17 +333,16 @@ class CompilationEngine():
                     self.compile_term()
                     break
                 else:
-                    # write inner term - ghetto
                     self.tokenizer.advance()
+                    # write inner term
                     self._write_current_outer_tag(body="term")
                     self._write_current_terminal_token()
                     self._write_current_outer_tag(body="/term")
             else:
                 self._write_current_terminal_token()
 
-            # remove ghetto
-            # if next token is op and prev isn't start of expression symbol
-            if self._operator_token(position='next') and not self._starting_token_for('expression'):
+            # i.e., i *
+            if self._next_token_is_operation_not_in_expression():
                 self.tokenizer.advance()
                 break
 
@@ -365,16 +353,13 @@ class CompilationEngine():
     def compile_return(self):
         self._write_current_outer_tag(body="returnStatement")
 
-        # write return
-        self._write_current_terminal_token()
-
         if self._not_terminal_token_for(keyword_token='return', position='next'):
             self.compile_expression()
-        else: # write ; for void
+        else: # write return and ; for void
+            self._write_current_terminal_token()
             self.tokenizer.advance()
             self._write_current_terminal_token()
 
-        # write end
         self._write_current_outer_tag(body="/returnStatement")
 
 
@@ -403,7 +388,6 @@ class CompilationEngine():
                 tag_name
             )
         )
-
 
     def _terminal_token_type(self):
         return self.tokenizer.current_token_type() in self.TERMINAL_TOKEN_TYPES
@@ -440,8 +424,7 @@ class CompilationEngine():
 
     def _not_terminal_condition_for_term(self):
         # expression happens to cover all bases
-        return self._not_terminal_token_for('expression')# and self._not_operation_in_parens()
+        return self._not_terminal_token_for('expression')# and not self._next_token_is_operation_not_in_expression()
 
-    def _not_operation_in_parens(self):
-        #if self._operator_token(position='next') and not self._starting_token_for('expression'):
-        return not (self._operator_token(position='next') and not self.tokenizer.current_token == '(')
+    def _next_token_is_operation_not_in_expression(self):
+        return self._operator_token(position='next') and not self._starting_token_for('expression')
