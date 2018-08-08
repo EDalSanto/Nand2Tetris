@@ -1,4 +1,8 @@
 class CompilationEngine():
+    """
+    compiles a jack source file from a jack tokenizer into xml form in output_file
+    """
+
     TERMINAL_TOKEN_TYPES = [ "STRING_CONST", "INT_CONST", "IDENTIFIER", "SYMBOL"]
     TERMINAL_KEYWORDS = [ "boolean", "class", "void", "int" ]
     CLASS_VAR_DEC_TOKENS = [ "static", "field" ]
@@ -39,10 +43,6 @@ class CompilationEngine():
     ]
     UNARY_OPERATORS = [ '-', '~' ]
 
-    """
-    compiles a jack source file from a jack tokenizer into xml form in output_file
-    """
-
     def __init__(self, tokenizer, output_file):
         self.tokenizer = tokenizer
         self.output_file = output_file
@@ -66,6 +66,9 @@ class CompilationEngine():
         self._write_current_outer_tag(body="/class")
 
     def compile_class_var_dec(self):
+        """
+        example: field int x;
+        """
         self._write_current_outer_tag(body="classVarDec")
         self._write_current_terminal_token()
 
@@ -76,6 +79,9 @@ class CompilationEngine():
         self._write_current_outer_tag(body="/classVarDec")
 
     def compile_subroutine(self):
+        """
+        example: methoid void dispose() { ...
+        """
         self._write_current_outer_tag(body="subroutineDec")
         self._write_current_terminal_token()
 
@@ -92,6 +98,9 @@ class CompilationEngine():
         self._write_current_outer_tag(body="/subroutineDec")
 
     def compile_parameter_list(self):
+        """
+        example: dispose(int a, int b)
+        """
         # write starting (
         self._write_current_terminal_token()
         self._write_current_outer_tag(body="parameterList")
@@ -107,6 +116,9 @@ class CompilationEngine():
 
     # '{' varDec* statements '}'
     def compile_subroutine_body(self):
+        """
+        example: { do square.dispose() };
+        """
         self._write_current_outer_tag(body="subroutineBody")
         # write opening {
         self._write_current_terminal_token()
@@ -127,6 +139,9 @@ class CompilationEngine():
 
     # 'var' type varName (',' varName)* ';'
     def compile_var_dec(self):
+        """
+        example: var int a;
+        """
         self._write_current_outer_tag(body="varDec")
         self._write_current_terminal_token()
 
@@ -137,6 +152,9 @@ class CompilationEngine():
         self._write_current_outer_tag(body="/varDec")
 
     def compile_statements(self):
+        """
+        call correct statement
+        """
         self._write_current_outer_tag(body="statements")
 
         while self._not_terminal_token_for('subroutine'):
@@ -155,8 +173,11 @@ class CompilationEngine():
 
         self._write_current_outer_tag(body="/statements")
 
-    # statements dry idea -> maybe a little confusing
     def compile_statement_body(self, not_terminate_func, condition_func, do_something_special_func):
+        """
+        way to help DRY up statement body
+        maybe a little confusing?
+        """
         while not_terminate_func():
             self.tokenizer.advance()
 
@@ -166,6 +187,9 @@ class CompilationEngine():
                 self._write_current_terminal_token()
 
     def compile_do(self):
+        """
+        example: do square.dispose();
+        """
         self._write_current_outer_tag(body="doStatement")
         self._write_current_terminal_token()
 
@@ -185,6 +209,9 @@ class CompilationEngine():
 
     # 'let' varName ('[' expression ']')? '=' expression ';'
     def compile_let(self):
+        """
+        example: let direction = 0;
+        """
         self._write_current_outer_tag(body="letStatement")
         # write let keyword
         self._write_current_terminal_token()
@@ -201,6 +228,9 @@ class CompilationEngine():
 
     # 'while' '(' expression ')' '{' statements '}'
     def compile_while(self):
+        """
+        example: while (x > 0) { ... }
+        """
         self._write_current_outer_tag(body="whileStatement")
         # write keyword while
         self._write_current_terminal_token()
@@ -224,6 +254,9 @@ class CompilationEngine():
         self._write_current_outer_tag(body="/whileStatement")
 
     def compile_if(self):
+        """
+        example: if (True) { ... } else { ... }
+        """
         self._write_current_outer_tag(body="ifStatement")
         # write keyword if
         self._write_current_terminal_token()
@@ -251,7 +284,11 @@ class CompilationEngine():
             # write else
             self._write_current_terminal_token()
             # same as above
-            self.compile_statement_body(not_terminate_func, condition_func, do_something_special_func)
+            self.compile_statement_body(
+                not_terminate_func,
+                condition_func,
+                do_something_special_func
+            )
 
         # write terminal token
         self._write_current_terminal_token()
@@ -259,6 +296,9 @@ class CompilationEngine():
 
     # term (op term)*
     def compile_expression(self):
+        """
+        many examples..i,e., x = 4
+        """
         self._write_current_terminal_token()
         self._write_current_outer_tag(body="expression")
 
@@ -279,8 +319,11 @@ class CompilationEngine():
         self._write_current_outer_tag(body="/expression")
         self._write_current_terminal_token()
 
-    # separeted out of compile_expression because of some edge cases
     def compile_expression_in_expression_list(self):
+        """
+        separeted out of compile_expression because of edge cases from normal expression
+        example: (x, y, x + 5)
+        """
         self._write_current_outer_tag(body="expression")
 
         # go till , or (
@@ -297,6 +340,10 @@ class CompilationEngine():
 
     # (expression (',' expression)* )?
     def compile_expression_list(self):
+        """
+        separeted out of compile_expression because of edge cases from normal expression
+        example: (x, y, x + 5)
+        """
         # write (
         self._write_current_terminal_token()
         self._write_current_outer_tag(body="expressionList")
@@ -318,6 +365,10 @@ class CompilationEngine():
     # integerConstant | stringConstant | keywordConstant | varName |
     # varName '[' expression ']' | subroutineCall | '(' expression ')' | unaryOp term
     def compile_term(self):
+        """
+        most compilicated and difficult part of compiler
+        TODO: try to simplify
+        """
         self._write_current_outer_tag(body="term")
 
         while self._not_terminal_condition_for_term():
@@ -351,6 +402,9 @@ class CompilationEngine():
         self._write_current_outer_tag(body="/term")
 
     def compile_return(self):
+        """
+        example: return x; or return;
+        """
         self._write_current_outer_tag(body="returnStatement")
 
         if self._not_terminal_token_for(keyword_token='return', position='next'):
@@ -424,7 +478,7 @@ class CompilationEngine():
 
     def _not_terminal_condition_for_term(self):
         # expression happens to cover all bases
-        return self._not_terminal_token_for('expression')# and not self._next_token_is_operation_not_in_expression()
+        return self._not_terminal_token_for('expression')
 
     def _next_token_is_operation_not_in_expression(self):
         return self._operator_token(position='next') and not self._starting_token_for('expression')
