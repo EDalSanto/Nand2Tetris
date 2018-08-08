@@ -384,25 +384,25 @@ class CompilationEngine():
 
     def _write_current_terminal_token(self):
         # conform to expected xml
-       if self.tokenizer.current_token_type() == "STRING_CONST":
-           tag_name = "stringConstant"
-       elif self.tokenizer.current_token_type() == "INT_CONST":
-           tag_name = "integerConstant"
-       else:
+        if self.tokenizer.current_token_type() == "STRING_CONST":
+            tag_name = "stringConstant"
+        elif self.tokenizer.current_token_type() == "INT_CONST":
+            tag_name = "integerConstant"
+        else:
             tag_name = self.tokenizer.current_token_type().lower()
 
-       if self.tokenizer.current_token_type() == "STRING_CONST":
-           value = self.tokenizer.current_token.replace("\"", "")
-       else:
-           value = self.tokenizer.current_token
+        if self.tokenizer.current_token_type() == "STRING_CONST":
+            value = self.tokenizer.current_token.replace("\"", "")
+        else:
+            value = self.tokenizer.current_token
 
-       self.output_file.write(
-           "<{}> {} </{}>\n".format(
-               tag_name,
-               value,
-               tag_name
-           )
-       )
+        self.output_file.write(
+            "<{}> {} </{}>\n".format(
+                tag_name,
+                value,
+                tag_name
+            )
+        )
 
 
     def _terminal_token_type(self):
