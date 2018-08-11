@@ -138,6 +138,14 @@ class JackTokenizer():
         else:
             return "SYMBOL"
 
+    def keyword(self):
+        if self.current_token_type() == "KEYWORD":
+            return self.current_token
+
+    def identifier(self):
+        if self.current_token_type() == "IDENTIFIER":
+            return self.current_token
+
     def _is_alnum_or_underscore(self, char):
         return char.isalnum() or char == "_"
 

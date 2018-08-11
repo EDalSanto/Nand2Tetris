@@ -76,9 +76,22 @@ class CompilationEngine():
         self._write_current_outer_tag(body="classVarDec")
         self._write_current_terminal_token()
 
+        ### symbol table
+        kind = self.tokenizer.current_token
+
+        # get symbol type
+        self.tokenizer.advance()
+        self._write_current_terminal_token()
+        symbol_type = self.tokenizer.keyword()
+
+        # get all identifiers
         while self._not_terminal_token_for('class_var_dec'):
             self.tokenizer.advance()
             self._write_current_terminal_token()
+            if self.tokenizer.identifier():
+                # add symbol to class
+                name = self.tokenizer.identifier()
+                self.class_symbol_table.define(name=name, kind=kind, symbol_type=symbol_type)
 
         self._write_current_outer_tag(body="/classVarDec")
 
