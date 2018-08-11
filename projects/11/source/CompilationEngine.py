@@ -1,3 +1,5 @@
+from SymbolTable import SymbolTable
+
 class CompilationEngine():
     """
     compiles a jack source file from a jack tokenizer into xml form in output_file
@@ -46,6 +48,8 @@ class CompilationEngine():
     def __init__(self, tokenizer, output_file):
         self.tokenizer = tokenizer
         self.output_file = output_file
+        self.class_symbol_table = SymbolTable()
+        self.subroutine_symbol_table = SymbolTable()
 
     def compile_class(self):
         """

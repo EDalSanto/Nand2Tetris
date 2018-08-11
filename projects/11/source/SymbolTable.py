@@ -50,7 +50,7 @@ class SymbolTable():
         """
         return self._find_symbol_by_name(name).get('index')
 
-    def _find_symbol_by_name(self, value)
+    def _find_symbol_by_name(self, value):
         for symbol in self.symbols:
             if symbol['name'] == value:
                 return symbol
