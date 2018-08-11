@@ -122,9 +122,18 @@ class CompilationEngine():
         self._write_current_terminal_token()
         self._write_current_outer_tag(body="parameterList")
 
+        ### symbol table
+        kind = 'argument'
+
         while self._not_terminal_token_for(position='next', keyword_token='parameter_list'):
             self.tokenizer.advance()
             self._write_current_terminal_token()
+            # symbol table
+            if self.tokenizer.token_type_of(self.tokenizer.next_token) == "IDENTIFIER":
+                # get type
+                symbol_type = self.tokenizer.current_token
+                name = self.tokenizer.next_token
+                self.subroutine_symbol_table.define(name=name, kind=kind, symbol_type=symbol_type)
 
         self._write_current_outer_tag(body="/parameterList")
         # advance to closing )
@@ -162,9 +171,25 @@ class CompilationEngine():
         self._write_current_outer_tag(body="varDec")
         self._write_current_terminal_token()
 
+        ### symbol table
+        # reset subroutine symbols
+        self.subroutine_symbol_table.reset()
+        # all var decs are local variables
+        kind = 'local'
+
+        # get symbol type
+        self.tokenizer.advance()
+        self._write_current_terminal_token()
+        symbol_type = self.tokenizer.keyword()
+
+        # get all identifiers
         while self._not_terminal_token_for('var_dec'):
             self.tokenizer.advance()
             self._write_current_terminal_token()
+            if self.tokenizer.identifier():
+                # add symbol to class
+                name = self.tokenizer.identifier()
+                self.subroutine_symbol_table.define(name=name, kind=kind, symbol_type=symbol_type)
 
         self._write_current_outer_tag(body="/varDec")
 
@@ -440,14 +465,14 @@ class CompilationEngine():
 
     def _write_current_terminal_token(self):
         # conform to expected xml
-        if self.tokenizer.current_token_type() == "STRING_CONST":
+        if self.tokenizer.token_type_of(self.tokenizer.current_token) == "STRING_CONST":
             tag_name = "stringConstant"
-        elif self.tokenizer.current_token_type() == "INT_CONST":
+        elif self.tokenizer.token_type_of(self.tokenizer.current_token) == "INT_CONST":
             tag_name = "integerConstant"
         else:
-            tag_name = self.tokenizer.current_token_type().lower()
+            tag_name = self.tokenizer.token_type_of(self.tokenizer.current_token).lower()
 
-        if self.tokenizer.current_token_type() == "STRING_CONST":
+        if self.tokenizer.token_type_of(self.tokenizer.current_token) == "STRING_CONST":
             value = self.tokenizer.current_token.replace("\"", "")
         else:
             value = self.tokenizer.current_token
@@ -461,7 +486,7 @@ class CompilationEngine():
         )
 
     def _terminal_token_type(self):
-        return self.tokenizer.current_token_type() in self.TERMINAL_TOKEN_TYPES
+        return self.tokenizer.token_type_of(self.tokenizer.current_token) in self.TERMINAL_TOKEN_TYPES
 
     def _terminal_keyword(self):
         return self.tokenizer.current_token in self.TERMINAL_KEYWORDS

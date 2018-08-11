@@ -126,24 +126,24 @@ class JackTokenizer():
         else:
             return False
 
-    def current_token_type(self):
-        if self.current_token[0] == "\"":
+    def token_type_of(self, token):
+        if token[0] == "\"":
             return "STRING_CONST"
-        elif self.current_token in self.KEYWORDS:
+        elif token in self.KEYWORDS:
             return "KEYWORD"
-        elif self.current_token.isnumeric():
+        elif token.isnumeric():
             return "INT_CONST"
-        elif self.current_token.isalnum():
+        elif token.isalnum():
             return "IDENTIFIER"
         else:
             return "SYMBOL"
 
     def keyword(self):
-        if self.current_token_type() == "KEYWORD":
+        if self.token_type_of(self.current_token) == "KEYWORD":
             return self.current_token
 
     def identifier(self):
-        if self.current_token_type() == "IDENTIFIER":
+        if self.token_type_of(self.current_token) == "IDENTIFIER":
             return self.current_token
 
     def _is_alnum_or_underscore(self, char):
