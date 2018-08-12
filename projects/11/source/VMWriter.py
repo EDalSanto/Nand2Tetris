@@ -56,6 +56,7 @@ class VMWriter():
         name: string, name of subroutine
         num_locals: int, number of locals for function
         """
+        self.output_file.write('function {} {}'.format(name, num_locals))
 
     def write_return(self):
         """

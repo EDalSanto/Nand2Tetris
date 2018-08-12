@@ -55,11 +55,11 @@ class JackTokenizer():
                 # make sure not operator
                 last_pos = self.input_file.tell()
                 next_2_chars = self.input_file.read(2)
+                # go back
+                self.input_file.seek(last_pos)
                 if not self._is_start_of_comment(char, next_2_chars):
-                    # go back
                     self.input_file.seek(last_pos)
                     break
-
                 # read whole line
                 self.input_file.readline()
                 # read next char
