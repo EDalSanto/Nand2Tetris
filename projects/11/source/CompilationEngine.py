@@ -1,4 +1,5 @@
 from SymbolTable import SymbolTable
+from VMWriter import VMWriter
 
 class CompilationEngine():
     """
@@ -50,57 +51,59 @@ class CompilationEngine():
         self.output_file = output_file
         self.class_symbol_table = SymbolTable()
         self.subroutine_symbol_table = SymbolTable()
+        self.vm_writer = VMWriter(output_file)
 
     def compile_class(self):
         """
         everything needed to compile a class, the basic unit of compilation
         """
-        self._write_current_outer_tag(body="class")
+        #self._write_current_outer_tag(body="class")
 
         while self.tokenizer.has_more_tokens:
             self.tokenizer.advance()
 
             if self._terminal_token_type() or self._terminal_keyword():
-                self._write_current_terminal_token()
+                #self._write_current_terminal_token()
+                # what I need to do to compile class -> nothing
             elif self.tokenizer.current_token in self.CLASS_VAR_DEC_TOKENS:
                 self.compile_class_var_dec()
             elif self.tokenizer.current_token in self.SUBROUTINE_TOKENS:
                 self.compile_subroutine()
 
-        self._write_current_outer_tag(body="/class")
+        #self._write_current_outer_tag(body="/class")
 
     def compile_class_var_dec(self):
         """
         example: field int x;
         """
-        self._write_current_outer_tag(body="classVarDec")
-        self._write_current_terminal_token()
+        # self._write_current_outer_tag(body="classVarDec")
+        # self._write_current_terminal_token()
 
         ### symbol table
         kind = self.tokenizer.current_token
 
         # get symbol type
         self.tokenizer.advance()
-        self._write_current_terminal_token()
+        #self._write_current_terminal_token()
         symbol_type = self.tokenizer.keyword()
 
         # get all identifiers
         while self._not_terminal_token_for('class_var_dec'):
             self.tokenizer.advance()
-            self._write_current_terminal_token()
+            # self._write_current_terminal_token()
             if self.tokenizer.identifier():
                 # add symbol to class
                 name = self.tokenizer.identifier()
                 self.class_symbol_table.define(name=name, kind=kind, symbol_type=symbol_type)
 
-        self._write_current_outer_tag(body="/classVarDec")
+        # self._write_current_outer_tag(body="/classVarDec")
 
     def compile_subroutine(self):
         """
         example: methoid void dispose() { ...
         """
-        self._write_current_outer_tag(body="subroutineDec")
-        self._write_current_terminal_token()
+        # self._write_current_outer_tag(body="subroutineDec")
+        # self._write_current_terminal_token()
 
         while self._not_terminal_token_for('subroutine'):
             self.tokenizer.advance()
@@ -109,10 +112,10 @@ class CompilationEngine():
                 self.compile_parameter_list()
             elif self._starting_token_for('subroutine_body'):
                 self.compile_subroutine_body()
-            else:
-                self._write_current_terminal_token()
+            else: # i.e, void
+                # self._write_current_terminal_token()
 
-        self._write_current_outer_tag(body="/subroutineDec")
+        # self._write_current_outer_tag(body="/subroutineDec")
 
     def compile_parameter_list(self):
         """

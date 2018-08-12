@@ -41,6 +41,7 @@ class JackTokenizer():
         self.next_token = None
         self.has_more_tokens = True
 
+    # TODO: clean up whitespace comments..
     def advance(self):
         # read first char
         char = self.input_file.read(1)
@@ -158,5 +159,5 @@ class JackTokenizer():
        # comment of form: /**
        multi_line_comment = char == self.COMMENT_OPERATORS[0] and next_2_chars == "**"
        # comment of form:  * comment
-       part_of_multi_line_comment = char == self.COMMENT_OPERATORS[1] and next_2_chars[0].isspace() and next_2_chars[1] != '('
+       part_of_multi_line_comment = char == self.COMMENT_OPERATORS[1] and next_2_chars[0].isspace() and next_2_chars[1] != '(' and not next_2_chars[1].isdigit() # may break
        return single_line_comment or multi_line_comment or part_of_multi_line_comment

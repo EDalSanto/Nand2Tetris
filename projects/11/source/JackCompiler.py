@@ -12,9 +12,8 @@ class JackCompiler():
         compiler.compile_class()
 
     @classmethod
-    def xml_output_file_for(cls, input_file):
+    def output_file_for(cls, input_file, ext_name='.vm'):
         file_name = os.path.basename(input_file).split(".")[0]
-        ext_name = ".xml"
         dir_name = os.path.dirname(input_file).replace('./', '')
         # create subdirectory for compiled
         try:
@@ -43,7 +42,7 @@ if __name__ == "__main__" and len(sys.argv) == 2:
         print("output directory already exists. continuing")
 
     for input_file_name in files:
-        output_file_name = JackCompiler.xml_output_file_for(input_file_name)
+        output_file_name = JackCompiler.output_file_for(input_file_name)
         output_file = open(output_file_name, 'w')
         input_file = open(input_file_name, 'r')
         JackCompiler.run(input_file, output_file)
