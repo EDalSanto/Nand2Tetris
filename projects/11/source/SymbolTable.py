@@ -36,21 +36,21 @@ class SymbolTable():
         returns the kind of the named identifer in the current scope
         (STATIC, FIELD, ARG, VAR, NONE)
         """
-        return self._find_symbol_by_name(name).get('kind')
+        return self.find_symbol_by_name(name).get('kind')
 
     def type_of(self, name):
         """
         returns the type of the named identifier in the current scope
         """
-        return self._find_symbol_by_name(name).get('type')
+        return self.find_symbol_by_name(name).get('type')
 
     def index_of(self, name):
         """
         returns the index assigned to the named identifier
         """
-        return self._find_symbol_by_name(name).get('index')
+        return self.find_symbol_by_name(name).get('index')
 
-    def _find_symbol_by_name(self, value):
+    def find_symbol_by_name(self, value):
         for symbol in self.symbols:
             if symbol['name'] == value:
                 return symbol

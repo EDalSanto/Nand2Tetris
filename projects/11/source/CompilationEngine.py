@@ -213,7 +213,21 @@ class CompilationEngine():
         name = ''
         while not self._starting_token_for(position='next', keyword_token='expression_list'):
             self.tokenizer.advance()
+            if self.tokenizer.next_token == '.':
+                symbol_name = self.tokenizer.current_token
             name += self.tokenizer.current_token
+        # conditionally write symbol
+        if self.subroutine_symbol_table.find_symbol_by_name(symbol_name):
+            symbol = self.subroutine_symbol_table.find_symbol_by_name(symbol_name)
+            segment = 'local'
+            index = symbol['index']
+            self.vm_writer.write_push(segment=segment, index=index)
+        elif self.class_symbol_table.find_symbol_by_name(symbol_name):
+            symbol = self.class_symbol_table.find_symbol_by_name(symbol_name)
+            segment = 'local'
+            index = symbol['index']
+            self.vm_writer.write_push(segment=segment, index=index)
+
         # start expression list
         self.tokenizer.advance()
         num_args = self.compile_expression_list()
@@ -293,6 +307,7 @@ class CompilationEngine():
 
         self.tokenizer.advance()
 
+        op = None
         while self._not_terminal_token_for('expression'):
             if self._operator_token() and not unary_negative_token:
                 op = self.tokenizer.current_token
