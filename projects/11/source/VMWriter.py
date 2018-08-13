@@ -1,4 +1,16 @@
 class VMWriter():
+    ARITHMETIC_LOGICAL_OPERATORS = {
+        '+': 'add',
+        '-': 'sub',
+        '-': 'neg',
+        '=': 'eq',
+        '>': 'gt',
+        '<': 'lt',
+        '&': 'and',
+        '|': 'or',
+        '~': 'not'
+    }
+
     def __init__(self, output_file):
         """
         creates a new .vm file and prepares it for writing
@@ -11,6 +23,7 @@ class VMWriter():
         segment options: CONST, ARG, LOCAL, STATIC, THIS, THAT, POINTER, TEMP
         index: int
         """
+        self.output_file.write('push {} {}\n'.format(segment, index))
 
     def write_pop(self, segment, index):
         """
@@ -18,12 +31,16 @@ class VMWriter():
         segments: CONST, ARG, LOCAL, STATIC, THIS, THAT, POINTER, TEMP
         index: int
         """
+        self.output_file.write('pop {} {}\n'.format(segment, index))
 
     def write_arithmetic(self, command):
         """
         writes a vm arithmetic-logical command
         commands: ADD, SUB, NEG, EQ, GT, LT, AND, OR, NOT
         """
+        self.output_file.write(
+            '{}\n'.format(self.ARITHMETIC_LOGICAL_OPERATORS[command])
+        )
 
     def write_label(self, label):
         """
@@ -49,6 +66,9 @@ class VMWriter():
         name: string, name of subroutine
         num_args: int, number of arguments to subroutine
         """
+        self.output_file.write(
+            'call {} {}\n'.format(name, num_args)
+        )
 
     def write_function(self, name, num_locals):
         """
@@ -56,10 +76,10 @@ class VMWriter():
         name: string, name of subroutine
         num_locals: int, number of locals for function
         """
-        self.output_file.write('function {} {}'.format(name, num_locals))
+        self.output_file.write('function {} {}\n'.format(name, num_locals))
 
     def write_return(self):
         """
         writes a vm return command
         """
-
+        self.output_file.write('return\n')

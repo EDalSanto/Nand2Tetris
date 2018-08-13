@@ -98,10 +98,13 @@ class CompilationEngine():
                 function_name = self.tokenizer.current_token
             elif self._starting_token_for(position='current', keyword_token='parameter_list'):
                 num_locals = self.compile_parameter_list()
+                self.vm_writer.write_function(
+                    name='{}.{}'.format(class_name, function_name),
+                    num_locals=num_locals
+                )
             elif self._starting_token_for('subroutine_body'):
                 self.compile_subroutine_body()
 
-        self.vm_writer.write_function(name='{}.{}'.format(class_name, function_name), num_locals=num_locals)
 
     def compile_parameter_list(self):
         """
@@ -197,14 +200,26 @@ class CompilationEngine():
         example: do square.dispose();
         """
         # experimental
-        def do_terminator_func():
-            return self._not_terminal_token_for('do')
-        def do_condition_func():
-            return self._starting_token_for('expression_list')
-        def do_something_special_func():
-            return self.compile_expression_list()
+        #def do_terminator_func():
+        #    return self._not_terminal_token_for('do')
+        #def do_condition_func():
+        #    return self._starting_token_for('expression_list')
+        #def do_something_special_func():
+        #    return self.compile_expression_list()
 
-        self.compile_statement_body(do_terminator_func, do_condition_func, do_something_special_func)
+        #self.compile_statement_body(do_terminator_func, do_condition_func, do_something_special_func)
+
+        # get name for call
+        name = ''
+        while not self._starting_token_for(position='next', keyword_token='expression_list'):
+            self.tokenizer.advance()
+            name += self.tokenizer.current_token
+        # start expression list
+        self.tokenizer.advance()
+        num_args = self.compile_expression_list()
+        self.vm_writer.write_call(name=name, num_args=num_args)
+        # pop off return of previous call we don't care about
+        self.vm_writer.write_pop(segment='temp', index='0')
 
     # LEAVING UNDRY FOR NOW TO SEE WHAT NEXT PROJECT BRINGS
 
@@ -275,13 +290,23 @@ class CompilationEngine():
             unary_negative_token = True
         else:
             unary_negative_token = False
+
         self.tokenizer.advance()
 
         while self._not_terminal_token_for('expression'):
             if self._operator_token() and not unary_negative_token:
+                op = self.tokenizer.current_token
                 self.tokenizer.advance()
             else:
                 self.compile_term()
+        if op:
+            self.compile_op(op)
+
+    def compile_op(self, op):
+        if op == '*':
+            self.vm_writer.write_call(name='Math.multiply', num_args=2)
+        else:
+            self.vm_writer.write_arithmetic(command=op)
 
     def compile_expression_in_expression_list(self):
         """
@@ -303,14 +328,14 @@ class CompilationEngine():
         separeted out of compile_expression because of edge cases from normal expression
         example: (x, y, x + 5)
         """
-        # skip initial (
-        self.tokenizer.advance()
-
+        num_args = 0
         while self._not_terminal_token_for('expression_list'):
-            self.compile_expression_in_expression_list()
+            self.compile_expression()
+            num_args += 1
             # current token could be , or ) to end expression list
             if self._another_expression_coming():
                 self.tokenizer.advance()
+        return num_args
 
     # integerConstant | stringConstant | keywordConstant | varName |
     # varName '[' expression ']' | subroutineCall | '(' expression ')' | unaryOp term
@@ -331,7 +356,8 @@ class CompilationEngine():
                     break
                 else:
                     self.tokenizer.advance()
-                    # write inner term
+            else:
+                self.vm_writer.write_push(segment='constant', index=self.tokenizer.current_token)
             # i.e., i *
             if self._next_token_is_operation_not_in_expression():
                 self.tokenizer.advance()
@@ -345,8 +371,11 @@ class CompilationEngine():
         """
         if self._not_terminal_token_for(keyword_token='return', position='next'):
             self.compile_expression()
-        else: # write return and ; for void
+        else: # push constant for void
+            self.vm_writer.write_push(segment='constant', index='0')
             self.tokenizer.advance()
+
+        self.vm_writer.write_return()
 
 
     def _write_current_outer_tag(self, body):
