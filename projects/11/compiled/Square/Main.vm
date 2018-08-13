@@ -2,11 +2,3 @@ function Main.main 0
 push constant SquareGame
 push constant .
 push constant new
-push local 0
-call game.run 1
-pop temp 0
-push local 0
-call game.dispose 1
-pop temp 0
-push constant 0
-return

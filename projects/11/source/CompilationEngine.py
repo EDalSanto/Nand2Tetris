@@ -184,32 +184,10 @@ class CompilationEngine():
 
             self.tokenizer.advance()
 
-    def compile_statement_body(self, not_terminate_func, condition_func, do_something_special_func):
-        """
-        way to help DRY up statement body
-        maybe a little confusing?
-        """
-        while not_terminate_func():
-            self.tokenizer.advance()
-
-            if condition_func():
-                do_something_special_func()
-
     def compile_do(self):
         """
         example: do square.dispose();
         """
-        # experimental
-        #def do_terminator_func():
-        #    return self._not_terminal_token_for('do')
-        #def do_condition_func():
-        #    return self._starting_token_for('expression_list')
-        #def do_something_special_func():
-        #    return self.compile_expression_list()
-
-        #self.compile_statement_body(do_terminator_func, do_condition_func, do_something_special_func)
-
-        # get name for call
         name = ''
         while not self._starting_token_for(position='next', keyword_token='expression_list'):
             self.tokenizer.advance()
@@ -294,6 +272,16 @@ class CompilationEngine():
                 do_something_special_func
             )
 
+    def new_compile_expression(self):
+        """
+        """
+        if self.tokenizer.current_token.isdigit():
+            self.vm_writer.write_push(segment='constant', index=self.tokenizer.current_token)
+        elif self.tokenizer.current_token.identifier():
+            # i.e, push this 0
+            # find symbol in symbol table
+            self.vm_writer.write_push
+
     # term (op term)*
     def compile_expression(self):
         """
@@ -360,8 +348,10 @@ class CompilationEngine():
         TODO: try to simplify
         """
         while self._not_terminal_condition_for_term():
+            # subroutine call
             if self.tokenizer.part_of_subroutine_call():
-                self.compile_expression_list()
+                num_args = self.compile_expression_list()
+                self.vm_writer.write_call(name=name, num_args=num_args)
             elif self._starting_token_for('expression'):
                 self.compile_expression()
             elif self.tokenizer.current_token in self.UNARY_OPERATORS:
