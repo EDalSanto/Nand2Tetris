@@ -156,7 +156,7 @@ class CompilationEngine():
 
         # get symbol type
         self.tokenizer.advance()
-        symbol_type = self.tokenizer.keyword()
+        symbol_type = self.tokenizer.keyword() or self.tokenizer.identifier()
 
         # get all identifiers
         while self._not_terminal_token_for('var_dec'):
@@ -188,27 +188,35 @@ class CompilationEngine():
         """
         example: do square.dispose();
         """
-        name = ''
-        while not self._starting_token_for(position='next', keyword_token='expression_list'):
-            self.tokenizer.advance()
-            if self.tokenizer.next_token == '.':
-                symbol_name = self.tokenizer.current_token
-            name += self.tokenizer.current_token
-        # conditionally write symbol
-        if self.subroutine_symbol_table.find_symbol_by_name(symbol_name):
-            symbol = self.subroutine_symbol_table.find_symbol_by_name(symbol_name)
-            segment = 'local'
-            index = symbol['index']
-            self.vm_writer.write_push(segment=segment, index=index)
-        elif self.class_symbol_table.find_symbol_by_name(symbol_name):
-            symbol = self.class_symbol_table.find_symbol_by_name(symbol_name)
-            segment = 'local'
-            index = symbol['index']
-            self.vm_writer.write_push(segment=segment, index=index)
+        # get to caller
+        self.tokenizer.advance()
+        caller_name = self.tokenizer.current_token
+        # look up in symbol table
+        symbol = self._find_symbol_in_symbol_tables(symbol_name=caller_name)
+        # get rest of subroutine call
+        # skip .
+        self.tokenizer.advance()
+        # subroutine name
+        self.tokenizer.advance()
+        subroutine_name = self.tokenizer.current_token
 
+        if symbol: # always method?
+            # push value onto local segment
+            segment = 'local'
+            index = symbol['index']
+            symbol_type = symbol['type']
+            self.vm_writer.write_push(segment=segment, index=index)
+        else: # i.e, OS call
+            symbol_type = caller_name
+
+        name = symbol_type + '.' + subroutine_name
         # start expression list
         self.tokenizer.advance()
         num_args = self.compile_expression_list()
+        # method call
+        if symbol:
+            num_args += 1
+        # write call
         self.vm_writer.write_call(name=name, num_args=num_args)
         # pop off return of previous call we don't care about
         self.vm_writer.write_pop(segment='temp', index='0')
@@ -220,11 +228,13 @@ class CompilationEngine():
         """
         example: let direction = 0;
         """
+        # go past =
+        while not self.tokenizer.current_token == '=':
+            self.tokenizer.advance()
+        # compile all expressions
         while self._not_terminal_token_for('let'):
             self.tokenizer.advance()
-
-            if self._starting_token_for('expression'):
-                self.compile_expression()
+            self.compile_expression()
 
     # 'while' '(' expression ')' '{' statements '}'
     def compile_while(self):
@@ -290,6 +300,10 @@ class CompilationEngine():
                 # get num of args
                 num_args = self.compile_expression_list()
                 self.vm_writer.write_call(name=subroutine_name, num_args=num_args)
+                # detect if subroutine
+                if subroutine_name.split('.')[-1] == 'new':
+                    # pop address onto local
+                    self.vm_writer.write_pop(segment='local', index='0')
             elif self.tokenizer.current_token.isdigit():
                 self.vm_writer.write_push(segment='constant', index=self.tokenizer.current_token)
             elif self.tokenizer.identifier():
