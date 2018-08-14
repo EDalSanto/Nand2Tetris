@@ -1,0 +1,12 @@
+function Main.main None
+call SquareGame.new( 1
+eq
+push local 0
+call game.run 1
+pop temp 0
+push local 0
+call game.dispose 1
+pop temp 0
+push constant 0
+return
+function Main.test None

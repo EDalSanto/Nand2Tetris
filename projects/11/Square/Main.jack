@@ -9,6 +9,7 @@
 class Main {
     function void main() {
         var SquareGame game;
+        var foobar jon;
         let game = SquareGame.new();
         do game.run();
         do game.dispose();

@@ -1,0 +1,20 @@
+function SquareGame.new None
+push constant 0
+push constant 0
+push constant 30
+call Square.new( 3
+eq
+push constant 0
+eq
+return
+function SquareGame.dispose None
+push local 0
+call square.dispose 1
+pop temp 0
+call Memory.deAlloc 1
+pop temp 0
+push constant 0
+return
+function SquareGame.moveSquare None
+push constant 1
+eq

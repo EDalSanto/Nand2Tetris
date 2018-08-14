@@ -17,7 +17,7 @@ def test_square():
     # compile main
     os.system('python3 ./source/JackCompiler.py ./Square/Main.jack')
     # check main
-    os.system('../../tools/TextComparer.sh ./compiled/Seven/Main.vm ./expected/Seven/Main.vm')
+    os.system('../../tools/TextComparer.sh ./compiled/Square/Main.vm ./expected/Square/Main.vm')
     print("\n")
 
 test_seven()
