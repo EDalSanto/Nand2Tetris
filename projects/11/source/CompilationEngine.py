@@ -110,8 +110,8 @@ class CompilationEngine():
         self.subroutine_symbol_table.reset()
         num_locals = 0
         while self._starting_token_for('var_dec'):
-            num_locals += 1
-            self.compile_var_dec()
+            num_locals += self.compile_var_dec()
+            self.tokenizer.advance()
 
         # write function command
         self.vm_writer.write_function(
@@ -158,6 +158,9 @@ class CompilationEngine():
         self.tokenizer.advance()
         symbol_type = self.tokenizer.keyword() or self.tokenizer.identifier()
 
+        # count number of vars, i.e., var int i, sum = 2
+        num_vars = 0
+
         # get all identifiers
         while self._not_terminal_token_for('var_dec'):
             self.tokenizer.advance()
@@ -165,6 +168,9 @@ class CompilationEngine():
                 # add symbol to class
                 name = self.tokenizer.identifier()
                 self.subroutine_symbol_table.define(name=name, kind=kind, symbol_type=symbol_type)
+                num_vars += 1
+        # return vars processed
+        return num_vars
 
     def compile_statements(self):
         """
@@ -333,10 +339,13 @@ class CompilationEngine():
         example: (x, y, x + 5)
         """
         num_args = 0
+        # empty expression list
+        if self.tokenizer.next_token in self.TERMINATING_TOKENS['expression_list']:
+            return num_args
 
-        while self._not_terminal_token_for(keyword_token='expression_list', position='next'):
-            self.compile_expression()
+        while self._not_terminal_token_for('expression_list'):
             num_args += 1
+            self.compile_expression()
             # current token could be , or ) to end expression list
             if self._another_expression_coming():
                 self.tokenizer.advance()

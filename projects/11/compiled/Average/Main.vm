@@ -1,1 +1,5 @@
-function Main.main 1
+function Main.main 4
+call Keyboard.readInt 1
+call Array.new 1
+pop local 0
+push constant 0
