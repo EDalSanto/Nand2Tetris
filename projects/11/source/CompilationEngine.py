@@ -322,6 +322,7 @@ class CompilationEngine():
                 symbol = self._find_symbol_in_symbol_tables(self.tokenizer.identifier())
                 segment = symbol['kind']
                 index = symbol['index']
+                self.vm_writer.write_push(segment=segment, index=index)
             elif self.tokenizer.current_token in self.OPERATORS:
                 ops.insert(0, self.tokenizer.current_token)
             elif self.tokenizer.string_const():
