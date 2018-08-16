@@ -240,8 +240,8 @@ class CompilationEngine():
         symbol_name = self.tokenizer.current_token
         symbol = self._find_symbol_in_symbol_tables(symbol_name=symbol_name)
         # check if array assignment
-        array_index = None
-        if self.tokenizer.next_token == '[':
+        array = self.tokenizer.next_token == '['
+        if array:
             # get to index expression
             self.tokenizer.advance()
             self.tokenizer.advance()
@@ -259,8 +259,18 @@ class CompilationEngine():
             self.tokenizer.advance()
             self.compile_expression()
 
-        # store expression evaluation in symbol location
-        self.vm_writer.write_pop(segment='local', index=symbol['index'])
+        if not array:
+            # store expression evaluation in symbol location
+            self.vm_writer.write_pop(segment='local', index=symbol['index'])
+        else: # array unloading
+            # pop return value onto temp
+            self.vm_writer.write_pop(segment='temp', index='0')
+            # pop address of array slot onto THAT
+            self.vm_writer.write_pop(segment='pointer', index='1')  # pointer 1 => array
+            # push value on temp back onto stack
+            self.vm_writer.write_push(segment='temp', index='0')
+            # set that
+            self.vm_writer.write_pop(segment='that', index='0')
 
     # 'while' '(' expression ')' '{' statements '}'
     def compile_while(self):
@@ -351,7 +361,7 @@ class CompilationEngine():
                 ops.insert(0, self.tokenizer.current_token)
             elif self.tokenizer.string_const():
                 # handle string const
-                # random push?
+                # index?
                 self.vm_writer.write_push(segment='constant', index=18)
                 self.vm_writer.write_call(name='String.new', num_args=1)
                 # build string from chars
