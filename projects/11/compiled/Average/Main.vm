@@ -44,5 +44,6 @@ call Array.new 1
 pop local 0
 push constant 0
 pop local 2
+label WHILE_EXP0
 push local 2
 push local 1

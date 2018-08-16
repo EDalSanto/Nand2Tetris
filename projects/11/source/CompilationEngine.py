@@ -52,6 +52,7 @@ class CompilationEngine():
         self.class_symbol_table = SymbolTable()
         self.subroutine_symbol_table = SymbolTable()
         self.vm_writer = VMWriter(output_file)
+        self.labels_count = {'if': 0, 'while': 0}
         self.class_name = None
 
     def compile_class(self):
@@ -255,6 +256,12 @@ class CompilationEngine():
         """
         example: while (x > 0) { ... }
         """
+        # write while label
+        self.vm_writer.write_label(label='WHILE_EXP{}'.format(self.labels_count['while']))
+
+        # add while to labels count
+        self.labels_count['while'] += 1
+
         # advance to expression start (
         self.tokenizer.advance()
 

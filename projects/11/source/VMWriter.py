@@ -47,21 +47,21 @@ class VMWriter():
         writes a VM label comand
         label: string
         """
-        self.output_file.write('label {}'.format(label))
+        self.output_file.write('label {}\n'.format(label))
 
     def write_goto(self, label):
         """
         writes a VM goto comand
         label: string
         """
-        self.output_file.write('goto {}'.format(label))
+        self.output_file.write('goto {}\n'.format(label))
 
     def write_if(self, label):
         """
         writes a VM if-goto comand
         label: string
         """
-        self.output_file.write('if-goto {}'.format(label))
+        self.output_file.write('if-goto {}\n'.format(label))
 
     def write_call(self, name, num_args):
         """
