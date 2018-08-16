@@ -400,6 +400,8 @@ class CompilationEngine():
     def compile_op(self, op):
         if op == '*':
             self.vm_writer.write_call(name='Math.multiply', num_args=2)
+        elif op == '/':
+            self.vm_writer.write_call(name='Math.divide', num_args=2)
         else:
             self.vm_writer.write_arithmetic(command=op)
 
