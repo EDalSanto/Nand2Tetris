@@ -139,7 +139,8 @@ class JackTokenizer():
 
     def string_const(self):
         if self.token_type_of(self.current_token) == "STRING_CONST":
-            return self.current_token
+            # remove " that denote string const
+            return self.current_token.replace('"', '')
 
     def _is_alnum_or_underscore(self, char):
         return char.isalnum() or char == "_"

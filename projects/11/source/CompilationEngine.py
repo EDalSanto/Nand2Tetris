@@ -350,6 +350,22 @@ class CompilationEngine():
                 self.vm_writer.write_push(segment='constant', index=self.tokenizer.current_token)
             elif self.tokenizer.current_token.isdigit() and self.tokenizer.next_token == ']': # array
                 self.vm_writer.write_push(segment='local', index=self.tokenizer.current_token)
+            elif self.tokenizer.identifier() and self.tokenizer.next_token == '[':
+                # compile array
+                symbol_name = self.tokenizer.current_token
+                symbol = self._find_symbol_in_symbol_tables(symbol_name=symbol_name)
+                # get to index expression
+                self.tokenizer.advance()
+                self.tokenizer.advance()
+                # compile it
+                self.compile_expression()
+                self.vm_writer.write_push(segment='local', index=symbol['index'])
+                # add two addresses
+                self.vm_writer.write_arithmetic(command='+')
+                # pop address onto pointer 1 / THAT
+                self.vm_writer.write_pop(segment='pointer', index=1)
+                # push value onto stack
+                self.vm_writer.write_push(segment='that', index=0)
             elif self.tokenizer.identifier():
                 # i.e, push this 0
                 # find symbol in symbol table
@@ -361,8 +377,8 @@ class CompilationEngine():
                 ops.insert(0, self.tokenizer.current_token)
             elif self.tokenizer.string_const():
                 # handle string const
-                # index?
-                self.vm_writer.write_push(segment='constant', index=18)
+                string_length = len(self.tokenizer.string_const())
+                self.vm_writer.write_push(segment='constant', index=string_length)
                 self.vm_writer.write_call(name='String.new', num_args=1)
                 # build string from chars
                 for char in self.tokenizer.string_const():
