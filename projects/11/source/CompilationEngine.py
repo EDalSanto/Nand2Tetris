@@ -238,6 +238,18 @@ class CompilationEngine():
         # get symbol to store expression evaluation
         self.tokenizer.advance()
         symbol_name = self.tokenizer.current_token
+        symbol = self._find_symbol_in_symbol_tables(symbol_name=symbol_name)
+        # check if array assignment
+        array_index = None
+        if self.tokenizer.next_token == '[':
+            # get to index expression
+            self.tokenizer.advance()
+            self.tokenizer.advance()
+            # compile it
+            self.compile_expression()
+            self.vm_writer.write_push(segment='local', index=symbol['index'])
+            # add two addresses
+            self.vm_writer.write_arithmetic(command='+')
 
         # go past =
         while not self.tokenizer.current_token == '=':
@@ -248,7 +260,6 @@ class CompilationEngine():
             self.compile_expression()
 
         # store expression evaluation in symbol location
-        symbol = self._find_symbol_in_symbol_tables(symbol_name=symbol_name)
         self.vm_writer.write_pop(segment='local', index=symbol['index'])
 
     # 'while' '(' expression ')' '{' statements '}'
@@ -325,8 +336,10 @@ class CompilationEngine():
                 # get num of args
                 num_args = self.compile_expression_list()
                 self.vm_writer.write_call(name=subroutine_name, num_args=num_args)
-            elif self.tokenizer.current_token.isdigit():
+            elif self.tokenizer.current_token.isdigit() and not self.tokenizer.next_token == ']': # not array
                 self.vm_writer.write_push(segment='constant', index=self.tokenizer.current_token)
+            elif self.tokenizer.current_token.isdigit() and self.tokenizer.next_token == ']': # array
+                self.vm_writer.write_push(segment='local', index=self.tokenizer.current_token)
             elif self.tokenizer.identifier():
                 # i.e, push this 0
                 # find symbol in symbol table
