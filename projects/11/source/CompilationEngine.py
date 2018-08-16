@@ -296,6 +296,11 @@ class CompilationEngine():
             if self._statement_token():
                 self.compile_statements()
 
+        # write goto
+        self.vm_writer.write_goto(label='WHILE_EXP{}'.format(self.labels_count['while']))
+        # write end label
+        self.vm_writer.write_label(label='WHILE_END{}'.format(self.labels_count['while']))
+
         # add while to labels count
         self.labels_count['while'] += 1
 
@@ -351,7 +356,7 @@ class CompilationEngine():
             elif self.tokenizer.current_token.isdigit() and self.tokenizer.next_token == ']': # array
                 self.vm_writer.write_push(segment='local', index=self.tokenizer.current_token)
             elif self.tokenizer.identifier() and self.tokenizer.next_token == '[':
-                # compile array
+                ## compile array
                 symbol_name = self.tokenizer.current_token
                 symbol = self._find_symbol_in_symbol_tables(symbol_name=symbol_name)
                 # get to index expression

@@ -104,6 +104,8 @@ push local 2
 push constant 1
 add
 pop local 2
+goto WHILE_EXP0
+label WHILE_END0
 push constant 15
 call String.new 1
 push constant 84
