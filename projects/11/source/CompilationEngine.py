@@ -320,6 +320,17 @@ class CompilationEngine():
                 index = symbol['index']
             elif self.tokenizer.current_token in self.OPERATORS:
                 ops.insert(0, self.tokenizer.current_token)
+            elif self.tokenizer.string_const():
+                # handle string const
+                # random push?
+                self.vm_writer.write_push(segment='constant', index=18)
+                self.vm_writer.write_call(name='String.new', num_args=1)
+                # build string from chars
+                for char in self.tokenizer.string_const():
+                    if not char == '"':
+                        ascii_value_of_char = ord(char)
+                        self.vm_writer.write_push(segment='constant', index=ascii_value_of_char)
+                        self.vm_writer.write_call(name='String.appendChar', num_args=2)
 
             self.tokenizer.advance()
 
