@@ -38,10 +38,10 @@ class CompilationEngine():
         '-',
         '*',
         '/',
-        '&amp;',
+        '&',
         '|',
-        '&lt;',
-        '&gt;',
+        '<',
+        '>',
         '='
     ]
     UNARY_OPERATORS = [ '-', '~' ]
@@ -259,20 +259,24 @@ class CompilationEngine():
         # write while label
         self.vm_writer.write_label(label='WHILE_EXP{}'.format(self.labels_count['while']))
 
-        # add while to labels count
-        self.labels_count['while'] += 1
-
         # advance to expression start (
         self.tokenizer.advance()
 
         # compile expression in ()
         self.compile_expression()
 
+        # not expression so for easily handling of termination and if-goto
+        self.vm_writer.write_arithmetic(command='~')
+        self.vm_writer.write_ifgoto(label='WHILE_END{}'.format(self.labels_count['while']))
+
         while self._not_terminal_token_for('while'):
             self.tokenizer.advance()
 
             if self._statement_token():
                 self.compile_statements()
+
+        # add while to labels count
+        self.labels_count['while'] += 1
 
     def compile_if(self):
         """

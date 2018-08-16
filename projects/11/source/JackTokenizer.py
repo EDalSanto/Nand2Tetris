@@ -22,12 +22,6 @@ class JackTokenizer():
         'while',
         'return'
     ]
-    SYMBOL_CONVERSIONS = {
-        '<': '&lt;',
-        '>': '&gt;',
-        '\"': '&quot;',
-        '&': '&amp;'
-    }
     COMMENT_OPERATORS = ["/", "*"]
 
     """
@@ -91,11 +85,7 @@ class JackTokenizer():
             # go back 1 char that was peek ahead
             self.input_file.seek(last_pos)
         else: # symbol
-            # adjust for stupid xml
-            if char in self.SYMBOL_CONVERSIONS:
-                token = self.SYMBOL_CONVERSIONS[char]
-            else:
-                token = char
+            token = char
 
         # set tokens
         if self.current_token:
