@@ -234,6 +234,10 @@ class CompilationEngine():
         """
         example: let direction = 0;
         """
+        # get symbol to store expression evaluation
+        self.tokenizer.advance()
+        symbol_name = self.tokenizer.current_token
+
         # go past =
         while not self.tokenizer.current_token == '=':
             self.tokenizer.advance()
@@ -241,6 +245,10 @@ class CompilationEngine():
         while self._not_terminal_token_for('let'):
             self.tokenizer.advance()
             self.compile_expression()
+
+        # store expression evaluation in symbol location
+        symbol = self._find_symbol_in_symbol_tables(symbol_name=symbol_name)
+        self.vm_writer.write_pop(segment='local', index=symbol['index'])
 
     # 'while' '(' expression ')' '{' statements '}'
     def compile_while(self):
@@ -306,10 +314,6 @@ class CompilationEngine():
                 # get num of args
                 num_args = self.compile_expression_list()
                 self.vm_writer.write_call(name=subroutine_name, num_args=num_args)
-                # detect if subroutine
-                if subroutine_name.split('.')[-1] == 'new':
-                    # pop address onto local
-                    self.vm_writer.write_pop(segment='local', index='0')
             elif self.tokenizer.current_token.isdigit():
                 self.vm_writer.write_push(segment='constant', index=self.tokenizer.current_token)
             elif self.tokenizer.identifier():
