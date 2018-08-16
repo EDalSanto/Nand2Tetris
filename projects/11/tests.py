@@ -61,5 +61,5 @@ def test_convert_to_bin():
 test_seven()
 test_square()
 test_average()
+test_convert_to_bin()
 # test_complex_arrays()
-# test_convert_to_bin()

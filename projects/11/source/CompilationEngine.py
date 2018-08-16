@@ -94,6 +94,9 @@ class CompilationEngine():
         """
         example: methoid void dispose() { ...
         """
+        # reset subroutine symbols
+        self.subroutine_symbol_table.reset()
+
         while self._not_terminal_token_for('subroutine'):
             self.tokenizer.advance()
 
@@ -107,8 +110,6 @@ class CompilationEngine():
     def compile_subroutine_body(self, subroutine_name):
         # get all locals
         self.tokenizer.advance()
-        # reset subroutine symbols
-        self.subroutine_symbol_table.reset()
         num_locals = 0
         while self._starting_token_for('var_dec'):
             num_locals += self.compile_var_dec()
@@ -121,11 +122,9 @@ class CompilationEngine():
         )
 
         # compile all statements
-        while self._not_terminal_token_for('subroutine'):
-            if self._statement_token():
-                self.compile_statements()
-
-            self.tokenizer.advance()
+        # while starting token for statement
+        while self.tokenizer.current_token in ['do', 'let', 'if', 'while', 'return']:
+            self.compile_statements()
 
     def compile_parameter_list(self):
         """
@@ -313,14 +312,24 @@ class CompilationEngine():
 
         # compile expression in ()
         self.compile_expression()
+        # not expression so for easily handling of termination and if-goto
+        self.vm_writer.write_arithmetic(command='~')
 
-        def not_terminate_func():
-            return self._not_terminal_token_for('if')
-        def condition_func():
-            return self._statement_token()
-        def do_something_special_func():
-            return self.compile_statements()
-        self.compile_statement_body(not_terminate_func, condition_func, do_something_special_func)
+        # write ifgoto to if statement
+        self.vm_writer.write_ifgoto(label='IF_TRUE{}'.format(self.labels_count['if']))
+        # write goto if false (else)
+        self.vm_writer.write_goto(label='IF_FALSE{}'.format(self.labels_count['if']))
+        # write if label
+        self.vm_writer.write_label(label='IF_TRUE{}'.format(self.labels_count['if']))
+
+        # add ifto labels count
+        self.labels_count['if'] += 1
+
+        while self._not_terminal_token_for('if'):
+            self.tokenizer.advance()
+
+            if self._statement_token():
+                self.compile_statements()
 
         # compile else
         if self.tokenizer.next_token == "else":
@@ -379,6 +388,8 @@ class CompilationEngine():
                 index = symbol['index']
                 self.vm_writer.write_push(segment=segment, index=index)
             elif self.tokenizer.current_token in self.OPERATORS:
+                if self.tokenizer.current_token == '&':
+                    import pdb; pdb.set_trace()
                 ops.insert(0, self.tokenizer.current_token)
             elif self.tokenizer.string_const():
                 # handle string const
@@ -391,6 +402,11 @@ class CompilationEngine():
                         ascii_value_of_char = ord(char)
                         self.vm_writer.write_push(segment='constant', index=ascii_value_of_char)
                         self.vm_writer.write_call(name='String.appendChar', num_args=2)
+            elif self.tokenizer.current_token in [ 'true', 'false' ]: # boolean case
+                self.vm_writer.write_push(segment='constant', index=0)
+                if self.tokenizer.current_token == 'true':
+                    # negate true
+                    self.vm_writer.write_arithmetic(command='~')
 
             self.tokenizer.advance()
 
@@ -443,7 +459,6 @@ class CompilationEngine():
             self.tokenizer.advance()
 
         self.vm_writer.write_return()
-
 
     def _write_current_outer_tag(self, body):
         self.output_file.write("<{}>\n".format(body))
