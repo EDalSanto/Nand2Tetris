@@ -322,25 +322,41 @@ class CompilationEngine():
         # write if label
         self.vm_writer.write_label(label='IF_TRUE{}'.format(self.labels_count['if']))
 
-        # add ifto labels count
-        self.labels_count['if'] += 1
-
         while self._not_terminal_token_for('if'):
             self.tokenizer.advance()
 
             if self._statement_token():
-                self.compile_statements()
+                if self.tokenizer.current_token == 'if':
+                    # add ifto labels count
+                    self.labels_count['if'] += 1
+                    self.compile_statements()
+                    # subtract for nesting
+                    self.labels_count['if'] -= 1
+                else:
+                    self.compile_statements()
+
+        # go to end of if
+        self.vm_writer.write_goto(label='IF_END{}'.format(self.labels_count['if']))
 
         # compile else
         if self.tokenizer.next_token == "else":
             # past closing {
             self.tokenizer.advance()
             # same as above
-            self.compile_statement_body(
-                not_terminate_func,
-                condition_func,
-                do_something_special_func
-            )
+            self.vm_writer.write_label(label='IF_FALSE{}'.format(self.labels_count['if']))
+            while self._not_terminal_token_for('if'):
+                self.tokenizer.advance()
+
+                if self._statement_token():
+                    if self.tokenizer.current_token == 'if':
+                        # add ifto labels count
+                        self.labels_count['if'] += 1
+                        self.compile_statements()
+                    else:
+                        self.compile_statements()
+        # define IF_END
+        self.vm_writer.write_label(label='IF_END{}'.format(self.labels_count['if']))
+
 
     # term (op term)*
     def compile_expression(self):
