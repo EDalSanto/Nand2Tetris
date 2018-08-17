@@ -313,7 +313,7 @@ class CompilationEngine():
         # compile expression in ()
         self.compile_expression()
         # not expression so for easily handling of termination and if-goto
-        self.vm_writer.write_arithmetic(command='~')
+#        self.vm_writer.write_arithmetic(command='~')
 
         # write ifgoto to if statement
         self.vm_writer.write_ifgoto(label='IF_TRUE{}'.format(self.labels_count['if']))
@@ -348,6 +348,10 @@ class CompilationEngine():
         many examples..i,e., x = 4
         """
         ops = []
+
+        # advance to expression
+        if self.tokenizer.current_token == '(':
+            self.tokenizer.advance()
 
         while self._not_terminal_token_for('expression'):
             if self.tokenizer.next_token == '.': # subroutine call
@@ -387,9 +391,7 @@ class CompilationEngine():
                 segment = symbol['kind']
                 index = symbol['index']
                 self.vm_writer.write_push(segment=segment, index=index)
-            elif self.tokenizer.current_token in self.OPERATORS:
-                if self.tokenizer.current_token == '&':
-                    import pdb; pdb.set_trace()
+            elif self.tokenizer.current_token in self.OPERATORS or self.tokenizer.current_token in self.UNARY_OPERATORS:
                 ops.insert(0, self.tokenizer.current_token)
             elif self.tokenizer.string_const():
                 # handle string const
@@ -407,6 +409,8 @@ class CompilationEngine():
                 if self.tokenizer.current_token == 'true':
                     # negate true
                     self.vm_writer.write_arithmetic(command='~')
+            elif self.tokenizer.current_token == '(': # nested expression
+                self.compile_expression()
 
             self.tokenizer.advance()
 

@@ -38,3 +38,15 @@ label IF_TRUE0
 push argument 0
 push local 0
 and
+push constant 0
+eq
+not
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push constant 8000
+push local 1
+add
+push constant 1
+call Memory.poke 2
+pop temp 0
