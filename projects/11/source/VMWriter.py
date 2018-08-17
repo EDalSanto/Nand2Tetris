@@ -2,12 +2,14 @@ class VMWriter():
     ARITHMETIC_LOGICAL_OPERATORS = {
         '+': 'add',
         '-': 'sub',
-        '-': 'neg',
         '=': 'eq',
         '>': 'gt',
         '<': 'lt',
         '&': 'and',
-        '|': 'or',
+        '|': 'or'
+    }
+    UNARY_OPERATORS = {
+        '-': 'neg',
         '~': 'not'
     }
 
@@ -36,10 +38,19 @@ class VMWriter():
     def write_arithmetic(self, command):
         """
         writes a vm arithmetic-logical command
-        commands: ADD, SUB, NEG, EQ, GT, LT, AND, OR, NOT
+        commands: ADD, SUB, EQ, GT, LT, AND, OR
         """
         self.output_file.write(
             '{}\n'.format(self.ARITHMETIC_LOGICAL_OPERATORS[command])
+        )
+
+    def write_unary(self, command):
+        """
+        writes a vm unary command
+        commands: NEG, NOT
+        """
+        self.output_file.write(
+            '{}\n'.format(self.UNARY_OPERATORS[command])
         )
 
     def write_label(self, label):

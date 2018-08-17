@@ -106,6 +106,10 @@ class CompilationEngine():
                 self.compile_parameter_list()
             elif self._starting_token_for('subroutine_body'):
                 self.compile_subroutine_body(subroutine_name=subroutine_name)
+        # reset counters -> should be scoped to subroutine and nesting level for flow control
+        # create Object
+        # self.labels_counter.reset()
+        self.labels_count = {'if': 0, 'while': 0}
 
     def compile_subroutine_body(self, subroutine_name):
         # get all locals
@@ -260,7 +264,7 @@ class CompilationEngine():
 
         if not array:
             # store expression evaluation in symbol location
-            self.vm_writer.write_pop(segment='local', index=symbol['index'])
+            self.vm_writer.write_pop(segment=symbol['kind'], index=symbol['index'])
         else: # array unloading
             # pop return value onto temp
             self.vm_writer.write_pop(segment='temp', index='0')
@@ -286,7 +290,7 @@ class CompilationEngine():
         self.compile_expression()
 
         # not expression so for easily handling of termination and if-goto
-        self.vm_writer.write_arithmetic(command='~')
+        self.vm_writer.write_unary(command='~')
         self.vm_writer.write_ifgoto(label='WHILE_END{}'.format(self.labels_count['while']))
 
         while self._not_terminal_token_for('while'):
@@ -407,8 +411,10 @@ class CompilationEngine():
                 segment = symbol['kind']
                 index = symbol['index']
                 self.vm_writer.write_push(segment=segment, index=index)
-            elif self.tokenizer.current_token in self.OPERATORS or self.tokenizer.current_token in self.UNARY_OPERATORS:
-                ops.insert(0, self.tokenizer.current_token)
+            elif self.tokenizer.current_token in self.OPERATORS and not self.tokenizer.tokens_found[-3] == ',': # distinguish neg from sub
+                ops.insert(0, { 'token': self.tokenizer.current_token, 'category': 'bi' })
+            elif self.tokenizer.current_token in self.UNARY_OPERATORS:
+                ops.insert(0, { 'token': self.tokenizer.current_token, 'category': 'unary' })
             elif self.tokenizer.string_const():
                 # handle string const
                 string_length = len(self.tokenizer.string_const())
@@ -424,7 +430,7 @@ class CompilationEngine():
                 self.vm_writer.write_push(segment='constant', index=0)
                 if self.tokenizer.current_token == 'true':
                     # negate true
-                    self.vm_writer.write_arithmetic(command='~')
+                    self.vm_writer.write_unary(command='~')
             elif self.tokenizer.current_token == '(': # nested expression
                 self.compile_expression()
 
@@ -434,12 +440,14 @@ class CompilationEngine():
             self.compile_op(op)
 
     def compile_op(self, op):
-        if op == '*':
+        if op['category'] == 'unary':
+            self.vm_writer.write_unary(command=op['token'])
+        elif op['token'] == '*':
             self.vm_writer.write_call(name='Math.multiply', num_args=2)
-        elif op == '/':
+        elif op['token'] == '/':
             self.vm_writer.write_call(name='Math.divide', num_args=2)
         else:
-            self.vm_writer.write_arithmetic(command=op)
+            self.vm_writer.write_arithmetic(command=op['token'])
 
     # (expression (',' expression)* )?
     def compile_expression_list(self):

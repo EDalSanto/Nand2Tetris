@@ -85,25 +85,25 @@ call Math.multiply 2
 return
 label IF_END0
 function Main.fillMemory 0
-label WHILE_EXP1
+label WHILE_EXP0
 push argument 1
 push constant 0
 gt
 not
-if-goto WHILE_END1
+if-goto WHILE_END0
 push argument 0
 push argument 2
 call Memory.poke 2
 pop temp 0
 push argument 1
 push constant 1
-neg
-pop local 1
+sub
+pop argument 1
 push argument 0
 push constant 1
 add
-pop local 0
-goto WHILE_EXP1
-label WHILE_END1
+pop argument 0
+goto WHILE_EXP0
+label WHILE_END0
 push constant 0
 return
