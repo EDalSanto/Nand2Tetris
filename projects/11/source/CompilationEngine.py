@@ -99,15 +99,20 @@ class CompilationEngine():
         # new subroutine means new subroutine scope
         self.subroutine_symbol_table.reset()
 
-        while self._not_terminal_token_for('subroutine'):
-            self.tokenizer.advance()
+        # get subroutine name
+        self.tokenizer.advance()
+        self.tokenizer.advance()
+        subroutine_name = self.tokenizer.current_token
 
-            if self._starting_token_for(position='next', keyword_token='parameter_list'):
-                subroutine_name = self.tokenizer.current_token
-            elif self._starting_token_for(position='current', keyword_token='parameter_list'):
-                self.compile_parameter_list()
-            elif self._starting_token_for('subroutine_body'):
-                self.compile_subroutine_body(subroutine_name=subroutine_name)
+        # compile parameter list
+        self.tokenizer.advance()
+        self.compile_parameter_list()
+
+        # compile body
+        self.tokenizer.advance()
+        self.compile_subroutine_body(subroutine_name=subroutine_name)
+
+        # rest counts from subroutine
         self.label_counter.reset_counts()
 
     def compile_subroutine_body(self, subroutine_name):
