@@ -75,8 +75,7 @@ class CompilationEngine():
         """
         example: field int x;
         """
-        ### symbol table
-        kind = self.tokenizer.current_token
+        symbol_kind = self.tokenizer.keyword()
 
         # get symbol type
         self.tokenizer.advance()
@@ -85,10 +84,11 @@ class CompilationEngine():
         # get all identifiers
         while self._not_terminal_token_for('class_var_dec'):
             self.tokenizer.advance()
+
             if self.tokenizer.identifier():
                 # add symbol to class
-                name = self.tokenizer.identifier()
-                self.class_symbol_table.define(name=name, kind=kind, symbol_type=symbol_type)
+                symbol_name = self.tokenizer.identifier()
+                self.class_symbol_table.define(name=symbol_name, kind=symbol_kind, symbol_type=symbol_type)
 
     def compile_subroutine(self):
         """
