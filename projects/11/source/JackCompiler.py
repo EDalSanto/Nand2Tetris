@@ -23,6 +23,7 @@ class JackCompiler():
 
         # output file overwriting existing file..
         return "./compiled/{}/{}{}".format(dir_name, file_name, ext_name)
+        # return dir_name + "/" + file_name + ext_name # actual format expected for Coursera grader
 
 
 if __name__ == "__main__" and len(sys.argv) == 2:

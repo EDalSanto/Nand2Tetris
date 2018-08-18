@@ -117,6 +117,9 @@ class JackTokenizer():
         else:
             return False
 
+    def class_token_reached(self):
+        return self.current_token == 'class'
+
     def token_type_of(self, token):
         if token[0] == "\"":
             return "STRING_CONST"

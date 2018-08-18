@@ -4,10 +4,8 @@ from VMWriter import VMWriter
 class CompilationEngine():
     """
     compiles a jack source file from a jack tokenizer into xml form in output_file
+    NOTE: ASSUMES ERROR FREE CODE -> a todo could be to add error handling
     """
-
-    TERMINAL_TOKEN_TYPES = [ "STRING_CONST", "INT_CONST", "IDENTIFIER", "SYMBOL"]
-    TERMINAL_KEYWORDS = [ "boolean", "class", "void", "int" ]
     CLASS_VAR_DEC_TOKENS = [ "static", "field" ]
     SUBROUTINE_TOKENS = [ "function", "method", "constructor" ]
     STATEMENT_TOKENS = [ 'do', 'let', 'while', 'return', 'if' ]
@@ -59,14 +57,16 @@ class CompilationEngine():
         """
         everything needed to compile a class, the basic unit of compilation
         """
+        # skip everything up to class start
+        while not self.tokenizer.class_token_reached():
+            self.tokenizer.advance()
+        # since compilation unit is a class makes sense to store this as instance variable
+        self.class_name = self.tokenizer.next_token
 
         while self.tokenizer.has_more_tokens:
             self.tokenizer.advance()
 
-            if self.tokenizer.identifier():
-                # since compilation unit is a class makes sense to store this as instance variable
-                self.class_name = self.tokenizer.identifier()
-            elif self.tokenizer.current_token in self.CLASS_VAR_DEC_TOKENS:
+            if self.tokenizer.current_token in self.CLASS_VAR_DEC_TOKENS:
                 self.compile_class_var_dec()
             elif self.tokenizer.current_token in self.SUBROUTINE_TOKENS:
                 self.compile_subroutine()
@@ -513,12 +513,6 @@ class CompilationEngine():
                 tag_name
             )
         )
-
-    def _terminal_token_type(self):
-        return self.tokenizer.token_type_of(self.tokenizer.current_token) in self.TERMINAL_TOKEN_TYPES
-
-    def _terminal_keyword(self):
-        return self.tokenizer.current_token in self.TERMINAL_KEYWORDS
 
     def _not_terminal_token_for(self, keyword_token, position='current'):
         if position == 'current':
