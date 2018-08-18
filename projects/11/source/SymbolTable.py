@@ -2,8 +2,6 @@ class SymbolTable():
     """
     Represents the current symbols for a given class or subroutine for the JackCompiler
     """
-    CLASS_SCOPED_VARIABLES = [ 'field', 'static' ]
-
     def __init__(self):
         self.symbols = []
 

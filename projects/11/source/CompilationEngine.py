@@ -7,6 +7,10 @@ class CompilationEngine():
     compiles a jack source file from a jack tokenizer into xml form in output_file
     NOTE: ASSUMES ERROR FREE CODE -> a todo could be to add error handling
     """
+    SYMBOL_KINDS = {
+        'parameter_list': 'argument',
+        'var_dec': 'local'
+    }
     CLASS_VAR_DEC_TOKENS = [ "static", "field" ]
     SUBROUTINE_TOKENS = [ "function", "method", "constructor" ]
     STATEMENT_TOKENS = [ 'do', 'let', 'while', 'return', 'if' ]
@@ -140,43 +144,37 @@ class CompilationEngine():
         returns number of params found
         """
         ### symbol table
-        kind = 'argument'
-
-        while self._not_terminal_token_for(position='next', keyword_token='parameter_list'):
+        while self._not_terminal_token_for('parameter_list'):
             self.tokenizer.advance()
+
             # symbol table
             if self.tokenizer.token_type_of(self.tokenizer.next_token) == "IDENTIFIER":
-                # get type
+                symbol_kind = self.SYMBOL_KINDS['parameter_list']
                 symbol_type = self.tokenizer.current_token
-                name = self.tokenizer.next_token
-                self.subroutine_symbol_table.define(name=name, kind=kind, symbol_type=symbol_type)
-        # advance to closing )
-        self.tokenizer.advance()
+                symbol_name = self.tokenizer.next_token
+                self.subroutine_symbol_table.define(name=symbol_name, kind=symbol_kind, symbol_type=symbol_type)
 
     # 'var' type varName (',' varName)* ';'
     def compile_var_dec(self):
         """
         example: var int a;
         """
-        ### symbol table
-        # all var decs are local variables
-        kind = 'local'
-
-        # get symbol type
+        # skip var
         self.tokenizer.advance()
-        symbol_type = self.tokenizer.keyword() or self.tokenizer.identifier()
-
+        # get symbol type
+        symbol_type = self.tokenizer.current_token
         # count number of vars, i.e., var int i, sum = 2
         num_vars = 0
 
-        # get all identifiers
+        # get all vars
         while self._not_terminal_token_for('var_dec'):
             self.tokenizer.advance()
+
             if self.tokenizer.identifier():
-                # add symbol to class
-                name = self.tokenizer.identifier()
-                self.subroutine_symbol_table.define(name=name, kind=kind, symbol_type=symbol_type)
                 num_vars += 1
+                symbol_kind = self.SYMBOL_KINDS['var_dec']
+                symbol_name = self.tokenizer.identifier()
+                self.subroutine_symbol_table.define(name=symbol_name, kind=symbol_kind, symbol_type=symbol_type)
         # return vars processed
         return num_vars
 
