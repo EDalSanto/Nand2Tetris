@@ -182,17 +182,19 @@ class CompilationEngine():
         """
         call correct statement
         """
+        # TODO: way to make this global for class?
+        statement_compile_methods = {
+            'if': self.compile_if,
+            'do': self.compile_do,
+            'let': self.compile_let,
+            'while': self.compile_while,
+            'return': self.compile_return
+        }
+
         while self._not_terminal_token_for('subroutine'):
-            if self.tokenizer.current_token == "if":
-                self.compile_if()
-            elif self.tokenizer.current_token == "do":
-                self.compile_do()
-            elif self.tokenizer.current_token == "let":
-                self.compile_let()
-            elif self.tokenizer.current_token == "while":
-                self.compile_while()
-            elif self.tokenizer.current_token == "return":
-                self.compile_return()
+            if self.tokenizer.current_token in self.STATEMENT_TOKENS:
+                statement_type = self.tokenizer.current_token
+                statement_compile_methods[statement_type]()
 
             self.tokenizer.advance()
 
