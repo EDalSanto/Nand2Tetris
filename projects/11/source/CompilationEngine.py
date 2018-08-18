@@ -131,8 +131,7 @@ class CompilationEngine():
         )
 
         # compile all statements
-        # while starting token for statement
-        while self.tokenizer.current_token in ['do', 'let', 'if', 'while', 'return']:
+        while self.tokenizer.current_token in self.STATEMENT_TOKENS:
             self.compile_statements()
 
     def compile_parameter_list(self):
