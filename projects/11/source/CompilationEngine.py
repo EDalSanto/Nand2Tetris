@@ -116,8 +116,9 @@ class CompilationEngine():
         self.label_counter.reset_counts()
 
     def compile_subroutine_body(self, subroutine_name):
-        # get all locals
+        # skip start
         self.tokenizer.advance()
+        # get all locals
         num_locals = 0
         while self._starting_token_for('var_dec'):
             num_locals += self.compile_var_dec()
