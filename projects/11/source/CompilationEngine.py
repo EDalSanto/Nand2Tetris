@@ -1,5 +1,6 @@
 from SymbolTable import SymbolTable
 from VMWriter import VMWriter
+from LabelCounter import LabelCounter
 
 class CompilationEngine():
     """
@@ -43,6 +44,7 @@ class CompilationEngine():
         '='
     ]
     UNARY_OPERATORS = [ '-', '~' ]
+    TOKENS_THAT_NEED_LABELS = ['if', 'while']
 
     def __init__(self, tokenizer, output_file):
         self.tokenizer = tokenizer
@@ -50,7 +52,7 @@ class CompilationEngine():
         self.class_symbol_table = SymbolTable()
         self.subroutine_symbol_table = SymbolTable()
         self.vm_writer = VMWriter(output_file)
-        self.labels_count = {'if': 0, 'while': 0}
+        self.label_counter = LabelCounter(labels=self.TOKENS_THAT_NEED_LABELS)
         self.class_name = None
 
     def compile_class(self):
@@ -94,7 +96,7 @@ class CompilationEngine():
         """
         example: methoid void dispose() { ...
         """
-        # reset subroutine symbols
+        # new subroutine means new subroutine scope
         self.subroutine_symbol_table.reset()
 
         while self._not_terminal_token_for('subroutine'):
@@ -106,10 +108,7 @@ class CompilationEngine():
                 self.compile_parameter_list()
             elif self._starting_token_for('subroutine_body'):
                 self.compile_subroutine_body(subroutine_name=subroutine_name)
-        # reset counters -> should be scoped to subroutine and nesting level for flow control
-        # create Object
-        # self.labels_counter.reset()
-        self.labels_count = {'if': 0, 'while': 0}
+        self.label_counter.reset_counts()
 
     def compile_subroutine_body(self, subroutine_name):
         # get all locals
@@ -281,7 +280,7 @@ class CompilationEngine():
         example: while (x > 0) { ... }
         """
         # write while label
-        self.vm_writer.write_label(label='WHILE_EXP{}'.format(self.labels_count['while']))
+        self.vm_writer.write_label(label='WHILE_EXP{}'.format(self.label_counter.get('while')))
 
         # advance to expression start (
         self.tokenizer.advance()
@@ -291,7 +290,7 @@ class CompilationEngine():
 
         # not expression so for easily handling of termination and if-goto
         self.vm_writer.write_unary(command='~')
-        self.vm_writer.write_ifgoto(label='WHILE_END{}'.format(self.labels_count['while']))
+        self.vm_writer.write_ifgoto(label='WHILE_END{}'.format(self.label_counter.get('while')))
 
         while self._not_terminal_token_for('while'):
             self.tokenizer.advance()
@@ -300,12 +299,12 @@ class CompilationEngine():
                 self.compile_statements()
 
         # write goto
-        self.vm_writer.write_goto(label='WHILE_EXP{}'.format(self.labels_count['while']))
+        self.vm_writer.write_goto(label='WHILE_EXP{}'.format(self.label_counter.get('while')))
         # write end label
-        self.vm_writer.write_label(label='WHILE_END{}'.format(self.labels_count['while']))
+        self.vm_writer.write_label(label='WHILE_END{}'.format(self.label_counter.get('while')))
 
         # add while to labels count
-        self.labels_count['while'] += 1
+        self.label_counter.increment('while')
 
     def compile_if(self):
         """
@@ -320,11 +319,11 @@ class CompilationEngine():
 #        self.vm_writer.write_arithmetic(command='~')
 
         # write ifgoto to if statement
-        self.vm_writer.write_ifgoto(label='IF_TRUE{}'.format(self.labels_count['if']))
+        self.vm_writer.write_ifgoto(label='IF_TRUE{}'.format(self.label_counter.get('if')))
         # write goto if false (else)
-        self.vm_writer.write_goto(label='IF_FALSE{}'.format(self.labels_count['if']))
+        self.vm_writer.write_goto(label='IF_FALSE{}'.format(self.label_counter.get('if')))
         # write if label
-        self.vm_writer.write_label(label='IF_TRUE{}'.format(self.labels_count['if']))
+        self.vm_writer.write_label(label='IF_TRUE{}'.format(self.label_counter.get('if')))
 
         while self._not_terminal_token_for('if'):
             self.tokenizer.advance()
@@ -332,34 +331,34 @@ class CompilationEngine():
             if self._statement_token():
                 if self.tokenizer.current_token == 'if':
                     # add ifto labels count
-                    self.labels_count['if'] += 1
+                    self.label_counter.increment('if')
                     self.compile_statements()
                     # subtract for nesting
-                    self.labels_count['if'] -= 1
+                    self.label_counter.decrement('if')
                 else:
                     self.compile_statements()
 
         # go to end of if
-        self.vm_writer.write_goto(label='IF_END{}'.format(self.labels_count['if']))
+        self.vm_writer.write_goto(label='IF_END{}'.format(self.label_counter.get('if')))
 
         # compile else
         if self.tokenizer.next_token == "else":
             # past closing {
             self.tokenizer.advance()
             # same as above
-            self.vm_writer.write_label(label='IF_FALSE{}'.format(self.labels_count['if']))
+            self.vm_writer.write_label(label='IF_FALSE{}'.format(self.label_counter.get('if')))
             while self._not_terminal_token_for('if'):
                 self.tokenizer.advance()
 
                 if self._statement_token():
                     if self.tokenizer.current_token == 'if':
                         # add ifto labels count
-                        self.labels_count['if'] += 1
+                        self.label_counter.increment('if')
                         self.compile_statements()
                     else:
                         self.compile_statements()
         # define IF_END
-        self.vm_writer.write_label(label='IF_END{}'.format(self.labels_count['if']))
+        self.vm_writer.write_label(label='IF_END{}'.format(self.label_counter.get('if')))
 
 
     # term (op term)*
