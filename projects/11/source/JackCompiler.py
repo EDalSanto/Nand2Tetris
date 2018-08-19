@@ -21,10 +21,10 @@ class JackCompiler():
         except OSError:
             print("res directory already exists. continuing")
 
-        # output file overwriting existing file..
-        return "./compiled/{}/{}{}".format(dir_name, file_name, ext_name)
-        # return dir_name + "/" + file_name + ext_name # actual format expected for Coursera grader
-
+        # for testing locally
+        # return "./compiled/{}/{}{}".format(dir_name, file_name, ext_name)
+        # actual format expected for Coursera grader
+        return dir_name + "/" + file_name + ext_name
 
 if __name__ == "__main__" and len(sys.argv) == 2:
     arg = sys.argv[1]
