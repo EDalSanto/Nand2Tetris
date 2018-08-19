@@ -22,9 +22,9 @@ class JackCompiler():
             print("res directory already exists. continuing")
 
         # for testing locally
-        # return "./compiled/{}/{}{}".format(dir_name, file_name, ext_name)
+        return "./compiled/{}/{}{}".format(dir_name, file_name, ext_name)
         # actual format expected for Coursera grader
-        return dir_name + "/" + file_name + ext_name
+        # return dir_name + "/" + file_name + ext_name
 
 if __name__ == "__main__" and len(sys.argv) == 2:
     arg = sys.argv[1]
