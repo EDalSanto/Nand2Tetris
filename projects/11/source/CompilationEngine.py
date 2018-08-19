@@ -19,7 +19,8 @@ class CompilationEngine():
         'parameter_list': ['('],
         'subroutine_body': ['{'],
         'expression_list': ['('],
-        'expression': ['=', '[', '(']
+        'expression': ['=', '[', '('],
+        'array': [ '[' ]
     }
     TERMINATING_TOKENS = {
         'class': ['}'],
@@ -247,9 +248,10 @@ class CompilationEngine():
         self.tokenizer.advance()
         symbol_name = self.tokenizer.current_token
         symbol = self._find_symbol_in_symbol_tables(symbol_name=symbol_name)
-        # check if array assignment
-        array = self.tokenizer.next_token == '['
-        if array:
+
+        # array assignment?
+        array_assignment = self._starting_token_for(keyword_token='array', position='next')
+        if array_assignment:
             # get to index expression
             self.tokenizer.advance()
             self.tokenizer.advance()
@@ -267,7 +269,7 @@ class CompilationEngine():
             self.tokenizer.advance()
             self.compile_expression()
 
-        if not array:
+        if not array_assignment:
             # store expression evaluation in symbol location
             self.vm_writer.write_pop(segment=symbol['kind'], index=symbol['index'])
         else: # array unloading
