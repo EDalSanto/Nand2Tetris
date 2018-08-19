@@ -215,7 +215,7 @@ class CompilationEngine():
         # set subroutine name
         subroutine_name = self.tokenizer.current_token
 
-        if symbol: # always method?
+        if symbol: # user defined Method
             # push value onto local segment
             segment = 'local'
             index = symbol['index']
@@ -224,19 +224,19 @@ class CompilationEngine():
         else: # i.e, OS call
             symbol_type = caller_name
 
-        name = symbol_type + '.' + subroutine_name
+        subroutine_call_name = symbol_type + '.' + subroutine_name
         # start expression list
         self.tokenizer.advance()
+        # get arguments in expession list
         num_args = self.compile_expression_list()
         # method call
         if symbol:
+            # calling object passed as implicit argument
             num_args += 1
         # write call
-        self.vm_writer.write_call(name=name, num_args=num_args)
+        self.vm_writer.write_call(name=subroutine_call_name, num_args=num_args)
         # pop off return of previous call we don't care about
         self.vm_writer.write_pop(segment='temp', index='0')
-
-    # LEAVING UNDRY FOR NOW TO SEE WHAT NEXT PROJECT BRINGS
 
     # 'let' varName ('[' expression ']')? '=' expression ';'
     def compile_let(self):
