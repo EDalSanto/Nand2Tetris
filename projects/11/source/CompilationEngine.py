@@ -370,16 +370,8 @@ class CompilationEngine():
             self.tokenizer.advance()
 
         while self._not_terminal_token_for('expression'):
-            if self.tokenizer.next_token == '.': # subroutine call
-                # write_call after pushing arguments onto stack
-                # get name
-                subroutine_name = ''
-                while not self._starting_token_for('expression_list'):
-                    subroutine_name += self.tokenizer.current_token
-                    self.tokenizer.advance()
-                # get num of args
-                num_args = self.compile_expression_list()
-                self.vm_writer.write_call(name=subroutine_name, num_args=num_args)
+            if self._subroutine_call():
+                self.compile_subroutine_call()
             elif self.tokenizer.current_token.isdigit() and not self.tokenizer.next_token == ']': # not array
                 self.vm_writer.write_push(segment='constant', index=self.tokenizer.current_token)
             elif self.tokenizer.current_token.isdigit() and self.tokenizer.next_token == ']': # array
@@ -434,6 +426,16 @@ class CompilationEngine():
 
         for op in ops:
             self.compile_op(op)
+
+    def compile_subroutine_call(self):
+        subroutine_name = ''
+        while not self._starting_token_for('expression_list'):
+            subroutine_name += self.tokenizer.current_token
+            self.tokenizer.advance()
+        # get num of args
+        num_args = self.compile_expression_list()
+        # write_call after pushing arguments onto stack
+        self.vm_writer.write_call(name=subroutine_name, num_args=num_args)
 
     def compile_op(self, op):
         if op['category'] == 'unary':
@@ -518,3 +520,5 @@ class CompilationEngine():
             return self.class_symbol_table.find_symbol_by_name(symbol_name)
     def _empty_expression_list(self):
         return self.tokenizer.current_token in self.STARTING_TOKENS['expression_list'] and self.tokenizer.next_token in self.TERMINATING_TOKENS['expression_list']
+    def _subroutine_call(self):
+        return self.tokenizer.identifier() and self.tokenizer.next_token == '.'
