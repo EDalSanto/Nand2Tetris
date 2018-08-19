@@ -37,36 +37,16 @@ class JackTokenizer():
         self.has_more_tokens = True
 
     def advance(self):
-        # read first char
+        # initialize char
         char = self.input_file.read(1)
-
         # skip whitespace and comments
-        char = self.skip_whitespace_and_comments(starting_char=char)
+        char = self._skip_whitespace_and_comments(starting_char=char)
 
-        # process found token
-        token = ""
-
+        # get token
         if self._is_string_const_delimeter(char):
-            # add initial "
-            token += char
-            char = self.input_file.read(1)
-
-            # get rest of token up to ending "
-            while not self._is_string_const_delimeter(char):
-                token += char
-                char = self.input_file.read(1)
-
-            # get last "
-            token += char
+            token = self._get_string_const(starting_char=char)
         elif char.isalnum():
-            # get rest of token
-            while self._is_alnum_or_underscore(char):
-                token += char
-                last_pos = self.input_file.tell()
-                char = self.input_file.read(1)
-
-            # go back 1 char that was peek ahead
-            self.input_file.seek(last_pos)
+            token = self._get_alnum_underscore(starting_char=char)
         else: # symbol
             token = char
 
@@ -79,49 +59,11 @@ class JackTokenizer():
             self.current_token = token
             self.next_token = token
             self.tokens_found.append(token)
-            # update next token
+            # get next token
             self.advance()
 
-        if not len(self.next_token) > 0:
+        if self._current_token_empty():
             self.has_more_tokens = False
-            return False
-        else:
-            return True
-
-    def skip_whitespace_and_comments(self, starting_char):
-        char = starting_char
-
-        while char.isspace() or char in self.COMMENT_OPERATORS:
-            if char.isspace():
-                # read 1 char bc we don't know what's next
-                char = self.input_file.read(1)
-            elif char in self.COMMENT_OPERATORS:
-                # make sure comment and not operator
-                last_pos = self.input_file.tell()
-                # read rest of line
-                rest_of_line = self.input_file.readline()
-                if not self._is_start_of_comment(char, rest_of_line):
-                    # go back
-                    self.input_file.seek(last_pos)
-                    # no whitespace / comments left to parse
-                    break
-                else:
-                    # read next char
-                    char = self.input_file.read(1)
-            continue
-        return char
-
-    def part_of_subroutine_call(self):
-        if len(self.tokens_found) < 3:
-            return False
-
-        index = len(self.tokens_found) - 4
-        token = self.tokens_found[index]
-
-        if token == ".":
-            return True
-        else:
-            return False
 
     def class_token_reached(self):
         return self.current_token == 'class'
@@ -158,6 +100,63 @@ class JackTokenizer():
         if self.token_type_of(self.current_token) == "STRING_CONST":
             # remove " that denote string const
             return self.current_token.replace('"', '')
+
+    def _current_token_empty(self):
+        return len(self.current_token) == 0
+
+    def _get_alnum_underscore(self, starting_char):
+        token = ''
+        char = starting_char
+        # get rest of token
+        while self._is_alnum_or_underscore(char):
+            # keep track of what was last read
+            last_pos = self.input_file.tell()
+            token += char
+            char = self.input_file.read(1)
+
+        # go back 1 char that was peek ahead to determine if no longer alnum / underscore
+        self.input_file.seek(last_pos)
+        return token
+
+    def _get_string_const(self, starting_char):
+        char = starting_char
+        token = ''
+
+        # add initial "
+        token += char
+        char = self.input_file.read(1)
+
+        # get rest of token up to ending "
+        while not self._is_string_const_delimeter(char):
+            token += char
+            char = self.input_file.read(1)
+
+        # get last "
+        token += char
+        return token
+
+    def _skip_whitespace_and_comments(self, starting_char):
+        char = starting_char
+
+        while char.isspace() or char in self.COMMENT_OPERATORS:
+            if char.isspace():
+                # read 1 char bc we don't know what's next
+                char = self.input_file.read(1)
+            elif char in self.COMMENT_OPERATORS:
+                # make sure comment and not operator
+                last_pos = self.input_file.tell()
+                # read rest of line
+                rest_of_line = self.input_file.readline()
+                if not self._is_start_of_comment(char, rest_of_line):
+                    # go back
+                    self.input_file.seek(last_pos)
+                    # no whitespace / comments left to parse
+                    break
+                else:
+                    # read next char
+                    char = self.input_file.read(1)
+            continue
+        return char
 
     def _is_alnum_or_underscore(self, char):
         return char.isalnum() or char == "_"
