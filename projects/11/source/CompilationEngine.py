@@ -36,7 +36,8 @@ class CompilationEngine():
         'if': ['}'],
         'var_dec': [';'],
         'return': [';'],
-        'expression': [';', ')', ']', ',']
+        'expression': [';', ')', ']', ','],
+        'array': [']']
     }
     OPERATORS = [
         '+',
@@ -372,26 +373,10 @@ class CompilationEngine():
         while self._not_terminal_token_for('expression'):
             if self._subroutine_call():
                 self.compile_subroutine_call()
-            elif self.tokenizer.current_token.isdigit() and not self.tokenizer.next_token == ']': # not array
+            elif self._array_expression():
+                self.compile_array_expression()
+            elif self.tokenizer.current_token.isdigit():
                 self.vm_writer.write_push(segment='constant', index=self.tokenizer.current_token)
-            elif self.tokenizer.current_token.isdigit() and self.tokenizer.next_token == ']': # array
-                self.vm_writer.write_push(segment='local', index=self.tokenizer.current_token)
-            elif self.tokenizer.identifier() and self.tokenizer.next_token == '[':
-                ## compile array
-                symbol_name = self.tokenizer.current_token
-                symbol = self._find_symbol_in_symbol_tables(symbol_name=symbol_name)
-                # get to index expression
-                self.tokenizer.advance()
-                self.tokenizer.advance()
-                # compile it
-                self.compile_expression()
-                self.vm_writer.write_push(segment='local', index=symbol['index'])
-                # add two addresses
-                self.vm_writer.write_arithmetic(command='+')
-                # pop address onto pointer 1 / THAT
-                self.vm_writer.write_pop(segment='pointer', index=1)
-                # push value onto stack
-                self.vm_writer.write_push(segment='that', index=0)
             elif self.tokenizer.identifier():
                 # i.e, push this 0
                 # find symbol in symbol table
@@ -426,6 +411,23 @@ class CompilationEngine():
 
         for op in ops:
             self.compile_op(op)
+
+    def compile_array_expression(self):
+       symbol_name = self.tokenizer.current_token
+       symbol = self._find_symbol_in_symbol_tables(symbol_name=symbol_name)
+       # get to index expression
+       self.tokenizer.advance()
+       self.tokenizer.advance()
+       # compile
+       self.compile_expression()
+       # push onto local array symbol
+       self.vm_writer.write_push(segment='local', index=symbol['index'])
+       # add two addresses
+       self.vm_writer.write_arithmetic(command='+')
+       # pop address onto pointer 1 / THAT
+       self.vm_writer.write_pop(segment='pointer', index=1)
+       # push value onto stack
+       self.vm_writer.write_push(segment='that', index=0)
 
     def compile_subroutine_call(self):
         """
@@ -526,3 +528,6 @@ class CompilationEngine():
         return self.tokenizer.current_token in self.STARTING_TOKENS['expression_list'] and self.tokenizer.next_token in self.TERMINATING_TOKENS['expression_list']
     def _subroutine_call(self):
         return self.tokenizer.identifier() and self.tokenizer.next_token == '.'
+
+    def _array_expression(self):
+        return self.tokenizer.identifier() and self._starting_token_for(keyword_token='array', position='next')
