@@ -204,14 +204,15 @@ class CompilationEngine():
         """
         # get to caller
         self.tokenizer.advance()
+        # set caller_name
         caller_name = self.tokenizer.current_token
         # look up in symbol table
         symbol = self._find_symbol_in_symbol_tables(symbol_name=caller_name)
-        # get rest of subroutine call
         # skip .
         self.tokenizer.advance()
         # subroutine name
         self.tokenizer.advance()
+        # set subroutine name
         subroutine_name = self.tokenizer.current_token
 
         if symbol: # always method?
