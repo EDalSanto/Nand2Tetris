@@ -294,6 +294,7 @@ class CompilationEngine():
 
         # advance to expression start (
         self.tokenizer.advance()
+        self.tokenizer.advance()
 
         # compile expression in ()
         self.compile_expression()
@@ -321,6 +322,7 @@ class CompilationEngine():
         example: if (True) { ... } else { ... }
         """
         # advance to expression start
+        self.tokenizer.advance()
         self.tokenizer.advance()
         # compile expression in ()
         self.compile_expression()
@@ -367,10 +369,6 @@ class CompilationEngine():
         # ops get compiled at end in reverse order in which they were added
         ops = []
 
-        # advance to expression when wrapped in( )
-        if self.tokenizer.current_token == '(':
-            self.tokenizer.advance()
-
         while self._not_terminal_token_for('expression'):
             if self._subroutine_call():
                 self.compile_subroutine_call()
@@ -389,6 +387,8 @@ class CompilationEngine():
             elif self.tokenizer.boolean(): # boolean case
                 self.compile_boolean()
             elif self._starting_token_for('expression'): # nested expression
+                # skip starting
+                self.tokenizer.advance()
                 self.compile_expression()
 
             self.tokenizer.advance()
@@ -446,21 +446,21 @@ class CompilationEngine():
         """
         example: a[j], a[4]
         """
-       symbol_name = self.tokenizer.current_token
-       symbol = self._find_symbol_in_symbol_tables(symbol_name=symbol_name)
-       # get to index expression
-       self.tokenizer.advance()
-       self.tokenizer.advance()
-       # compile
-       self.compile_expression()
-       # push onto local array symbol
-       self.vm_writer.write_push(segment='local', index=symbol['index'])
-       # add two addresses
-       self.vm_writer.write_arithmetic(command='+')
-       # pop address onto pointer 1 / THAT
-       self.vm_writer.write_pop(segment='pointer', index=1)
-       # push value onto stack
-       self.vm_writer.write_push(segment='that', index=0)
+        symbol_name = self.tokenizer.current_token
+        symbol = self._find_symbol_in_symbol_tables(symbol_name=symbol_name)
+        # get to index expression
+        self.tokenizer.advance()
+        self.tokenizer.advance()
+        # compile
+        self.compile_expression()
+        # push onto local array symbol
+        self.vm_writer.write_push(segment='local', index=symbol['index'])
+        # add two addresses
+        self.vm_writer.write_arithmetic(command='+')
+        # pop address onto pointer 1 / THAT
+        self.vm_writer.write_pop(segment='pointer', index=1)
+        # push value onto stack
+        self.vm_writer.write_push(segment='that', index=0)
 
     def compile_subroutine_call(self):
         """
@@ -487,6 +487,8 @@ class CompilationEngine():
         if self._empty_expression_list():
             return num_args
 
+        # start expressions
+        self.tokenizer.advance()
         while self._not_terminal_token_for('expression_list'):
             num_args += 1
             self.compile_expression()
