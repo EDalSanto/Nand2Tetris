@@ -364,6 +364,7 @@ class CompilationEngine():
         """
         many examples..i,e., x = 4
         """
+        # ops get compiled at end in reverse order in which they were added
         ops = []
 
         # advance to expression when wrapped in( )
@@ -385,18 +386,21 @@ class CompilationEngine():
                 ops.insert(0, { 'token': self.tokenizer.current_token, 'category': 'unary' })
             elif self.tokenizer.string_const():
                 self.compile_string_const()
-            elif self.tokenizer.current_token in [ 'true', 'false' ]: # boolean case
-                self.vm_writer.write_push(segment='constant', index=0)
-                if self.tokenizer.current_token == 'true':
-                    # negate true
-                    self.vm_writer.write_unary(command='~')
-            elif self.tokenizer.current_token == '(': # nested expression
+            elif self.tokenizer.boolean(): # boolean case
+                self.compile_boolean()
+            elif self._starting_token_for('expression'): # nested expression
                 self.compile_expression()
 
             self.tokenizer.advance()
 
         for op in ops:
             self.compile_op(op)
+
+    def compile_boolean(self):
+        self.vm_writer.write_push(segment='constant', index=0)
+        if self.tokenizer.boolean() == 'true':
+            # negate true
+            self.vm_writer.write_unary(command='~')
 
     def compile_string_const(self):
         # handle string const
