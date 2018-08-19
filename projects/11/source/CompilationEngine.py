@@ -536,17 +536,15 @@ class CompilationEngine():
     def _another_expression_coming(self):
         return self.tokenizer.current_token == ","
 
-    def _not_terminal_condition_for_term(self):
-        # expression happens to cover all bases
-        return self._not_terminal_token_for('expression')
-
     def _find_symbol_in_symbol_tables(self, symbol_name):
         if self.subroutine_symbol_table.find_symbol_by_name(symbol_name):
             return self.subroutine_symbol_table.find_symbol_by_name(symbol_name)
         elif self.class_symbol_table.find_symbol_by_name(symbol_name):
             return self.class_symbol_table.find_symbol_by_name(symbol_name)
+
     def _empty_expression_list(self):
         return self.tokenizer.current_token in self.STARTING_TOKENS['expression_list'] and self.tokenizer.next_token in self.TERMINATING_TOKENS['expression_list']
+
     def _subroutine_call(self):
         return self.tokenizer.identifier() and self.tokenizer.next_token == '.'
 
