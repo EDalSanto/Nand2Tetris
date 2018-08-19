@@ -396,13 +396,32 @@ class CompilationEngine():
         for op in ops:
             self.compile_op(op)
 
+    def compile_op(self, op):
+        """
+        example: +, /, etc.
+        """
+        if op['category'] == 'unary':
+            self.vm_writer.write_unary(command=op['token'])
+        elif op['token'] == '*':
+            self.vm_writer.write_call(name='Math.multiply', num_args=2)
+        elif op['token'] == '/':
+            self.vm_writer.write_call(name='Math.divide', num_args=2)
+        else:
+            self.vm_writer.write_arithmetic(command=op['token'])
+
     def compile_boolean(self):
+        """
+        'true' and 'false'
+        """
         self.vm_writer.write_push(segment='constant', index=0)
         if self.tokenizer.boolean() == 'true':
             # negate true
             self.vm_writer.write_unary(command='~')
 
     def compile_string_const(self):
+        """
+        example: "Hello World"
+        """
         # handle string const
         string_length = len(self.tokenizer.string_const())
         self.vm_writer.write_push(segment='constant', index=string_length)
@@ -415,12 +434,18 @@ class CompilationEngine():
                 self.vm_writer.write_call(name='String.appendChar', num_args=2)
 
     def compile_symbol_push(self):
+        """
+        example: x
+        """
         symbol = self._find_symbol_in_symbol_tables(self.tokenizer.identifier())
         segment = symbol['kind']
         index = symbol['index']
         self.vm_writer.write_push(segment=segment, index=index)
 
     def compile_array_expression(self):
+        """
+        example: a[j], a[4]
+        """
        symbol_name = self.tokenizer.current_token
        symbol = self._find_symbol_in_symbol_tables(symbol_name=symbol_name)
        # get to index expression
@@ -450,16 +475,6 @@ class CompilationEngine():
         num_args = self.compile_expression_list()
         # write_call after pushing arguments onto stack
         self.vm_writer.write_call(name=subroutine_name, num_args=num_args)
-
-    def compile_op(self, op):
-        if op['category'] == 'unary':
-            self.vm_writer.write_unary(command=op['token'])
-        elif op['token'] == '*':
-            self.vm_writer.write_call(name='Math.multiply', num_args=2)
-        elif op['token'] == '/':
-            self.vm_writer.write_call(name='Math.divide', num_args=2)
-        else:
-            self.vm_writer.write_arithmetic(command=op['token'])
 
     # (expression (',' expression)* )?
     def compile_expression_list(self):
