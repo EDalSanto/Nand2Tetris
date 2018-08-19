@@ -36,32 +36,14 @@ class JackTokenizer():
         self.next_token = None
         self.has_more_tokens = True
 
-    # TODO: clean up whitespace comments..
     def advance(self):
         # read first char
         char = self.input_file.read(1)
 
         # skip whitespace and comments
-        while char.isspace() or char in self.COMMENT_OPERATORS:
-            if char.isspace():
-                # read 1 char bc we don't know what's next
-                char = self.input_file.read(1)
-            elif char in self.COMMENT_OPERATORS:
-                # make sure not operator
-                last_pos = self.input_file.tell()
-                rest_of_line = self.input_file.readline()
-                # go back
-                self.input_file.seek(last_pos)
-                if not self._is_start_of_comment(char, rest_of_line):
-                    self.input_file.seek(last_pos)
-                    break
-                # read whole line
-                self.input_file.readline()
-                # read next char
-                char = self.input_file.read(1)
-            continue
+        char = self.skip_whitespace_and_comments(starting_char=char)
 
-       # process found token
+        # process found token
         token = ""
 
         if self._is_string_const_delimeter(char):
@@ -105,6 +87,29 @@ class JackTokenizer():
             return False
         else:
             return True
+
+    def skip_whitespace_and_comments(self, starting_char):
+        char = starting_char
+
+        while char.isspace() or char in self.COMMENT_OPERATORS:
+            if char.isspace():
+                # read 1 char bc we don't know what's next
+                char = self.input_file.read(1)
+            elif char in self.COMMENT_OPERATORS:
+                # make sure comment and not operator
+                last_pos = self.input_file.tell()
+                # read rest of line
+                rest_of_line = self.input_file.readline()
+                if not self._is_start_of_comment(char, rest_of_line):
+                    # go back
+                    self.input_file.seek(last_pos)
+                    # no whitespace / comments left to parse
+                    break
+                else:
+                    # read next char
+                    char = self.input_file.read(1)
+            continue
+        return char
 
     def part_of_subroutine_call(self):
         if len(self.tokens_found) < 3:
