@@ -459,7 +459,7 @@ class CompilationEngine():
 
     def compile_array_expression(self):
         """
-        example: a[j], a[4]
+        example: let x = a[j], a[4]
         """
         symbol_name = self.tokenizer.current_token
         symbol = self._find_symbol_in_symbol_tables(symbol_name=symbol_name)
@@ -470,7 +470,7 @@ class CompilationEngine():
         self.compile_expression()
         # push onto local array symbol
         self.vm_writer.write_push(segment='local', index=symbol['index'])
-        # add two addresses
+        # add two addresses: identifer and expression result
         self.vm_writer.write_arithmetic(command='+')
         # pop address onto pointer 1 / THAT
         self.vm_writer.write_pop(segment='pointer', index=1)

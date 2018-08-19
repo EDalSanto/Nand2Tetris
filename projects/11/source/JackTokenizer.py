@@ -49,10 +49,10 @@ class JackTokenizer():
             elif char in self.COMMENT_OPERATORS:
                 # make sure not operator
                 last_pos = self.input_file.tell()
-                next_2_chars = self.input_file.read(2)
+                rest_of_line = self.input_file.readline()
                 # go back
                 self.input_file.seek(last_pos)
-                if not self._is_start_of_comment(char, next_2_chars):
+                if not self._is_start_of_comment(char, rest_of_line):
                     self.input_file.seek(last_pos)
                     break
                 # read whole line
@@ -156,11 +156,19 @@ class JackTokenizer():
     def _is_string_const_delimeter(self, char):
         return char == "\""
 
-    def _is_start_of_comment(self, char, next_2_chars):
+    def _is_start_of_comment(self, char, rest_of_line):
        # comment of form: // or */
-       single_line_comment = next_2_chars[0] == self.COMMENT_OPERATORS[0]
+       single_line_comment = rest_of_line[0] == self.COMMENT_OPERATORS[0]
        # comment of form: /**
-       multi_line_comment = char == self.COMMENT_OPERATORS[0] and next_2_chars == "**"
+       multi_line_comment = char == self.COMMENT_OPERATORS[0] and rest_of_line[0:2] == "**"
        # comment of form:  * comment
-       part_of_multi_line_comment = char == self.COMMENT_OPERATORS[1] and next_2_chars[0].isspace() and next_2_chars[1] != '(' and not next_2_chars[1].isdigit() # may break
+       part_of_multi_line_comment = self._part_of_multiline_comment()
        return single_line_comment or multi_line_comment or part_of_multi_line_comment
+
+    def _part_of_multiline_comment(self):
+        if not self.tokens_found:
+            return True
+        elif self.tokens_found[-1] == ';':
+            return True
+        else:
+            return False

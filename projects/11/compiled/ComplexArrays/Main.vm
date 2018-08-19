@@ -70,12 +70,30 @@ push local 0
 add
 pop pointer 1
 push that 0
-push constant 0
-push local 2
+push constant 7
+push constant 3
+push local 0
 add
 pop pointer 1
 push that 0
-eq
+sub
+push constant 2
+call Main.double 1
+sub
+push constant 1
+add
+push local 1
+add
+pop pointer 1
+push that 0
+call Math.multiply 2
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 0
+push local 2
+add
 pop temp 0
 pop pointer 1
 push temp 0
