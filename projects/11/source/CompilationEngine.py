@@ -378,12 +378,7 @@ class CompilationEngine():
             elif self.tokenizer.current_token.isdigit():
                 self.vm_writer.write_push(segment='constant', index=self.tokenizer.current_token)
             elif self.tokenizer.identifier():
-                # i.e, push this 0
-                # find symbol in symbol table
-                symbol = self._find_symbol_in_symbol_tables(self.tokenizer.identifier())
-                segment = symbol['kind']
-                index = symbol['index']
-                self.vm_writer.write_push(segment=segment, index=index)
+                self.compile_symbol_push()
             elif self.tokenizer.current_token in self.OPERATORS and not self.tokenizer.tokens_found[-3] == ',': # distinguish neg from sub
                 ops.insert(0, { 'token': self.tokenizer.current_token, 'category': 'bi' })
             elif self.tokenizer.current_token in self.UNARY_OPERATORS:
@@ -411,6 +406,12 @@ class CompilationEngine():
 
         for op in ops:
             self.compile_op(op)
+
+    def compile_symbol_push(self):
+        symbol = self._find_symbol_in_symbol_tables(self.tokenizer.identifier())
+        segment = symbol['kind']
+        index = symbol['index']
+        self.vm_writer.write_push(segment=segment, index=index)
 
     def compile_array_expression(self):
        symbol_name = self.tokenizer.current_token
