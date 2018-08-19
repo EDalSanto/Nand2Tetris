@@ -1,6 +1,7 @@
 from SymbolTable import SymbolTable
 from VMWriter import VMWriter
 from LabelCounter import LabelCounter
+from Operator import Operator
 
 class CompilationEngine():
     """
@@ -379,9 +380,9 @@ class CompilationEngine():
             elif self.tokenizer.identifier():
                 self.compile_symbol_push()
             elif self.tokenizer.current_token in self.OPERATORS and not self._part_of_expression_list():
-                ops.insert(0, { 'token': self.tokenizer.current_token, 'category': 'bi' })
+                ops.insert(0, Operator(token=self.tokenizer.current_token, category='bi'))
             elif self.tokenizer.current_token in self.UNARY_OPERATORS:
-                ops.insert(0, { 'token': self.tokenizer.current_token, 'category': 'unary' })
+                ops.insert(0, Operator(token=self.tokenizer.current_token, category='unary'))
             elif self.tokenizer.string_const():
                 self.compile_string_const()
             elif self.tokenizer.boolean(): # boolean case
@@ -401,20 +402,21 @@ class CompilationEngine():
         """
         example: +, /, etc.
         """
-        if op['category'] == 'unary':
-            self.vm_writer.write_unary(command=op['token'])
-        elif op['token'] == '*':
+        if op.unary():
+            self.vm_writer.write_unary(command=op.token)
+        elif op.multiplication():
             self.vm_writer.write_call(name='Math.multiply', num_args=2)
-        elif op['token'] == '/':
+        elif op.division():
             self.vm_writer.write_call(name='Math.divide', num_args=2)
         else:
-            self.vm_writer.write_arithmetic(command=op['token'])
+            self.vm_writer.write_arithmetic(command=op.token)
 
     def compile_boolean(self):
         """
         'true' and 'false'
         """
         self.vm_writer.write_push(segment='constant', index=0)
+
         if self.tokenizer.boolean() == 'true':
             # negate true
             self.vm_writer.write_unary(command='~')
@@ -438,7 +440,7 @@ class CompilationEngine():
         """
         example: x
         """
-        symbol = self._find_symbol_in_symbol_tables(self.tokenizer.identifier())
+        symbol = self._find_symbol_in_symbol_tables(symbol_name=self.tokenizer.identifier())
         segment = symbol['kind']
         index = symbol['index']
         self.vm_writer.write_push(segment=segment, index=index)
@@ -490,6 +492,7 @@ class CompilationEngine():
 
         # start expressions
         self.tokenizer.advance()
+
         while self._not_terminal_token_for('expression_list'):
             num_args += 1
             self.compile_expression()
