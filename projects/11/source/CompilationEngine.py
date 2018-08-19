@@ -387,12 +387,13 @@ class CompilationEngine():
             elif self.tokenizer.boolean(): # boolean case
                 self.compile_boolean()
             elif self._starting_token_for('expression'): # nested expression
-                # skip starting
+                # skip starting (
                 self.tokenizer.advance()
                 self.compile_expression()
 
             self.tokenizer.advance()
 
+        # compile_ops
         for op in ops:
             self.compile_op(op)
 
@@ -495,14 +496,6 @@ class CompilationEngine():
             if self._another_expression_coming(): # would be , after compile expression
                 self.tokenizer.advance()
         return num_args
-
-    # integerConstant | stringConstant | keywordConstant | varName |
-    # varName '[' expression ']' | subroutineCall | '(' expression ')' | unaryOp term
-    def compile_term(self):
-        """
-        most compilicated and difficult part of compiler
-        TODO: try to simplify
-        """
 
     def compile_return(self):
         """
