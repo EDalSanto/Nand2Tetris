@@ -347,11 +347,11 @@ class CompilationEngine():
         self.vm_writer.write_label(label='IF_TRUE{}'.format(self.label_counter.get('if')))
         # body of if
         self.compile_conditional_body()
-        # past closing {
-        self.tokenizer.advance()
         # else?
         if self._starting_token_for('conditional'):
-            # if end if this path wasn't hit
+            # past closing {
+            self.tokenizer.advance()
+            # goto if end if this path wasn't hit
             self.vm_writer.write_goto(label='IF_END{}'.format(self.label_counter.get('if')))
             # if false
             self.vm_writer.write_label(label='IF_FALSE{}'.format(self.label_counter.get('if')))
