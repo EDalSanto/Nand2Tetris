@@ -428,7 +428,11 @@ class CompilationEngine():
             self.compile_op(op)
 
     def compile_subroutine_call(self):
+        """
+        example: Memory.peek(8000)
+        """
         subroutine_name = ''
+
         while not self._starting_token_for('expression_list'):
             subroutine_name += self.tokenizer.current_token
             self.tokenizer.advance()
