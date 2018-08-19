@@ -464,8 +464,7 @@ pop temp 0
 pop pointer 1
 push temp 0
 pop that 0
-goto IF_END0
-label IF_END0
+label IF_FALSE0
 push constant 1
 push local 2
 add
