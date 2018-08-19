@@ -135,7 +135,7 @@ class CompilationEngine():
         )
 
         # compile all statements
-        while self.tokenizer.current_token in self.STATEMENT_TOKENS:
+        while self._not_terminal_token_for('subroutine'):
             self.compile_statements()
 
     def compile_parameter_list(self):
