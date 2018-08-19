@@ -365,7 +365,7 @@ class CompilationEngine():
         """
         ops = []
 
-        # advance to expression
+        # advance to expression when wrapped in( )
         if self.tokenizer.current_token == '(':
             self.tokenizer.advance()
 
@@ -452,15 +452,14 @@ class CompilationEngine():
         example: (x, y, x + 5)
         """
         num_args = 0
-        # empty expression list
-        if self.tokenizer.next_token in self.TERMINATING_TOKENS['expression_list']:
+
+        if self._empty_expression_list():
             return num_args
 
         while self._not_terminal_token_for('expression_list'):
             num_args += 1
             self.compile_expression()
-            # current token could be , or ) to end expression list
-            if self._another_expression_coming():
+            if self._another_expression_coming(): # would be , after compile expression
                 self.tokenizer.advance()
         return num_args
 
@@ -484,32 +483,6 @@ class CompilationEngine():
 
         self.vm_writer.write_return()
 
-    def _write_current_outer_tag(self, body):
-        self.output_file.write("<{}>\n".format(body))
-
-
-    def _write_current_terminal_token(self):
-        # conform to expected xml
-        if self.tokenizer.token_type_of(self.tokenizer.current_token) == "STRING_CONST":
-            tag_name = "stringConstant"
-        elif self.tokenizer.token_type_of(self.tokenizer.current_token) == "INT_CONST":
-            tag_name = "integerConstant"
-        else:
-            tag_name = self.tokenizer.token_type_of(self.tokenizer.current_token).lower()
-
-        if self.tokenizer.token_type_of(self.tokenizer.current_token) == "STRING_CONST":
-            value = self.tokenizer.current_token.replace("\"", "")
-        else:
-            value = self.tokenizer.current_token
-
-        self.output_file.write(
-            "<{}> {} </{}>\n".format(
-                tag_name,
-                value,
-                tag_name
-            )
-        )
-
     def _not_terminal_token_for(self, keyword_token, position='current'):
         if position == 'current':
             return not self.tokenizer.current_token in self.TERMINATING_TOKENS[keyword_token]
@@ -531,9 +504,6 @@ class CompilationEngine():
         elif position == 'next':
             return self.tokenizer.next_token in self.OPERATORS
 
-    def _next_token_is_negative_unary_operator(self):
-        return self.tokenizer.next_token == "-"
-
     def _another_expression_coming(self):
         return self.tokenizer.current_token == ","
 
@@ -541,11 +511,10 @@ class CompilationEngine():
         # expression happens to cover all bases
         return self._not_terminal_token_for('expression')
 
-    def _next_token_is_operation_not_in_expression(self):
-        return self._operator_token(position='next') and not self._starting_token_for('expression')
-
     def _find_symbol_in_symbol_tables(self, symbol_name):
         if self.subroutine_symbol_table.find_symbol_by_name(symbol_name):
             return self.subroutine_symbol_table.find_symbol_by_name(symbol_name)
         elif self.class_symbol_table.find_symbol_by_name(symbol_name):
             return self.class_symbol_table.find_symbol_by_name(symbol_name)
+    def _empty_expression_list(self):
+        return self.tokenizer.current_token in self.STARTING_TOKENS['expression_list'] and self.tokenizer.next_token in self.TERMINATING_TOKENS['expression_list']
