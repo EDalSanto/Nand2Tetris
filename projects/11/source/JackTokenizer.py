@@ -133,6 +133,10 @@ class JackTokenizer():
         else:
             return "SYMBOL"
 
+    def null(self):
+        if self.current_token == 'null':
+            return self.current_token
+
     def boolean(self):
         if self.current_token in ['true', 'false']:
             return self.current_token

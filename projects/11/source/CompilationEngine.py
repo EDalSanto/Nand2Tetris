@@ -403,6 +403,8 @@ class CompilationEngine():
                 # skip starting (
                 self.tokenizer.advance()
                 self.compile_expression()
+            elif self.tokenizer.null():
+                self.vm_writer.write_push(segment='constant', index=0)
 
             self.tokenizer.advance()
 
