@@ -1,27 +1,6 @@
+from JackToken import JackToken
+
 class JackTokenizer():
-    KEYWORDS = [
-        'class',
-        'constructor',
-        'function',
-        'method',
-        'field',
-        'static',
-        'var',
-        'int',
-        'char',
-        'boolean',
-        'void',
-        'true',
-        'false',
-        'null',
-        'this',
-        'let',
-        'do',
-        'if',
-        'else',
-        'while',
-        'return'
-    ]
     COMMENT_OPERATORS = ["/", "*"]
     STRING_CONST_DELIMITER = '"'
 
@@ -44,11 +23,11 @@ class JackTokenizer():
 
         # get token
         if self._is_string_const_delimeter(char):
-            token = self._get_string_const(starting_char=char)
+            token = JackToken(self._get_string_const(starting_char=char))
         elif char.isalnum():
-            token = self._get_alnum_underscore(starting_char=char)
+            token = JackToken(self._get_alnum_underscore(starting_char=char))
         else: # symbol
-            token = char
+            token = JackToken(char)
 
         # set tokens
         if self.current_token:
@@ -62,47 +41,42 @@ class JackTokenizer():
             # get next token
             self.advance()
 
-        if self._current_token_empty():
+        if self.current_token.is_empty():
             self.has_more_tokens = False
 
     def class_token_reached(self):
-        return self.current_token == 'class'
-
-    def token_type_of(self, token):
-        if token[0] == "\"":
-            return "STRING_CONST"
-        elif token in self.KEYWORDS:
-            return "KEYWORD"
-        elif token.isnumeric():
-            return "INT_CONST"
-        elif token.isalnum():
-            return "IDENTIFIER"
+        if not self.current_token:
+            return False
         else:
-            return "SYMBOL"
+            return self.current_token.is_class()
 
     def null(self):
-        if self.current_token == 'null':
-            return self.current_token
+        if self.current_token.is_null():
+            return self.current_token.text
 
     def boolean(self):
-        if self.current_token in ['true', 'false']:
-            return self.current_token
+        if self.current_token.is_boolean():
+            return self.current_token.text
 
     def keyword(self):
-        if self.token_type_of(self.current_token) == "KEYWORD":
-            return self.current_token
+        if self.current_token.is_keyword():
+            return self.current_token.text
 
     def identifier(self):
-        if self.token_type_of(self.current_token) == "IDENTIFIER":
-            return self.current_token
+        if self.current_token.is_identifier():
+            return self.current_token.text
 
     def string_const(self):
-        if self.token_type_of(self.current_token) == "STRING_CONST":
+        if self.current_token.is_string_const():
             # remove " that denote string const
-            return self.current_token.replace('"', '')
+            return self.current_token.text.replace('"', '')
 
-    def _current_token_empty(self):
-        return len(self.current_token) == 0
+    def part_of_expression_list(self):
+        if len(self.tokens_found) < 3:
+            return False
+
+        past_token = self.tokens_found[-3]
+        return past_token.is_expression_list_delimiter() or past_token.is_expression_list_starter()
 
     def _get_alnum_underscore(self, starting_char):
         token = ''

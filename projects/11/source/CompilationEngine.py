@@ -12,9 +12,6 @@ class CompilationEngine():
         'parameter_list': 'argument',
         'var_dec': 'local'
     }
-    CLASS_VAR_DEC_TOKENS = [ "static", "field" ]
-    SUBROUTINE_TOKENS = [ "function", "method", "constructor" ]
-    STATEMENT_TOKENS = [ 'do', 'let', 'while', 'return', 'if' ]
     STARTING_TOKENS = {
         'var_dec': ['var'],
         'parameter_list': ['('],
@@ -40,18 +37,6 @@ class CompilationEngine():
         'expression': [';', ')', ']', ','],
         'array': [']']
     }
-    OPERATORS = [
-        '+',
-        '-',
-        '*',
-        '/',
-        '&',
-        '|',
-        '<',
-        '>',
-        '='
-    ]
-    UNARY_OPERATORS = [ '-', '~' ]
     TOKENS_THAT_NEED_LABELS = ['if', 'while']
 
     def __init__(self, tokenizer, output_file):
@@ -71,14 +56,14 @@ class CompilationEngine():
         while not self.tokenizer.class_token_reached():
             self.tokenizer.advance()
         # since compilation unit is a class makes sense to store this as instance variable
-        self.class_name = self.tokenizer.next_token
+        self.class_name = self.tokenizer.next_token.text
 
         while self.tokenizer.has_more_tokens:
             self.tokenizer.advance()
 
-            if self.tokenizer.current_token in self.CLASS_VAR_DEC_TOKENS:
+            if self.tokenizer.current_token.starts_class_var_dec():
                 self.compile_class_var_dec()
-            elif self.tokenizer.current_token in self.SUBROUTINE_TOKENS:
+            elif self.tokenizer.current_token.starts_subroutine():
                 self.compile_subroutine()
 
     def compile_class_var_dec(self):
@@ -114,7 +99,7 @@ class CompilationEngine():
         # get subroutine name
         self.tokenizer.advance()
         self.tokenizer.advance()
-        subroutine_name = self.tokenizer.current_token
+        subroutine_name = self.tokenizer.current_token.text
 
         # compile parameter list
         self.tokenizer.advance()
@@ -156,10 +141,10 @@ class CompilationEngine():
             self.tokenizer.advance()
 
             # symbol table
-            if self.tokenizer.token_type_of(self.tokenizer.next_token) == "IDENTIFIER":
+            if self.tokenizer.next_token.is_identifier():
                 symbol_kind = self.SYMBOL_KINDS['parameter_list']
-                symbol_type = self.tokenizer.current_token
-                symbol_name = self.tokenizer.next_token
+                symbol_type = self.tokenizer.current_token.text
+                symbol_name = self.tokenizer.next_token.text
                 self.subroutine_symbol_table.define(
                     name=symbol_name,
                     kind=symbol_kind,
@@ -174,7 +159,7 @@ class CompilationEngine():
         # skip var
         self.tokenizer.advance()
         # get symbol type
-        symbol_type = self.tokenizer.current_token
+        symbol_type = self.tokenizer.current_token.text
         # count number of vars, i.e., var int i, sum = 2
         num_vars = 0
 
@@ -208,8 +193,8 @@ class CompilationEngine():
         }
 
         while self._not_terminal_token_for('subroutine'):
-            if self.tokenizer.current_token in self.STATEMENT_TOKENS:
-                statement_type = self.tokenizer.current_token
+            if self.tokenizer.current_token.is_statement_token():
+                statement_type = self.tokenizer.current_token.text
                 statement_compile_methods[statement_type]()
 
             self.tokenizer.advance()
@@ -221,7 +206,7 @@ class CompilationEngine():
         # get to caller
         self.tokenizer.advance()
         # set caller_name
-        caller_name = self.tokenizer.current_token
+        caller_name = self.tokenizer.current_token.text
         # look up in symbol table
         symbol = self._find_symbol_in_symbol_tables(symbol_name=caller_name)
         # skip .
@@ -229,7 +214,7 @@ class CompilationEngine():
         # subroutine name
         self.tokenizer.advance()
         # set subroutine name
-        subroutine_name = self.tokenizer.current_token
+        subroutine_name = self.tokenizer.current_token.text
 
         if symbol: # user defined Method
             # push value onto local segment
@@ -261,7 +246,7 @@ class CompilationEngine():
         """
         # get symbol to store expression evaluation
         self.tokenizer.advance()
-        symbol_name = self.tokenizer.current_token
+        symbol_name = self.tokenizer.current_token.text
         symbol = self._find_symbol_in_symbol_tables(symbol_name=symbol_name)
 
         # array assignment?
@@ -277,7 +262,7 @@ class CompilationEngine():
             self.vm_writer.write_arithmetic(command='+')
 
         # go past =
-        while not self.tokenizer.current_token == '=':
+        while not self.tokenizer.current_token.text == '=':
             self.tokenizer.advance()
         # compile all expressions
         while self._not_terminal_token_for('let'):
@@ -303,7 +288,9 @@ class CompilationEngine():
         example: while (x > 0) { ... }
         """
         # write while label
-        self.vm_writer.write_label(label='WHILE_EXP{}'.format(self.label_counter.get('while')))
+        self.vm_writer.write_label(
+            label='WHILE_EXP{}'.format(self.label_counter.get('while'))
+        )
 
         # advance to expression start (
         self.tokenizer.advance()
@@ -314,7 +301,9 @@ class CompilationEngine():
 
         # NOT expression so for easily handling of termination and if-goto
         self.vm_writer.write_unary(command='~')
-        self.vm_writer.write_ifgoto(label='WHILE_END{}'.format(self.label_counter.get('while')))
+        self.vm_writer.write_ifgoto(
+            label='WHILE_END{}'.format(self.label_counter.get('while'))
+        )
 
         while self._not_terminal_token_for('while'):
             self.tokenizer.advance()
@@ -323,10 +312,13 @@ class CompilationEngine():
                 self.compile_statements()
 
         # write goto
-        self.vm_writer.write_goto(label='WHILE_EXP{}'.format(self.label_counter.get('while')))
+        self.vm_writer.write_goto(
+            label='WHILE_EXP{}'.format(self.label_counter.get('while'))
+        )
         # write end label
-        self.vm_writer.write_label(label='WHILE_END{}'.format(self.label_counter.get('while')))
-
+        self.vm_writer.write_label(
+            label='WHILE_END{}'.format(self.label_counter.get('while'))
+        )
         # add while to labels count
         self.label_counter.increment('while')
 
@@ -352,23 +344,31 @@ class CompilationEngine():
             # past closing {
             self.tokenizer.advance()
             # goto if end if this path wasn't hit
-            self.vm_writer.write_goto(label='IF_END{}'.format(self.label_counter.get('if')))
+            self.vm_writer.write_goto(
+                label='IF_END{}'.format(self.label_counter.get('if'))
+            )
             # if false
-            self.vm_writer.write_label(label='IF_FALSE{}'.format(self.label_counter.get('if')))
+            self.vm_writer.write_label(
+                label='IF_FALSE{}'.format(self.label_counter.get('if'))
+            )
             # compile else
             self.compile_conditional_body()
             # define IF_END
-            self.vm_writer.write_label(label='IF_END{}'.format(self.label_counter.get('if')))
+            self.vm_writer.write_label(
+                label='IF_END{}'.format(self.label_counter.get('if'))
+            )
         else: # no else present
             # go to end of if
-            self.vm_writer.write_label(label='IF_FALSE{}'.format(self.label_counter.get('if')))
+            self.vm_writer.write_label(
+                label='IF_FALSE{}'.format(self.label_counter.get('if'))
+            )
 
     def compile_conditional_body(self):
         while self._not_terminal_token_for('if'):
             self.tokenizer.advance()
 
             if self._statement_token():
-                if self.tokenizer.current_token == 'if':
+                if self.tokenizer.current_token.is_if():
                     # add ifto labels count
                     self.label_counter.increment('if')
                     # compile nested if
@@ -391,14 +391,17 @@ class CompilationEngine():
                 self.compile_subroutine_call()
             elif self._array_expression():
                 self.compile_array_expression()
-            elif self.tokenizer.current_token.isdigit():
-                self.vm_writer.write_push(segment='constant', index=self.tokenizer.current_token)
+            elif self.tokenizer.current_token.text.isdigit():
+                self.vm_writer.write_push(
+                    segment='constant',
+                    index=self.tokenizer.current_token.text
+                )
             elif self.tokenizer.identifier():
                 self.compile_symbol_push()
-            elif self.tokenizer.current_token in self.OPERATORS and not self._part_of_expression_list():
-                ops.insert(0, Operator(token=self.tokenizer.current_token, category='bi'))
-            elif self.tokenizer.current_token in self.UNARY_OPERATORS:
-                ops.insert(0, Operator(token=self.tokenizer.current_token, category='unary'))
+            elif self.tokenizer.current_token.is_operator() and not self._part_of_expression_list():
+                ops.insert(0, Operator(token=self.tokenizer.current_token.text, category='bi'))
+            elif self.tokenizer.current_token.is_unary_operator():
+                ops.insert(0, Operator(token=self.tokenizer.current_token.text, category='unary'))
             elif self.tokenizer.string_const():
                 self.compile_string_const()
             elif self.tokenizer.boolean(): # boolean case
@@ -467,7 +470,7 @@ class CompilationEngine():
         """
         example: let x = a[j], a[4]
         """
-        symbol_name = self.tokenizer.current_token
+        symbol_name = self.tokenizer.current_token.text
         symbol = self._find_symbol_in_symbol_tables(symbol_name=symbol_name)
         # get to index expression
         self.tokenizer.advance()
@@ -490,7 +493,7 @@ class CompilationEngine():
         subroutine_name = ''
 
         while not self._starting_token_for('expression_list'):
-            subroutine_name += self.tokenizer.current_token
+            subroutine_name += self.tokenizer.current_token.text
             self.tokenizer.advance()
         # get num of args
         num_args = self.compile_expression_list()
@@ -532,27 +535,21 @@ class CompilationEngine():
 
     def _not_terminal_token_for(self, keyword_token, position='current'):
         if position == 'current':
-            return not self.tokenizer.current_token in self.TERMINATING_TOKENS[keyword_token]
+            return not self.tokenizer.current_token.text in self.TERMINATING_TOKENS[keyword_token]
         elif position == 'next':
-            return not self.tokenizer.next_token in self.TERMINATING_TOKENS[keyword_token]
+            return not self.tokenizer.next_token.text in self.TERMINATING_TOKENS[keyword_token]
 
     def _starting_token_for(self, keyword_token, position='current'):
         if position == 'current':
-            return self.tokenizer.current_token in self.STARTING_TOKENS[keyword_token]
+            return self.tokenizer.current_token.text in self.STARTING_TOKENS[keyword_token]
         elif position == 'next':
-            return self.tokenizer.next_token in self.STARTING_TOKENS[keyword_token]
+            return self.tokenizer.next_token.text in self.STARTING_TOKENS[keyword_token]
 
     def _statement_token(self):
-        return self.tokenizer.current_token in self.STATEMENT_TOKENS
-
-    def _operator_token(self, position='current'):
-        if position == 'current':
-            return self.tokenizer.current_token in self.OPERATORS
-        elif position == 'next':
-            return self.tokenizer.next_token in self.OPERATORS
+        return self.tokenizer.current_token.is_statement_token()
 
     def _another_expression_coming(self):
-        return self.tokenizer.current_token == ","
+        return self.tokenizer.current_token.is_expression_list_delimiter()
 
     def _find_symbol_in_symbol_tables(self, symbol_name):
         if self.subroutine_symbol_table.find_symbol_by_name(symbol_name):
@@ -564,16 +561,16 @@ class CompilationEngine():
         return self._start_of_expression_list() and self._next_ends_expression_list()
 
     def _start_of_expression_list(self):
-        return self.tokenizer.current_token in self.STARTING_TOKENS['expression_list']
+        return self.tokenizer.current_token.text in self.STARTING_TOKENS['expression_list']
 
     def _next_ends_expression_list(self):
-        return self.tokenizer.next_token in self.TERMINATING_TOKENS['expression_list']
+        return self.tokenizer.next_token.text in self.TERMINATING_TOKENS['expression_list']
 
     def _subroutine_call(self):
-        return self.tokenizer.identifier() and self.tokenizer.next_token == '.'
+        return self.tokenizer.identifier() and self.tokenizer.next_token.is_subroutine_call_delimiter()
 
     def _array_expression(self):
         return self.tokenizer.identifier() and self._starting_token_for(keyword_token='array', position='next')
 
     def _part_of_expression_list(self):
-        return self.tokenizer.tokens_found[-3] in [',', '('] # distinguish neg from sub
+        return self.tokenizer.part_of_expression_list()

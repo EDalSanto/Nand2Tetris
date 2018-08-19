@@ -82,7 +82,7 @@
 ![SpecialOSServices](./images/SpecialOSServices.png)
 
 ### Completing the Compiler
-![CompilerDevelopmentRoadmap](./images/CompilerDevelopmentRoadmap.png)
+![CompilerDevelopmentRoadmap](./images/CompilerDevelopmentRoadMap.png)
 * Main Classes
   * JackCompiler
   * JackTokenizer
