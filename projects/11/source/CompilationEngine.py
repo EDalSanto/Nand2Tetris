@@ -20,7 +20,8 @@ class CompilationEngine():
         'subroutine_body': ['{'],
         'expression_list': ['('],
         'expression': ['=', '[', '('],
-        'array': [ '[' ]
+        'array': [ '[' ],
+        'conditional': ['if', 'else']
     }
     TERMINATING_TOKENS = {
         'class': ['}'],
@@ -296,7 +297,7 @@ class CompilationEngine():
         # compile expression in ()
         self.compile_expression()
 
-        # not expression so for easily handling of termination and if-goto
+        # NOT expression so for easily handling of termination and if-goto
         self.vm_writer.write_unary(command='~')
         self.vm_writer.write_ifgoto(label='WHILE_END{}'.format(self.label_counter.get('while')))
 
@@ -320,19 +321,29 @@ class CompilationEngine():
         """
         # advance to expression start
         self.tokenizer.advance()
-
         # compile expression in ()
         self.compile_expression()
-        # not expression so for easily handling of termination and if-goto
-#        self.vm_writer.write_arithmetic(command='~')
-
         # write ifgoto to if statement
         self.vm_writer.write_ifgoto(label='IF_TRUE{}'.format(self.label_counter.get('if')))
         # write goto if false (else)
         self.vm_writer.write_goto(label='IF_FALSE{}'.format(self.label_counter.get('if')))
         # write if label
         self.vm_writer.write_label(label='IF_TRUE{}'.format(self.label_counter.get('if')))
+        # body of if
+        self.compile_conditional_body()
+        # go to end of if
+        self.vm_writer.write_goto(label='IF_END{}'.format(self.label_counter.get('if')))
+        # past closing {
+        self.tokenizer.advance()
+        # else?
+        if self._starting_token_for('conditional'):
+            self.vm_writer.write_label(label='IF_FALSE{}'.format(self.label_counter.get('if')))
+            # compile else
+            self.compile_conditional_body()
+        # define IF_END
+        self.vm_writer.write_label(label='IF_END{}'.format(self.label_counter.get('if')))
 
+    def compile_conditional_body(self):
         while self._not_terminal_token_for('if'):
             self.tokenizer.advance()
 
@@ -340,34 +351,12 @@ class CompilationEngine():
                 if self.tokenizer.current_token == 'if':
                     # add ifto labels count
                     self.label_counter.increment('if')
+                    # compile nested if
                     self.compile_statements()
-                    # subtract for nesting
+                    # subtract for exiting nesting
                     self.label_counter.decrement('if')
                 else:
                     self.compile_statements()
-
-        # go to end of if
-        self.vm_writer.write_goto(label='IF_END{}'.format(self.label_counter.get('if')))
-
-        # compile else
-        if self.tokenizer.next_token == "else":
-            # past closing {
-            self.tokenizer.advance()
-            # same as above
-            self.vm_writer.write_label(label='IF_FALSE{}'.format(self.label_counter.get('if')))
-            while self._not_terminal_token_for('if'):
-                self.tokenizer.advance()
-
-                if self._statement_token():
-                    if self.tokenizer.current_token == 'if':
-                        # add ifto labels count
-                        self.label_counter.increment('if')
-                        self.compile_statements()
-                    else:
-                        self.compile_statements()
-        # define IF_END
-        self.vm_writer.write_label(label='IF_END{}'.format(self.label_counter.get('if')))
-
 
     # term (op term)*
     def compile_expression(self):
