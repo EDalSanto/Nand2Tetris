@@ -688,7 +688,7 @@ push constant 1
 sub
 pop argument 1
 push argument 1
-push local 0
+push argument 0
 add
 push constant 3
 call Array.new 1

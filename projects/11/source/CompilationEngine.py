@@ -272,7 +272,7 @@ class CompilationEngine():
             self.tokenizer.advance()
             # compile it
             self.compile_expression()
-            self.vm_writer.write_push(segment='local', index=symbol['index'])
+            self.vm_writer.write_push(segment=symbol['kind'], index=symbol['index'])
             # add two addresses
             self.vm_writer.write_arithmetic(command='+')
 
@@ -348,7 +348,7 @@ class CompilationEngine():
         # body of if
         self.compile_conditional_body()
         # else?
-        if self._starting_token_for('conditional'):
+        if self._starting_token_for(keyword_token='conditional', position='next'):
             # past closing {
             self.tokenizer.advance()
             # goto if end if this path wasn't hit
