@@ -379,21 +379,12 @@ class CompilationEngine():
                 self.vm_writer.write_push(segment='constant', index=self.tokenizer.current_token)
             elif self.tokenizer.identifier():
                 self.compile_symbol_push()
-            elif self.tokenizer.current_token in self.OPERATORS and not self.tokenizer.tokens_found[-3] == ',': # distinguish neg from sub
+            elif self.tokenizer.current_token in self.OPERATORS and not self._part_of_expression_list():
                 ops.insert(0, { 'token': self.tokenizer.current_token, 'category': 'bi' })
             elif self.tokenizer.current_token in self.UNARY_OPERATORS:
                 ops.insert(0, { 'token': self.tokenizer.current_token, 'category': 'unary' })
             elif self.tokenizer.string_const():
-                # handle string const
-                string_length = len(self.tokenizer.string_const())
-                self.vm_writer.write_push(segment='constant', index=string_length)
-                self.vm_writer.write_call(name='String.new', num_args=1)
-                # build string from chars
-                for char in self.tokenizer.string_const():
-                    if not char == '"':
-                        ascii_value_of_char = ord(char)
-                        self.vm_writer.write_push(segment='constant', index=ascii_value_of_char)
-                        self.vm_writer.write_call(name='String.appendChar', num_args=2)
+                self.compile_string_const()
             elif self.tokenizer.current_token in [ 'true', 'false' ]: # boolean case
                 self.vm_writer.write_push(segment='constant', index=0)
                 if self.tokenizer.current_token == 'true':
@@ -406,6 +397,18 @@ class CompilationEngine():
 
         for op in ops:
             self.compile_op(op)
+
+    def compile_string_const(self):
+        # handle string const
+        string_length = len(self.tokenizer.string_const())
+        self.vm_writer.write_push(segment='constant', index=string_length)
+        self.vm_writer.write_call(name='String.new', num_args=1)
+        # build string from chars
+        for char in self.tokenizer.string_const():
+            if not char == self.tokenizer.STRING_CONST_DELIMITER:
+                ascii_value_of_char = ord(char)
+                self.vm_writer.write_push(segment='constant', index=ascii_value_of_char)
+                self.vm_writer.write_call(name='String.appendChar', num_args=2)
 
     def compile_symbol_push(self):
         symbol = self._find_symbol_in_symbol_tables(self.tokenizer.identifier())
@@ -532,3 +535,6 @@ class CompilationEngine():
 
     def _array_expression(self):
         return self.tokenizer.identifier() and self._starting_token_for(keyword_token='array', position='next')
+
+    def _part_of_expression_list(self):
+        return self.tokenizer.tokens_found[-3] in [',', '('] # distinguish neg from sub

@@ -23,6 +23,7 @@ class JackTokenizer():
         'return'
     ]
     COMMENT_OPERATORS = ["/", "*"]
+    STRING_CONST_DELIMITER = '"'
 
     """
     goes through a .jack input file and produces a stream of tokens
