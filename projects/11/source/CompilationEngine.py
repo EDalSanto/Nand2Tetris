@@ -98,7 +98,11 @@ class CompilationEngine():
             if self.tokenizer.identifier():
                 # add symbol to class
                 symbol_name = self.tokenizer.identifier()
-                self.class_symbol_table.define(name=symbol_name, kind=symbol_kind, symbol_type=symbol_type)
+                self.class_symbol_table.define(
+                    name=symbol_name,
+                    kind=symbol_kind,
+                    symbol_type=symbol_type
+                )
 
     def compile_subroutine(self):
         """
@@ -156,7 +160,11 @@ class CompilationEngine():
                 symbol_kind = self.SYMBOL_KINDS['parameter_list']
                 symbol_type = self.tokenizer.current_token
                 symbol_name = self.tokenizer.next_token
-                self.subroutine_symbol_table.define(name=symbol_name, kind=symbol_kind, symbol_type=symbol_type)
+                self.subroutine_symbol_table.define(
+                    name=symbol_name,
+                    kind=symbol_kind,
+                    symbol_type=symbol_type
+                )
 
     # 'var' type varName (',' varName)* ';'
     def compile_var_dec(self):
@@ -178,7 +186,11 @@ class CompilationEngine():
                 num_vars += 1
                 symbol_kind = self.SYMBOL_KINDS['var_dec']
                 symbol_name = self.tokenizer.identifier()
-                self.subroutine_symbol_table.define(name=symbol_name, kind=symbol_kind, symbol_type=symbol_type)
+                self.subroutine_symbol_table.define(
+                    name=symbol_name,
+                    kind=symbol_kind,
+                    symbol_type=symbol_type
+                )
         # return vars processed
         return num_vars
 
@@ -543,7 +555,13 @@ class CompilationEngine():
             return self.class_symbol_table.find_symbol_by_name(symbol_name)
 
     def _empty_expression_list(self):
-        return self.tokenizer.current_token in self.STARTING_TOKENS['expression_list'] and self.tokenizer.next_token in self.TERMINATING_TOKENS['expression_list']
+        return self._start_of_expression_list() and self._next_ends_expression_list()
+
+    def _start_of_expression_list(self):
+        return self.tokenizer.current_token in self.STARTING_TOKENS['expression_list']
+
+    def _next_ends_expression_list(self):
+        return self.tokenizer.next_token in self.TERMINATING_TOKENS['expression_list']
 
     def _subroutine_call(self):
         return self.tokenizer.identifier() and self.tokenizer.next_token == '.'
