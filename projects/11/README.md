@@ -98,3 +98,18 @@
   * implement symbol table
   * update compilation engine to use symbol table to output more specific identifier
 * code generation
+
+### Perspective
+* Jack is Simple Language
+  * lacks real type system
+    * all variables are 16 bits
+    * any type can be assigned to any other type
+  * lacks inheritance
+    * subclasses have a compiled time type and run time type
+    * actual subtype not determined until runtime; methods looked up at runtime -> **late binding**
+  * lacks public fields
+* Compiler Optimization -> not necessarily important that compiler is efficient but that compiler generated efficient code
+  * efficient code -> as few clock cycles and hardware resources as possible
+* Follow Up ideas
+  * extend Jack Compiler
+  * further study compilers and languages via other courses and projects (teachyourselfcs)
