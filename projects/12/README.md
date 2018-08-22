@@ -17,4 +17,24 @@
   * algorithms for Mult, Div, and Sqrt make use of logN2 runtime algorithms
 
 ### Memory Access
-*
+* manage access to RAM in hack way by creating static array in Memory init that points at RAM 0
+  * manipulating any part of RAM at will!
+
+### Heap Management
+
+### Graphics
+* Bitmap Graphics -> series of N-bit words telling screen which bits to turn on / off
+* Vector Graphics -> instructions for how to draw graphics on screen
+  * easy to transmit because of much smaller size
+  * scales
+  * turned into bitmap
+* pixel drawing
+  * space in RAM dedicated to screen
+  * hardware refresh updates screen from RAM space regularily
+
+### Line Drawing
+* lines are only approximations on screen
+  * need to turn on bits on screen that don't allow true line drawing
+
+### Project 12
+* OS -> abstraction with a set of API describing what is can for programmer
