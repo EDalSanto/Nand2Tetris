@@ -16,13 +16,30 @@ label IF_FALSE0
 push argument 0
 return
 label IF_END0
-function Math.multiply 3
+function Math.multiply 4
 push constant 0
 pop local 0
 push argument 0
 pop local 1
 push constant 1
 pop local 2
+push argument 1
+push constant 0
+lt
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push constant 1
+neg
+pop local 3
+push argument 1
+neg
+pop argument 1
+goto IF_END0
+label IF_FALSE0
+push constant 1
+pop local 3
+label IF_END0
 label WHILE_EXP0
 push argument 1
 push local 2
@@ -37,14 +54,14 @@ and
 push constant 0
 eq
 not
-if-goto IF_TRUE0
-goto IF_FALSE0
-label IF_TRUE0
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
 push local 0
 push local 1
 add
 pop local 0
-label IF_FALSE0
+label IF_FALSE1
 push local 1
 push local 1
 add
@@ -55,6 +72,17 @@ add
 pop local 2
 goto WHILE_EXP0
 label WHILE_END0
+push local 3
+push constant 1
+neg
+eq
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push local 0
+neg
+pop local 0
+label IF_FALSE2
 push local 0
 return
 function Math.divide 0

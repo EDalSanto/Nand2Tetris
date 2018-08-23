@@ -8,6 +8,7 @@
  * Note: Jack compilers implement multiplication and division using OS method calls.
  */
 class Math {
+    static int twoQy;
 
     /** Initializes the library. */
     function void init() {
@@ -29,20 +30,31 @@ class Math {
      *  the Jack expressions x*y and multiply(x,y) return the same value.
      */
     function int multiply(int x, int y) {
-      var int sum, shiftedX, mask;
+      var int sum, shiftedX, mask, sign;
 
       let sum = 0;
-      let shiftedX = x;
-      let mask = 1;
+      //let shiftedX = x;
+      //let mask = 1;
 
-      while ((y & mask) > 0) {
-        // num & 1 = whether last bit is turned on in num
-        if (~((y & mask) = 0)) {
-          let sum = sum + shiftedX;
-        }
-        let shiftedX = shiftedX + shiftedX;
-        let mask = mask + mask;
-      }
+      //if (y < 0) {
+      //  let sign = -1;
+      //  let y = -y;
+      //} else {
+      //  let sign = 1;
+      //}
+
+      //while ((y & mask) > 0) {
+      //  // num & 1 = whether last bit is turned on in num
+      //  if (~((y & mask) = 0)) {
+      //    let sum = sum + shiftedX;
+      //  }
+      //  let shiftedX = shiftedX + shiftedX;
+      //  let mask = mask + mask;
+      //}
+
+      //if (sign = -1) {
+      //  let sum = -sum;
+      //}
 
       return sum;
     }
@@ -55,25 +67,23 @@ class Math {
 
     // Integer part of x/y, where x and y are natural numbers.
     function int divide(int x, int y) {
-      //var int q, twoY, twoQY, diff;
+      var int q, twoY, diff;
 
-      //if (y > x) {
-      //  return 0;
-      //}
+      if (y > x) {
+        return 0;
+      }
 
-      //let twoY = 2 * y;
-      //let q = x / twoY;
-      //let twoQY = q * twoY;
-      //let diff = x - twoQY;
+      let twoY = y + y;
+      let q = x / twoY;
+      let twoQY = q * twoY;
+      let diff = x - twoQY;
 
-      //if (diff < y) {
-      //  return 2 * q;
-      //}
-      //else {
-      //  return 2 * q + 1;
-      //}
-
-      return 42;
+      if (diff < y) {
+        return q + q;
+      }
+      else {
+        return q + q + 1;
+      }
     }
 
     /** Returns the integer part of the square root of x. */
