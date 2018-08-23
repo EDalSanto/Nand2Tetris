@@ -54,7 +54,9 @@ class Math {
       let sum = 0;
       let shiftedX = x;
       let bitsSeen = 0;
+      let mask = powersOfTwo[bitsSeen];
 
+      // handle sign
       if (y < 0) {
         let sign = -1;
         let y = -y;
@@ -63,15 +65,17 @@ class Math {
       }
 
       while (bitsSeen < numBitsInInteger) {
-        // num & 1 = whether last bit is turned on in num
+        // num & mask = whether powerOfTwo bit is turned on in num
         if (~((y & mask) = 0)) {
           let sum = sum + shiftedX;
         }
         let shiftedX = shiftedX + shiftedX;
-        let mask = mask + mask;
         let bitsSeen = bitsSeen + 1;
+        // Mask doubling / next power of 2 at each turn
+        let mask = powersOfTwo[bitsSeen];
       }
 
+      // apply sign if need be
       if (sign = -1) {
         let sum = -sum;
       }
