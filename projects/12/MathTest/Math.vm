@@ -1,0 +1,71 @@
+function Math.init 0
+push constant 0
+return
+function Math.abs 0
+push argument 0
+push constant 0
+lt
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push argument 0
+neg
+return
+goto IF_END0
+label IF_FALSE0
+push argument 0
+return
+label IF_END0
+function Math.multiply 3
+push constant 0
+pop local 0
+push argument 0
+pop local 1
+push constant 1
+pop local 2
+label WHILE_EXP0
+push argument 1
+push local 2
+and
+push constant 0
+gt
+not
+if-goto WHILE_END0
+push argument 1
+push local 2
+and
+push constant 0
+eq
+not
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push local 0
+push local 1
+add
+pop local 0
+label IF_FALSE0
+push local 1
+push local 1
+add
+pop local 1
+push local 2
+push local 2
+add
+pop local 2
+goto WHILE_EXP0
+label WHILE_END0
+push local 0
+return
+function Math.divide 0
+push constant 42
+return
+function Math.sqrt 0
+push constant 42
+return
+function Math.max 0
+push constant 42
+return
+function Math.min 0
+push constant 42
+return

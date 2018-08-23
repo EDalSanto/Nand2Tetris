@@ -1,0 +1,15 @@
+function Main.main 1
+push constant 8000
+pop local 0
+push constant 0
+push local 0
+add
+push constant 2
+push constant 3
+call Math.multiply 2
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 0
+return

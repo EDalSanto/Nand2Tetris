@@ -11,37 +11,83 @@ class Math {
 
     /** Initializes the library. */
     function void init() {
+      return;
     }
 
     /** Returns the absolute value of x. */
     function int abs(int x) {
+      if (x < 0) {
+        return -x;
+      } else {
+        return x;
+      }
     }
 
-    /** Returns the product of x and y. 
-     *  When a Jack compiler detects the multiplication operator '*' in the 
+    /** Returns the product of x and y.
+     *  When a Jack compiler detects the multiplication operator '*' in the
      *  program's code, it handles it by invoking this method. In other words,
      *  the Jack expressions x*y and multiply(x,y) return the same value.
      */
     function int multiply(int x, int y) {
+      var int sum, shiftedX, mask;
+
+      let sum = 0;
+      let shiftedX = x;
+      let mask = 1;
+
+      while ((y & mask) > 0) {
+        // num & 1 = whether last bit is turned on in num
+        if (~((y & mask) = 0)) {
+          let sum = sum + shiftedX;
+        }
+        let shiftedX = shiftedX + shiftedX;
+        let mask = mask + mask;
+      }
+
+      return sum;
     }
 
     /** Returns the integer part of x/y.
-     *  When a Jack compiler detects the multiplication operator '/' in the 
+     *  When a Jack compiler detects the multiplication operator '/' in the
      *  program's code, it handles it by invoking this method. In other words,
      *  the Jack expressions x/y and divide(x,y) return the same value.
      */
+
+    // Integer part of x/y, where x and y are natural numbers.
     function int divide(int x, int y) {
+      //var int q, twoY, twoQY, diff;
+
+      //if (y > x) {
+      //  return 0;
+      //}
+
+      //let twoY = 2 * y;
+      //let q = x / twoY;
+      //let twoQY = q * twoY;
+      //let diff = x - twoQY;
+
+      //if (diff < y) {
+      //  return 2 * q;
+      //}
+      //else {
+      //  return 2 * q + 1;
+      //}
+
+      return 42;
     }
 
     /** Returns the integer part of the square root of x. */
     function int sqrt(int x) {
+      return 42;
     }
 
     /** Returns the greater number. */
     function int max(int a, int b) {
+      return 42;
     }
 
     /** Returns the smaller number. */
     function int min(int a, int b) {
+      return 42;
     }
 }
