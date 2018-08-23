@@ -91,33 +91,40 @@ class Math {
 
     // Integer part of x/y, where x and y are natural numbers.
     function int divide(int x, int y) {
-      //var int q, twoY, diff, negY, negX, result;
+      var int q, twoY, twoQY, diff, negY, negX, result;
 
-      //if (x < 0) {
-      //  let sign = -1;
-      //  let x = -x;
-      //} else {
-      //  let sign = 1;
-      //}
+      let negX = x < 0;
+      let negY = y < 0;
 
-      //if (y > x) {
-      //  let twoQy = 0;
-      //  return 0;
-      //}
+      if (negX) {
+        let x = Math.abs(x);
+      }
 
-      //let twoY = y + y;
-      //let q = x / twoY;
-      //let diff = x - twoQy;
+      if (negY) {
+        let y = Math.abs(y);
+      }
 
-      //if (diff < y) {
-      //  let twoQy = twoY + q;
-      //  let result = q + q;
-      //}
-      //else {
-      //  let twoQy = -(twoY + q);
-      //  let result = q + q + 1;
-      //}
-      return 42;
+      if (y > x) {
+        return 0;
+      }
+
+      let twoY = y + y;
+      let q = x / twoY;
+      let twoQY = q * twoY;
+      let diff = x - twoQY;
+
+      if (diff < y) {
+        let result = q + q;
+      }
+      else {
+        let result = q + q + 1;
+      }
+
+      if (negX = negY) {
+        return result;
+      } else {
+        return -result;
+      }
     }
 
     /** Returns the integer part of the square root of x. */
