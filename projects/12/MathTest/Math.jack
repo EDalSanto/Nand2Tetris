@@ -128,8 +128,39 @@ class Math {
     }
 
     /** Returns the integer part of the square root of x. */
+    // aka "Floor Sqrt"
     function int sqrt(int x) {
-      return 42;
+      var int low, high, mid, squared, ans;
+
+      // base cases
+      if ((x = 0) | (x = 1)) {
+        return x;
+      }
+
+      let low = 1;
+      let high = 181; // this squared leads to max int for hack platform, 2^16
+      let ans = 0;
+
+      while ((low < high) | (low = high)) {
+        let mid = (high + low) / 2;
+        let squared = mid * mid;
+
+        // perfect square
+        if (squared = x) {
+          return mid;
+        }
+
+        if (squared > x) {
+          let high = mid - 1;
+        } else {
+          let low = mid + 1;
+          // since we need floor, we update answer when square < x
+          // and move closer to sqrt(x)
+          let ans = mid;
+        }
+      }
+
+      return ans;
     }
 
     /** Returns the greater number. */
