@@ -187,6 +187,9 @@ pop temp 0
 goto WHILE_EXP0
 label WHILE_END0
 push argument 1
+call Output.printInt 1
+pop temp 0
+push argument 1
 push constant 0
 lt
 if-goto IF_TRUE0

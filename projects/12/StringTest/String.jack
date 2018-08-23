@@ -112,10 +112,15 @@ class String {
     method void setInt(int val) {
       var int lastDigit, c;
 
-      // make sure cleared space
+      // how to clear existing string
+      while (currentLength > 0) {
+        do eraseLastChar();
+      }
+
+      // and still add / remove neg sign..
       if (val < 0) {
         let val = -val;
-        do setCharAt(0, 45); // neg sign
+        do appendChar(45); // neg sign
       }
 
       // modulus
