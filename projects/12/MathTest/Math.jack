@@ -8,10 +8,29 @@
  * Note: Jack compilers implement multiplication and division using OS method calls.
  */
 class Math {
-    static int twoQy;
+    static int powersOfTwo;
+    static int numBitsInInteger;
 
     /** Initializes the library. */
     function void init() {
+      let powersOfTwo = Array.new(16);
+      let powersOfTwo[0] = 1;
+      let powersOfTwo[1] = 2;
+      let powersOfTwo[2] = 4;
+      let powersOfTwo[3] = 8;
+      let powersOfTwo[4] = 16;
+      let powersOfTwo[5] = 32;
+      let powersOfTwo[6] = 64;
+      let powersOfTwo[7] = 128;
+      let powersOfTwo[8] = 256;
+      let powersOfTwo[9] = 512;
+      let powersOfTwo[10] = 1024;
+      let powersOfTwo[11] = 2048;
+      let powersOfTwo[12] = 4096;
+      let powersOfTwo[13] = 8192;
+      let powersOfTwo[14] = 16384;
+      let powersOfTwo[15] = 16384+16384;
+      let numBitsInInteger = 16;
       return;
     }
 
@@ -30,31 +49,32 @@ class Math {
      *  the Jack expressions x*y and multiply(x,y) return the same value.
      */
     function int multiply(int x, int y) {
-      var int sum, shiftedX, mask, sign;
+      var int sum, shiftedX, mask, sign, bitsSeen;
 
       let sum = 0;
-      //let shiftedX = x;
-      //let mask = 1;
+      let shiftedX = x;
+      let bitsSeen = 0;
 
-      //if (y < 0) {
-      //  let sign = -1;
-      //  let y = -y;
-      //} else {
-      //  let sign = 1;
-      //}
+      if (y < 0) {
+        let sign = -1;
+        let y = -y;
+      } else {
+        let sign = 1;
+      }
 
-      //while ((y & mask) > 0) {
-      //  // num & 1 = whether last bit is turned on in num
-      //  if (~((y & mask) = 0)) {
-      //    let sum = sum + shiftedX;
-      //  }
-      //  let shiftedX = shiftedX + shiftedX;
-      //  let mask = mask + mask;
-      //}
+      while (bitsSeen < numBitsInInteger) {
+        // num & 1 = whether last bit is turned on in num
+        if (~((y & mask) = 0)) {
+          let sum = sum + shiftedX;
+        }
+        let shiftedX = shiftedX + shiftedX;
+        let mask = mask + mask;
+        let bitsSeen = bitsSeen + 1;
+      }
 
-      //if (sign = -1) {
-      //  let sum = -sum;
-      //}
+      if (sign = -1) {
+        let sum = -sum;
+      }
 
       return sum;
     }
@@ -67,23 +87,33 @@ class Math {
 
     // Integer part of x/y, where x and y are natural numbers.
     function int divide(int x, int y) {
-      var int q, twoY, diff;
+      //var int q, twoY, diff, negY, negX, result;
 
-      if (y > x) {
-        return 0;
-      }
+      //if (x < 0) {
+      //  let sign = -1;
+      //  let x = -x;
+      //} else {
+      //  let sign = 1;
+      //}
 
-      let twoY = y + y;
-      let q = x / twoY;
-      let twoQY = q * twoY;
-      let diff = x - twoQY;
+      //if (y > x) {
+      //  let twoQy = 0;
+      //  return 0;
+      //}
 
-      if (diff < y) {
-        return q + q;
-      }
-      else {
-        return q + q + 1;
-      }
+      //let twoY = y + y;
+      //let q = x / twoY;
+      //let diff = x - twoQy;
+
+      //if (diff < y) {
+      //  let twoQy = twoY + q;
+      //  let result = q + q;
+      //}
+      //else {
+      //  let twoQy = -(twoY + q);
+      //  let result = q + q + 1;
+      //}
+      return 42;
     }
 
     /** Returns the integer part of the square root of x. */
