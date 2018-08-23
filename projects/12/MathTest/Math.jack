@@ -134,11 +134,19 @@ class Math {
 
     /** Returns the greater number. */
     function int max(int a, int b) {
-      return 42;
+      if (a > b) {
+        return a;
+      } else {
+        return b;
+      }
     }
 
     /** Returns the smaller number. */
     function int min(int a, int b) {
-      return 42;
+      if (a < b) {
+        return a;
+      } else {
+        return b;
+      }
     }
 }
