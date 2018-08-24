@@ -1,5 +1,5 @@
 function String.new 0
-push constant 3
+push constant 4
 call Memory.alloc 1
 pop pointer 0
 push argument 0
@@ -175,20 +175,6 @@ label IF_END1
 function String.setInt 2
 push argument 0
 pop pointer 0
-label WHILE_EXP0
-push this 1
-push constant 0
-gt
-not
-if-goto WHILE_END0
-push pointer 0
-call String.eraseLastChar 1
-pop temp 0
-goto WHILE_EXP0
-label WHILE_END0
-push argument 1
-call Output.printInt 1
-pop temp 0
 push argument 1
 push constant 0
 lt
@@ -198,10 +184,9 @@ label IF_TRUE0
 push argument 1
 neg
 pop argument 1
-push pointer 0
-push constant 45
-call String.appendChar 2
-pop temp 0
+push constant 0
+not
+pop this 3
 label IF_FALSE0
 push argument 1
 push argument 1
@@ -221,6 +206,17 @@ lt
 if-goto IF_TRUE1
 goto IF_FALSE1
 label IF_TRUE1
+push constant 0
+pop this 1
+push this 3
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push pointer 0
+push constant 45
+call String.appendChar 2
+pop temp 0
+label IF_FALSE2
 push pointer 0
 push local 1
 call String.appendChar 2

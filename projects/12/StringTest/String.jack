@@ -13,6 +13,7 @@
 class String {
     field Array buffer;
     field int currentLength, maxLength;
+    field boolean isNegative;
 
     /** constructs a new empty string with a maximum length of maxLength
      *  and initial length of 0. */
@@ -93,7 +94,7 @@ class String {
         let i = 1;
       }
 
-      // TODO: and is digit..
+      // TODO: and is digit?
       while (i < currentLength) {
         let digitIntValue = buffer[i] - 48; // 0 in ascii
         let res = res * 10 + digitIntValue;
@@ -109,25 +110,26 @@ class String {
 
     /** Sets this string to hold a representation of the given value. */
     // string has already been allocated for
+    // clearstring only first time..
+    // maybe we can overwrite and reset length?
     method void setInt(int val) {
       var int lastDigit, c;
 
-      // how to clear existing string
-      while (currentLength > 0) {
-        do eraseLastChar();
-      }
-
-      // and still add / remove neg sign..
+      // handle negatives
       if (val < 0) {
         let val = -val;
-        do appendChar(45); // neg sign
+        let isNegative = true;
       }
 
       // modulus
       let lastDigit = val - (val / 10 * 10);
       let c = 48 + lastDigit;
 
-      if (val < 10) {
+      if (val < 10) { // only for first digit
+        let currentLength = 0;
+        if (isNegative) {
+          do appendChar(45); // prepend neg sign
+        }
         do appendChar(c);
       } else {
         do setInt(val / 10);
