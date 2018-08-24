@@ -56,13 +56,16 @@ class Keyboard {
     function char readChar() {
       var char keyPressed;
 
-      do Output.printChar(Memory.peek(keyboardRAMSegment));
+      //do Output.printChar(Memory.peek(keyboardRAMSegment));
 
       while (keyPressed = 0) {
         let keyPressed = Memory.peek(keyboardRAMSegment);
       }
 
-//      do Output.printChar(keyPressed);
+      // not sure why we need to do this?
+      do Memory.poke(keyboardRAMSegment, 0);
+
+      do Output.printChar(keyPressed);
 
       return keyPressed;
     }
@@ -108,10 +111,17 @@ class Keyboard {
       var char keyPressed;
       var String text;
 
+      let text = String.new(10);
+
       do Output.printString(message);
 
-      while (~(keyPressed = String.newLine())) {
-        let keyPressed = Memory.peek(keyboardRAMSegment);
+      while (true) {
+        let keyPressed = Keyboard.readChar();
+
+        if (keyPressed = String.newLine()) {
+          do Output.printString(text);
+          return text.intValue();
+        }
 
         if (keyPressed = String.backSpace()) {
           do text.eraseLastChar();
