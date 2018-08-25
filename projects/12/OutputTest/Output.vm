@@ -1514,12 +1514,36 @@ push temp 0
 pop that 0
 push constant 0
 return
-function Output.printChar 6
+function Output.printChar 9
 push argument 0
 call Output.getMap 1
 pop local 0
 push constant 0
 pop local 1
+push static 2
+push static 1
+sub
+pop local 5
+push local 5
+push static 3
+call Math.divide 2
+pop local 6
+push static 2
+push static 1
+push local 6
+push static 3
+call Math.multiply 2
+add
+sub
+pop local 4
+push constant 63
+push local 4
+call Math.multiply 2
+push static 3
+push constant 1
+sub
+call Math.divide 2
+pop local 7
 label WHILE_EXP0
 push local 1
 push constant 11
@@ -1545,35 +1569,40 @@ pop local 1
 push static 2
 push static 1
 sub
+pop local 2
+push local 2
+push static 3
+call Math.divide 2
 pop local 3
 push local 3
-push static 3
-call Math.divide 2
-pop local 4
-push static 2
-push static 1
-push local 4
-push static 3
-call Math.multiply 2
-add
-sub
-pop local 2
-push constant 63
-push local 2
-call Math.multiply 2
-push static 3
-push constant 1
-sub
-call Math.divide 2
-pop local 5
-push local 4
 push constant 1
 add
-push local 5
+push local 7
 call Output.moveCursor 2
 pop temp 0
 goto WHILE_EXP0
 label WHILE_END0
+push local 7
+push constant 63
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push local 6
+push constant 1
+add
+push constant 0
+call Output.moveCursor 2
+pop temp 0
+goto IF_END0
+label IF_FALSE0
+push local 6
+push local 7
+push constant 1
+add
+call Output.moveCursor 2
+pop temp 0
+label IF_END0
 push constant 0
 return
 function Output.printString 2
@@ -1593,10 +1622,6 @@ pop local 1
 push local 1
 call Output.printChar 1
 pop temp 0
-push static 2
-push constant 1
-add
-pop static 2
 push local 0
 push constant 1
 add

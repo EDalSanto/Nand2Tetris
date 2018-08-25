@@ -413,3 +413,12 @@ label IF_FALSE0
 push argument 1
 return
 label IF_END0
+function Math.modulus 0
+push argument 0
+push argument 0
+push argument 1
+call Math.divide 2
+push argument 1
+call Math.multiply 2
+sub
+return

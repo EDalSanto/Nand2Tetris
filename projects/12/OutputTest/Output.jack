@@ -185,12 +185,12 @@ class Output {
   /** Moves the cursor to the j-th column of the i-th row,
    *  and erases the character displayed there. */
   function void moveCursor(int i, int j) {
-    var int newRamLocation, xVector, yVector;
+    var int newRamLocation, deltaX, deltaY;
 
-    let yVector = i * screenWidthInRegisters;
+    let deltaY = i * screenWidthInRegisters;
     // some percentage of full width * screen width zero based
-    let xVector = (j / 63) * (screenWidthInRegisters - 1);
-    let newRamLocation = screenBase + xVector + yVector;
+    let deltaX = (j / 63) * (screenWidthInRegisters - 1);
+    let newRamLocation = screenBase + deltaX + deltaY;
     let cursor = newRamLocation;
     // erase
     let cursor[0] = 0;
@@ -202,22 +202,39 @@ class Output {
    *  and advances the cursor one column forward. */
   function void printChar(char c) {
     var Array charMap;
-    var int i, deltaX, deltaY, currentRow, currentColumn;
+    var int i, deltaY, currentRow;
+    var int initialDeltaX, initialDeltaY, startingRow, startingColumn;
 
     let charMap = Output.getMap(c);
     let i = 0;
 
+    let initialDeltaY = cursor - screenBase;
+    let startingRow = initialDeltaY / screenWidthInRegisters;
+    // find current column using reverse of above
+    let initialDeltaX = cursor - (screenBase + (startingRow * screenWidthInRegisters));
+    let startingColumn = (63 * initialDeltaX) / (screenWidthInRegisters - 1);
+
     while (i < 11) {
       let cursor[0] = charMap[i];
       let i = i + 1;
-      // take care of row
+      // fune current row using reverse of above
       let deltaY = cursor - screenBase;
       let currentRow = deltaY / screenWidthInRegisters;
-      // take care of column
-      let deltaX = cursor - (screenBase + (currentRow * screenWidthInRegisters));
-      let currentColumn = (63 * deltaX) / (screenWidthInRegisters - 1);
       // move cursor
-      do Output.moveCursor(currentRow + 1, currentColumn);
+      do Output.moveCursor(currentRow + 1, startingColumn);
+    }
+
+    // move cursor ahead 1 column
+    // if at end of row (starting column = 63)
+    //  incr row by 1
+    //  col is 0
+    // else
+    //  same row
+    //  col + 1
+    if (startingColumn = 63) { // end of row
+      do Output.moveCursor(startingRow + 1, 0);
+    } else {
+      do Output.moveCursor(startingRow, startingColumn + 1);
     }
 
     return;
@@ -232,10 +249,8 @@ class Output {
     while (i < s.length()) {
       // get current char
       let currentChar = s[i];
-      // set screen location of cursor to char
+      // print
       do Output.printChar(currentChar);
-      // update cursor
-      let cursor = cursor + 1;
       // update i
       let i = i + 1;
     }
