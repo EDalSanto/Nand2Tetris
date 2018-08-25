@@ -201,18 +201,22 @@ class Output {
   /** Displays the given character at the cursor location,
    *  and advances the cursor one column forward. */
   function void printChar(char c) {
-    var int currentSubChar;
     var Array charMap;
-    var int i, currentRow, currentColumn;
+    var int i, deltaX, deltaY, currentRow, currentColumn;
 
     let charMap = Output.getMap(c);
     let i = 0;
 
     while (i < 11) {
-      let cursor[i] = charMap[i];
+      let cursor[0] = charMap[i];
       let i = i + 1;
-      let currentRow = (cursor - screenBase) / screenWidthInRegisters;
-      let currentColumn = cursor - ((currentRow * screenWidthInRegisters) + screenBase);
+      // take care of row
+      let deltaY = cursor - screenBase;
+      let currentRow = deltaY / screenWidthInRegisters;
+      // take care of column
+      let deltaX = cursor - (screenBase + (currentRow * screenWidthInRegisters));
+      let currentColumn = (63 * deltaX) / (screenWidthInRegisters - 1);
+      // move cursor
       do Output.moveCursor(currentRow + 1, currentColumn);
     }
 

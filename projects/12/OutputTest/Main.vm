@@ -6,7 +6,7 @@ push local 0
 call String.doubleQuote 0
 call String.appendChar 2
 pop temp 0
-push constant 1
+push constant 0
 push constant 63
 call Output.moveCursor 2
 pop temp 0

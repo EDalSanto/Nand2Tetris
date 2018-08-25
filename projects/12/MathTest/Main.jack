@@ -10,6 +10,11 @@ class Main {
     function void main() {
         var Array r;          // stores the test results;
 
+        var int test;
+
+        let test = 189 / 31;
+        do Output.printInt((test / 63) * 31);
+
         let r = 8000;
 
         let r[0] = 2 * 3;                  // 6

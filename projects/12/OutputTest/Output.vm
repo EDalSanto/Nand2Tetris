@@ -1514,23 +1514,23 @@ push temp 0
 pop that 0
 push constant 0
 return
-function Output.printChar 5
+function Output.printChar 6
 push argument 0
 call Output.getMap 1
-pop local 1
+pop local 0
 push constant 0
-pop local 2
+pop local 1
 label WHILE_EXP0
-push local 2
+push local 1
 push constant 11
 lt
 not
 if-goto WHILE_END0
-push local 2
+push constant 0
 push static 2
 add
-push local 2
 push local 1
+push local 0
 add
 pop pointer 1
 push that 0
@@ -1538,28 +1538,38 @@ pop temp 0
 pop pointer 1
 push temp 0
 pop that 0
-push local 2
+push local 1
 push constant 1
 add
-pop local 2
+pop local 1
 push static 2
 push static 1
 sub
+pop local 3
+push local 3
 push static 3
 call Math.divide 2
-pop local 3
+pop local 4
 push static 2
-push local 3
+push static 1
+push local 4
 push static 3
 call Math.multiply 2
-push static 1
 add
 sub
-pop local 4
-push local 3
+pop local 2
+push constant 63
+push local 2
+call Math.multiply 2
+push static 3
+push constant 1
+sub
+call Math.divide 2
+pop local 5
+push local 4
 push constant 1
 add
-push local 4
+push local 5
 call Output.moveCursor 2
 pop temp 0
 goto WHILE_EXP0
