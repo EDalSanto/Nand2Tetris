@@ -1,0 +1,178 @@
+function Memory.init 0
+push constant 0
+pop static 0
+push constant 2048
+pop static 3
+push constant 14335
+pop static 4
+push constant 0
+pop static 5
+push static 3
+pop static 1
+push static 1
+pop static 2
+push constant 0
+push static 1
+add
+push static 5
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 1
+push static 1
+add
+push static 4
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 0
+return
+function Memory.peek 0
+push argument 0
+push static 0
+add
+pop pointer 1
+push that 0
+return
+function Memory.poke 0
+push argument 0
+push static 0
+add
+push argument 1
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 0
+return
+function Memory.alloc 6
+push static 2
+pop local 0
+push local 0
+push static 0
+add
+pop pointer 1
+push that 0
+pop local 1
+push local 0
+push constant 1
+add
+push static 0
+add
+pop pointer 1
+push that 0
+pop local 2
+label WHILE_EXP0
+push local 2
+push argument 0
+push constant 2
+add
+lt
+not
+if-goto WHILE_END0
+push local 1
+pop local 0
+push local 0
+push static 0
+add
+pop pointer 1
+push that 0
+pop local 1
+push local 0
+push constant 1
+add
+push static 0
+add
+pop pointer 1
+push that 0
+pop local 2
+goto WHILE_EXP0
+label WHILE_END0
+push local 0
+push constant 1
+add
+push static 0
+add
+pop pointer 1
+push that 0
+push argument 0
+sub
+pop local 2
+push local 0
+push constant 1
+add
+push static 0
+add
+push local 2
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push local 0
+push constant 2
+add
+push local 2
+add
+pop local 3
+push constant 0
+pop local 4
+push local 3
+push static 0
+add
+push local 4
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push local 3
+push constant 1
+add
+push static 0
+add
+push argument 0
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push local 3
+push constant 2
+add
+return
+function Memory.deAlloc 2
+push static 2
+pop local 1
+push local 1
+push static 0
+add
+pop pointer 1
+push that 0
+pop local 0
+label WHILE_EXP0
+push local 0
+push constant 0
+eq
+not
+not
+if-goto WHILE_END0
+push local 0
+pop local 1
+push local 1
+push static 0
+add
+pop pointer 1
+push that 0
+pop local 0
+goto WHILE_EXP0
+label WHILE_END0
+push local 0
+push static 0
+add
+push argument 0
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 0
+return
