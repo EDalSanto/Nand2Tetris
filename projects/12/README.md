@@ -21,6 +21,12 @@
   * manipulating any part of RAM at will!
 
 ### Heap Management
+* makes use of linked list directly in memory to manage free memory segments
+
+### Textual Output
+* Font Implementation
+  * char mapping created from ascii number to numbers which represent whether a square is turned on in a grid -> forms each char
+
 
 ### Graphics
 * Bitmap Graphics -> series of N-bit words telling screen which bits to turn on / off
