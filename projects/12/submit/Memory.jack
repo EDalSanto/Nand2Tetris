@@ -1,0 +1,91 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Memory.jack
+
+/**
+ * This library provides two services: direct access to the computer's main
+ * memory (RAM), and allocation and recycling of memory blocks. The Hack RAM
+ * consists of 32,768 words, each holding a 16-bit binary number.
+ */
+class Memory {
+    static Array ram, heap, freeList, heapBase, heapLength, heapNext;
+
+    /** Initializes the class. */
+    function void init() {
+      let ram = 0;
+      let heapBase = 2048;
+      let heapLength = 14335;
+      let heapNext = 0;
+
+      let heap = heapBase;
+      let freeList = heap;
+      let heap[0] = heapNext;
+      let heap[1] = heapLength;
+
+      return;
+    }
+
+    /** Returns the RAM value at the given address. */
+    function int peek(int address) {
+      return ram[address];
+    }
+
+    /** Sets the RAM value at the given address to the given value. */
+    function void poke(int address, int value) {
+      let ram[address] = value;
+
+      return;
+    }
+
+    /** Finds an available RAM block of the given size and returns
+     *  a reference to its base address. */
+    function int alloc(int size) {
+      var int segmentBaseAddress, segmentNext, segmentLength, newSegmentBaseAddress, newSegmentNext, newSegmentLength;
+
+      // initialize
+      let segmentBaseAddress = freeList;
+      let segmentNext = ram[segmentBaseAddress];
+      let segmentLength = ram[segmentBaseAddress + 1];
+
+      // find segment
+      while (segmentLength < (size + 2)) {
+        let segmentBaseAddress = segmentNext;
+        let segmentNext = ram[segmentBaseAddress];
+        let segmentLength = ram[segmentBaseAddress + 1];
+      }
+
+      // update current segment length
+      let segmentLength = ram[segmentBaseAddress + 1] - size;
+      let ram[segmentBaseAddress + 1] = segmentLength;
+      // set new base address
+      let newSegmentBaseAddress = segmentBaseAddress + 2 + segmentLength;
+      // set next of new segment
+      let newSegmentNext = 0; // points to nothing
+      let ram[newSegmentBaseAddress] = newSegmentNext; // points to nothing
+      // set length of new segment
+      let ram[newSegmentBaseAddress + 1] = size;
+      // return block address after 2 metadata blocks
+      return newSegmentBaseAddress + 2;
+    }
+
+    /** De-allocates the given object (cast as an array) by making
+     *  it available for future allocations. */
+    function void deAlloc(Array o) {
+      var int nextSegmentAddress, currentSegmentAddress;
+
+      let currentSegmentAddress = freeList;
+      let nextSegmentAddress = ram[currentSegmentAddress];
+
+      // find end of free list
+      while (~(nextSegmentAddress = 0)) {
+        let currentSegmentAddress = nextSegmentAddress;
+        let nextSegmentAddress = ram[currentSegmentAddress];
+      }
+
+      // append object to end of freelist
+      let ram[nextSegmentAddress] = o;
+
+      return;
+    }
+}

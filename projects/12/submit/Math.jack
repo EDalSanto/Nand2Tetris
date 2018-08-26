@@ -1,0 +1,187 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Math.jack
+
+/**
+ * A library of commonly used mathematical functions.
+ * Note: Jack compilers implement multiplication and division using OS method calls.
+ */
+class Math {
+    static int powersOfTwo;
+    static int numBitsInInteger;
+
+    /** Initializes the library. */
+    function void init() {
+      let powersOfTwo = Array.new(16);
+      let powersOfTwo[0] = 1;
+      let powersOfTwo[1] = 2;
+      let powersOfTwo[2] = 4;
+      let powersOfTwo[3] = 8;
+      let powersOfTwo[4] = 16;
+      let powersOfTwo[5] = 32;
+      let powersOfTwo[6] = 64;
+      let powersOfTwo[7] = 128;
+      let powersOfTwo[8] = 256;
+      let powersOfTwo[9] = 512;
+      let powersOfTwo[10] = 1024;
+      let powersOfTwo[11] = 2048;
+      let powersOfTwo[12] = 4096;
+      let powersOfTwo[13] = 8192;
+      let powersOfTwo[14] = 16384;
+      let powersOfTwo[15] = 16384+16384;
+      let numBitsInInteger = 16;
+      return;
+    }
+
+    /** Returns the absolute value of x. */
+    function int abs(int x) {
+      if (x < 0) {
+        return -x;
+      } else {
+        return x;
+      }
+    }
+
+    /** Returns the product of x and y.
+     *  When a Jack compiler detects the multiplication operator '*' in the
+     *  program's code, it handles it by invoking this method. In other words,
+     *  the Jack expressions x*y and multiply(x,y) return the same value.
+     */
+    function int multiply(int x, int y) {
+      var int sum, shiftedX, mask, sign, bitsSeen;
+
+      let sum = 0;
+      let shiftedX = x;
+      let bitsSeen = 0;
+      let mask = powersOfTwo[bitsSeen];
+
+      // handle sign
+      if (y < 0) {
+        let sign = -1;
+        let y = -y;
+      } else {
+        let sign = 1;
+      }
+
+      while (bitsSeen < numBitsInInteger) {
+        // num & mask = whether powerOfTwo bit is turned on in num
+        if (~((y & mask) = 0)) {
+          let sum = sum + shiftedX;
+        }
+        let shiftedX = shiftedX + shiftedX;
+        let bitsSeen = bitsSeen + 1;
+        // Mask doubling / next power of 2 at each turn
+        let mask = powersOfTwo[bitsSeen];
+      }
+
+      // apply sign if need be
+      if (sign = -1) {
+        let sum = -sum;
+      }
+
+      return sum;
+    }
+
+    /** Returns the integer part of x/y.
+     *  When a Jack compiler detects the multiplication operator '/' in the
+     *  program's code, it handles it by invoking this method. In other words,
+     *  the Jack expressions x/y and divide(x,y) return the same value.
+     */
+
+    // Integer part of x/y, where x and y are natural numbers.
+    function int divide(int x, int y) {
+      var int q, twoY, twoQY, diff, negY, negX, result;
+
+      let negX = x < 0;
+      let negY = y < 0;
+
+      if (negX) {
+        let x = Math.abs(x);
+      }
+
+      if (negY) {
+        let y = Math.abs(y);
+      }
+
+      if (y > x) {
+        return 0;
+      }
+
+      let twoY = y + y;
+      let q = x / twoY;
+      let twoQY = q * twoY;
+      let diff = x - twoQY;
+
+      if (diff < y) {
+        let result = q + q;
+      }
+      else {
+        let result = q + q + 1;
+      }
+
+      if (negX = negY) {
+        return result;
+      } else {
+        return -result;
+      }
+    }
+
+    /** Returns the integer part of the square root of x. */
+    // aka "Floor Sqrt"
+    function int sqrt(int x) {
+      var int low, high, mid, squared, ans;
+
+      // base cases
+      if ((x = 0) | (x = 1)) {
+        return x;
+      }
+
+      let low = 1;
+      let high = 181; // this squared leads to max int for hack platform, 2^16
+      let ans = 0;
+
+      while ((low < high) | (low = high)) {
+        let mid = (high + low) / 2;
+        let squared = mid * mid;
+
+        // perfect square
+        if (squared = x) {
+          return mid;
+        }
+
+        if (squared > x) {
+          let high = mid - 1;
+        } else {
+          let low = mid + 1;
+          // since we need floor, we update answer when square < x
+          // and move closer to sqrt(x)
+          let ans = mid;
+        }
+      }
+
+      return ans;
+    }
+
+    /** Returns the greater number. */
+    function int max(int a, int b) {
+      if (a > b) {
+        return a;
+      } else {
+        return b;
+      }
+    }
+
+    /** Returns the smaller number. */
+    function int min(int a, int b) {
+      if (a < b) {
+        return a;
+      } else {
+        return b;
+      }
+    }
+
+    function int modulus(int a, int b) {
+      return a - (a / b * b);
+    }
+}

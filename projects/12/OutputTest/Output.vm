@@ -1489,12 +1489,10 @@ push static 3
 call Math.multiply 2
 pop local 2
 push argument 1
-push constant 63
-call Math.divide 2
-push static 3
 push constant 1
-sub
-call Math.multiply 2
+add
+push constant 2
+call Math.divide 2
 pop local 1
 push static 1
 push local 1
@@ -1504,14 +1502,6 @@ add
 pop local 0
 push local 0
 pop static 2
-push constant 0
-push static 2
-add
-push constant 0
-pop temp 0
-pop pointer 1
-push temp 0
-pop that 0
 push constant 0
 return
 function Output.printChar 8
@@ -1536,13 +1526,11 @@ call Math.multiply 2
 add
 sub
 pop local 4
-push constant 63
+push constant 2
 push local 4
 call Math.multiply 2
-push static 3
 push constant 1
 sub
-call Math.divide 2
 pop local 7
 label WHILE_EXP0
 push local 1
@@ -1584,7 +1572,9 @@ goto WHILE_EXP0
 label WHILE_END0
 push constant 0
 return
-function Output.printString 2
+function Output.printString 1
+push constant 0
+pop local 0
 label WHILE_EXP0
 push local 0
 push argument 0
@@ -1592,13 +1582,9 @@ call String.length 1
 lt
 not
 if-goto WHILE_END0
-push local 0
 push argument 0
-add
-pop pointer 1
-push that 0
-pop local 1
-push local 1
+push local 0
+call String.charAt 2
 call Output.printChar 1
 pop temp 0
 push local 0

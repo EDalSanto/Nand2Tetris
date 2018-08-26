@@ -23,7 +23,7 @@ class Main {
         //do Output.printChar(65);
 
         do Output.moveCursor(2, 0);
-        do Output.printString("0123456789");
+        do Output.printString("0123456");
         //do Output.println();
         //
         //do Output.printString("ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz");

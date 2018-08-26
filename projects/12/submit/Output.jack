@@ -189,9 +189,11 @@ class Output {
 
     let deltaY = i * screenWidthInRegisters;
     // some percentage of full width * screen width zero based
-    let deltaX = (j + 1) / 2;
+    let deltaX = (j / 63) * (screenWidthInRegisters - 1);
     let newRamLocation = screenBase + deltaX + deltaY;
     let cursor = newRamLocation;
+    // erase
+    let cursor[0] = 0;
 
     return;
   }
@@ -210,7 +212,7 @@ class Output {
     let startingRow = initialDeltaY / screenWidthInRegisters;
     // find current column using reverse of above
     let initialDeltaX = cursor - (screenBase + (startingRow * screenWidthInRegisters));
-    let startingColumn = 2 * initialDeltaX - 1;
+    let startingColumn = (63 * initialDeltaX) / (screenWidthInRegisters - 1);
 
     while (i < 11) {
       let cursor[0] = charMap[i];
@@ -222,9 +224,16 @@ class Output {
       do Output.moveCursor(currentRow + 1, startingColumn);
     }
 
-    //do Output.moveCursor(startingRow, startingColumn + 30);
+    // move cursor ahead 1 column
+    // if at end of row (starting column = 63)
+    //  incr row by 1
+    //  col is 0
+    // else
+    //  same row
+    //  col + 1
+    //do Output.moveCursor(startingRow, startingColumn);
 
-    //let cursor = screenBase + (startingRow * screenWidthInRegisters) + initialDeltaX + 1;
+    //let cursor = screenBase + (startingRow * screenWidthInRegisters) + 1;
 
     return;
   }
@@ -233,12 +242,13 @@ class Output {
    *  and advances the cursor appropriately. */
   function void printString(String s) {
     var int i;
-
-    let i = 0;
+    var char currentChar;
 
     while (i < s.length()) {
+      // get current char
+      let currentChar = s[i];
       // print
-      do Output.printChar(s.charAt(i));
+      do Output.printChar(currentChar);
       // update i
       let i = i + 1;
     }

@@ -10,7 +10,7 @@ push constant 2
 push constant 0
 call Output.moveCursor 2
 pop temp 0
-push constant 10
+push constant 7
 call String.new 1
 push constant 48
 call String.appendChar 2
@@ -25,12 +25,6 @@ call String.appendChar 2
 push constant 53
 call String.appendChar 2
 push constant 54
-call String.appendChar 2
-push constant 55
-call String.appendChar 2
-push constant 56
-call String.appendChar 2
-push constant 57
 call String.appendChar 2
 call Output.printString 1
 pop temp 0
