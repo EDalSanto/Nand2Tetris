@@ -1514,7 +1514,7 @@ push temp 0
 pop that 0
 push constant 0
 return
-function Output.printChar 9
+function Output.printChar 8
 push argument 0
 call Output.getMap 1
 pop local 0
@@ -1582,27 +1582,6 @@ call Output.moveCursor 2
 pop temp 0
 goto WHILE_EXP0
 label WHILE_END0
-push local 7
-push constant 63
-eq
-if-goto IF_TRUE0
-goto IF_FALSE0
-label IF_TRUE0
-push local 6
-push constant 1
-add
-push constant 0
-call Output.moveCursor 2
-pop temp 0
-goto IF_END0
-label IF_FALSE0
-push local 6
-push local 7
-push constant 1
-add
-call Output.moveCursor 2
-pop temp 0
-label IF_END0
 push constant 0
 return
 function Output.printString 2

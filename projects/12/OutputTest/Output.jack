@@ -231,11 +231,9 @@ class Output {
     // else
     //  same row
     //  col + 1
-    if (startingColumn = 63) { // end of row
-      do Output.moveCursor(startingRow + 1, 0);
-    } else {
-      do Output.moveCursor(startingRow, startingColumn + 1);
-    }
+    //do Output.moveCursor(startingRow, startingColumn);
+
+    //let cursor = screenBase + (startingRow * screenWidthInRegisters) + 1;
 
     return;
   }
