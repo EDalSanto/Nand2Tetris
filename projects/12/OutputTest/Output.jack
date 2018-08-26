@@ -222,7 +222,7 @@ class Output {
       do Output.moveCursor(currentRow + 1, startingColumn);
     }
 
-    //do Output.moveCursor(startingRow, startingColumn + 30);
+    do Output.moveCursor(startingRow, startingColumn + 2);
 
     //let cursor = screenBase + (startingRow * screenWidthInRegisters) + initialDeltaX + 1;
 
