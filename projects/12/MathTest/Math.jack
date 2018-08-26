@@ -48,6 +48,7 @@ class Math {
      *  program's code, it handles it by invoking this method. In other words,
      *  the Jack expressions x*y and multiply(x,y) return the same value.
      */
+    // algorithm mirrors grade school multiplication algo
     function int multiply(int x, int y) {
       var int sum, shiftedX, mask, sign, bitsSeen;
 

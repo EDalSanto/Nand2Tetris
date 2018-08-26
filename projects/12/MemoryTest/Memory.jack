@@ -49,7 +49,7 @@ class Memory {
       let segmentLength = ram[segmentBaseAddress + 1];
 
       // find segment
-      while (segmentLength < (size + 2)) {
+      while (segmentLength < (size + 2)) { // 2 extra spaces for next and segment size
         let segmentBaseAddress = segmentNext;
         let segmentNext = ram[segmentBaseAddress];
         let segmentLength = ram[segmentBaseAddress + 1];
