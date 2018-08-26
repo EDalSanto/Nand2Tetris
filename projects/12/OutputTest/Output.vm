@@ -1511,16 +1511,10 @@ push that 0
 return
 function Output.moveCursor 3
 push argument 0
-pop static 6
-push argument 1
-pop static 5
-push argument 0
 push static 3
 call Math.multiply 2
 pop local 2
 push argument 1
-push constant 1
-add
 push constant 2
 call Math.divide 2
 pop local 1
@@ -1534,28 +1528,28 @@ push local 0
 pop static 2
 push constant 0
 return
-function Output.printChar 11
+function Output.printChar 12
 push argument 0
 call Output.getMap 1
 pop local 0
-push constant 0
-pop local 1
 push static 2
 push static 1
 sub
-pop local 6
-push local 6
+pop local 9
+push local 9
 push static 3
 call Math.divide 2
 pop local 7
-push static 2
-push static 1
+push local 9
 push local 7
 push static 3
 call Math.multiply 2
-add
 sub
 pop local 5
+push constant 2
+push local 5
+call Math.multiply 2
+pop local 8
 push static 5
 push constant 1
 and
@@ -1566,18 +1560,20 @@ goto IF_FALSE0
 label IF_TRUE0
 push constant 255
 not
-pop local 9
-push local 9
-not
 pop local 10
+push local 10
+not
+pop local 11
 goto IF_END0
 label IF_FALSE0
 push constant 255
-pop local 9
-push local 9
-not
 pop local 10
+push local 10
+not
+pop local 11
 label IF_END0
+push constant 0
+pop local 1
 label WHILE_EXP0
 push local 1
 push constant 11
@@ -1591,7 +1587,7 @@ pop pointer 1
 push that 0
 pop local 4
 push local 4
-push local 10
+push local 11
 and
 pop local 4
 push constant 0
@@ -1602,7 +1598,7 @@ push static 2
 add
 pop pointer 1
 push that 0
-push local 9
+push local 10
 and
 pop temp 0
 pop pointer 1
@@ -1622,10 +1618,6 @@ pop temp 0
 pop pointer 1
 push temp 0
 pop that 0
-push local 1
-push constant 1
-add
-pop local 1
 push static 2
 push static 1
 sub
@@ -1640,13 +1632,24 @@ add
 push local 8
 call Output.moveCursor 2
 pop temp 0
+push local 1
+push constant 1
+add
+pop local 1
 goto WHILE_EXP0
 label WHILE_END0
+push local 7
+push local 8
+call Output.moveCursor 2
+pop temp 0
 push static 5
 push constant 1
 and
 push constant 1
 eq
+push static 5
+not
+or
 if-goto IF_TRUE1
 goto IF_FALSE1
 label IF_TRUE1
@@ -1657,15 +1660,13 @@ add
 call Output.moveCursor 2
 pop temp 0
 label IF_FALSE1
-push static 5
-push constant 1
-add
-pop static 5
 push constant 0
 return
 function Output.printString 1
 push constant 0
 pop local 0
+push constant 0
+pop static 5
 label WHILE_EXP0
 push local 0
 push argument 0
@@ -1682,6 +1683,10 @@ push local 0
 push constant 1
 add
 pop local 0
+push static 5
+push constant 1
+add
+pop static 5
 goto WHILE_EXP0
 label WHILE_END0
 push constant 0

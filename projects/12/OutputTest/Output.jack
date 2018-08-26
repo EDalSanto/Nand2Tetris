@@ -190,10 +190,8 @@ class Output {
   function void moveCursor(int i, int j) {
     var int newRamLocation, deltaX, deltaY;
 
-    let cursorY = i;
-    let cursorX = j;
     let deltaY = i * screenWidthInRegisters;
-    let deltaX = (j + 1) / 2;
+    let deltaX = j / 2;
     let newRamLocation = screenBase + deltaX + deltaY;
     let cursor = newRamLocation;
 
@@ -205,49 +203,53 @@ class Output {
 
   function void printChar(char c) {
     var Array charMap;
-    var int i, deltaY, currentRow, bitMap;
-    var int initialDeltaX, initialDeltaY, startingRow, startingColumn;
+    var int i, deltaY, currentRow, bitMap, initialDeltaX;
+    var int initialDeltaY, startingRow, startingColumn, cursorDiff;
     var int clearMask, fontMask;
 
+    // get full char map
     let charMap = Output.getMap(c);
-    let i = 0;
 
-    let initialDeltaY = cursor - screenBase;
-    let startingRow = initialDeltaY / screenWidthInRegisters;
+    // get row and column based on 23 X 64 grid
+    let cursorDiff = cursor - screenBase;
+    let startingRow = cursorDiff / screenWidthInRegisters;
     // find current column using reverse of above
-    let initialDeltaX = cursor - (screenBase + (startingRow * screenWidthInRegisters));
+    let initialDeltaX = cursorDiff - (startingRow * screenWidthInRegisters);
+    let startingColumn = 2 * initialDeltaX;
 
-    if ((cursorX & 1) = 0) { // even
-      let clearMask = ~255;
-      let fontMask = ~clearMask;
-    } else { //  odd
-      let clearMask = 255;
-      let fontMask = ~clearMask;
+    // set masks based on column
+    if ((cursorX & 1) = 0) {     // even column
+      let clearMask = ~255;      // 0XFF00
+      let fontMask = ~clearMask; // 0X00FF -> turn off lower half of bits
+    } else {                     // odd column
+      let clearMask = 255;       // 0X00FF
+      let fontMask = ~clearMask; // 0xFF00 -> turn off upper half of bits
     }
 
+    let i = 0;
     while (i < 11) {
       let bitMap = charMap[i];
       // when drawing chars to screen, need to be written only to top half or bottom half
       // of word (reg) so they will not interfere with other
-      let bitMap = bitMap & fontMask;
-      let cursor[0] = cursor[0] & clearMask;
-      let cursor[0] = cursor[0] | bitMap;
-      let i = i + 1;
+      let bitMap = bitMap & fontMask;        // turn half of bits
+      let cursor[0] = cursor[0] & clearMask; // clear half of word bits
+      let cursor[0] = cursor[0] | bitMap;    // set the other half
       // fune current row using reverse of above
       let deltaY = cursor - screenBase;
       let currentRow = deltaY / screenWidthInRegisters;
       // move cursor
       do Output.moveCursor(currentRow + 1, startingColumn);
+      // inc counter
+      let i = i + 1;
     }
 
-    if ((cursorX & 1) = 1) { // odd
-      // incr cursor ram pointer
+    // set cursor back to start
+    do Output.moveCursor(startingRow, startingColumn);
+    // if odd column -> case for strings
+    if ((cursorX & 1) = 1) {
+      // move 1 register down in row
       do Output.moveCursor(startingRow, startingColumn + 2);
-    }// else {
-     // do Output.moveCursor(startingRow, startingColumn + 1);
-    //}
-
-    let cursorX = cursorX + 1;
+    }
 
     return;
   }
@@ -258,10 +260,12 @@ class Output {
     var int i;
 
     let i = 0;
+    let cursorX = 0;
 
     while (i < s.length()) {
       do Output.printChar(s.charAt(i));
       let i = i + 1;
+      let cursorX = cursorX + 1;
     }
 
     return;
