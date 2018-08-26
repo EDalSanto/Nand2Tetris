@@ -7,6 +7,10 @@ push constant 32
 pop static 3
 push constant 256
 pop static 4
+push constant 0
+pop static 5
+push constant 0
+pop static 6
 call Output.initMap 0
 pop temp 0
 push constant 0
@@ -1377,6 +1381,8 @@ push constant 0
 push local 0
 add
 push argument 1
+push constant 257
+call Math.multiply 2
 pop temp 0
 pop pointer 1
 push temp 0
@@ -1385,6 +1391,8 @@ push constant 1
 push local 0
 add
 push argument 2
+push constant 257
+call Math.multiply 2
 pop temp 0
 pop pointer 1
 push temp 0
@@ -1393,6 +1401,8 @@ push constant 2
 push local 0
 add
 push argument 3
+push constant 257
+call Math.multiply 2
 pop temp 0
 pop pointer 1
 push temp 0
@@ -1401,6 +1411,8 @@ push constant 3
 push local 0
 add
 push argument 4
+push constant 257
+call Math.multiply 2
 pop temp 0
 pop pointer 1
 push temp 0
@@ -1409,6 +1421,8 @@ push constant 4
 push local 0
 add
 push argument 5
+push constant 257
+call Math.multiply 2
 pop temp 0
 pop pointer 1
 push temp 0
@@ -1417,6 +1431,8 @@ push constant 5
 push local 0
 add
 push argument 6
+push constant 257
+call Math.multiply 2
 pop temp 0
 pop pointer 1
 push temp 0
@@ -1425,6 +1441,8 @@ push constant 6
 push local 0
 add
 push argument 7
+push constant 257
+call Math.multiply 2
 pop temp 0
 pop pointer 1
 push temp 0
@@ -1433,6 +1451,8 @@ push constant 7
 push local 0
 add
 push argument 8
+push constant 257
+call Math.multiply 2
 pop temp 0
 pop pointer 1
 push temp 0
@@ -1441,6 +1461,8 @@ push constant 8
 push local 0
 add
 push argument 9
+push constant 257
+call Math.multiply 2
 pop temp 0
 pop pointer 1
 push temp 0
@@ -1449,6 +1471,8 @@ push constant 9
 push local 0
 add
 push argument 10
+push constant 257
+call Math.multiply 2
 pop temp 0
 pop pointer 1
 push temp 0
@@ -1457,6 +1481,8 @@ push constant 10
 push local 0
 add
 push argument 11
+push constant 257
+call Math.multiply 2
 pop temp 0
 pop pointer 1
 push temp 0
@@ -1485,6 +1511,10 @@ push that 0
 return
 function Output.moveCursor 3
 push argument 0
+pop static 6
+push argument 1
+pop static 5
+push argument 0
 push static 3
 call Math.multiply 2
 pop local 2
@@ -1504,7 +1534,7 @@ push local 0
 pop static 2
 push constant 0
 return
-function Output.printChar 9
+function Output.printChar 11
 push argument 0
 call Output.getMap 1
 pop local 0
@@ -1526,12 +1556,28 @@ call Math.multiply 2
 add
 sub
 pop local 5
-push constant 2
-push local 5
-call Math.multiply 2
+push static 5
 push constant 1
-sub
-pop local 8
+and
+push constant 0
+eq
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push constant 255
+not
+pop local 9
+push local 9
+not
+pop local 10
+goto IF_END0
+label IF_FALSE0
+push constant 255
+pop local 9
+push local 9
+not
+pop local 10
+label IF_END0
 label WHILE_EXP0
 push local 1
 push constant 11
@@ -1544,10 +1590,34 @@ add
 pop pointer 1
 push that 0
 pop local 4
+push local 4
+push local 10
+and
+pop local 4
 push constant 0
 push static 2
 add
+push constant 0
+push static 2
+add
+pop pointer 1
+push that 0
+push local 9
+and
+pop temp 0
+pop pointer 1
+push temp 0
+pop that 0
+push constant 0
+push static 2
+add
+push constant 0
+push static 2
+add
+pop pointer 1
+push that 0
 push local 4
+or
 pop temp 0
 pop pointer 1
 push temp 0
@@ -1572,12 +1642,25 @@ call Output.moveCursor 2
 pop temp 0
 goto WHILE_EXP0
 label WHILE_END0
+push static 5
+push constant 1
+and
+push constant 1
+eq
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
 push local 7
 push local 8
 push constant 2
 add
 call Output.moveCursor 2
 pop temp 0
+label IF_FALSE1
+push static 5
+push constant 1
+add
+pop static 5
 push constant 0
 return
 function Output.printString 1

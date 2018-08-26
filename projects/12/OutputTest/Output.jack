@@ -19,6 +19,7 @@ class Output {
   // Character map for displaying characters
   static Array charMaps, screenBase, cursor;
   static int screenWidthInRegisters, screenHeight;
+  static int cursorX, cursorY;
 
   /** Initializes the screen, and locates the cursor at the screen's top-left. */
   function void init() {
@@ -26,6 +27,8 @@ class Output {
     let cursor = screenBase; // starts at top-left, 0, 0
     let screenWidthInRegisters = 32;
     let screenHeight = 256;
+    let cursorX = 0;
+    let cursorY = 0;
 
     do Output.initMap();
 
@@ -157,17 +160,17 @@ class Output {
     let map = Array.new(11);
     let charMaps[index] = map;
 
-    let map[0] = a;
-    let map[1] = b;
-    let map[2] = c;
-    let map[3] = d;
-    let map[4] = e;
-    let map[5] = f;
-    let map[6] = g;
-    let map[7] = h;
-    let map[8] = i;
-    let map[9] = j;
-    let map[10] = k;
+    let map[0] = a * 257;
+    let map[1] = b * 257;
+    let map[2] = c * 257;
+    let map[3] = d * 257;
+    let map[4] = e * 257;
+    let map[5] = f * 257;
+    let map[6] = g * 257;
+    let map[7] = h * 257;
+    let map[8] = i * 257;
+    let map[9] = j * 257;
+    let map[10] = k * 257;
 
     return;
   }
@@ -187,8 +190,9 @@ class Output {
   function void moveCursor(int i, int j) {
     var int newRamLocation, deltaX, deltaY;
 
+    let cursorY = i;
+    let cursorX = j;
     let deltaY = i * screenWidthInRegisters;
-    // some percentage of full width * screen width zero based
     let deltaX = (j + 1) / 2;
     let newRamLocation = screenBase + deltaX + deltaY;
     let cursor = newRamLocation;
@@ -198,10 +202,12 @@ class Output {
 
   /** Displays the given character at the cursor location,
    *  and advances the cursor one column forward. */
+
   function void printChar(char c) {
     var Array charMap;
     var int i, deltaY, currentRow, bitMap;
     var int initialDeltaX, initialDeltaY, startingRow, startingColumn;
+    var int clearMask, fontMask;
 
     let charMap = Output.getMap(c);
     let i = 0;
@@ -210,12 +216,22 @@ class Output {
     let startingRow = initialDeltaY / screenWidthInRegisters;
     // find current column using reverse of above
     let initialDeltaX = cursor - (screenBase + (startingRow * screenWidthInRegisters));
-    let startingColumn = 2 * initialDeltaX - 1;
+
+    if ((cursorX & 1) = 0) { // even
+      let clearMask = ~255;
+      let fontMask = ~clearMask;
+    } else { //  odd
+      let clearMask = 255;
+      let fontMask = ~clearMask;
+    }
 
     while (i < 11) {
       let bitMap = charMap[i];
-      // find way to determine address here so no spacing  between chars?
-      let cursor[0] = bitMap;
+      // when drawing chars to screen, need to be written only to top half or bottom half
+      // of word (reg) so they will not interfere with other
+      let bitMap = bitMap & fontMask;
+      let cursor[0] = cursor[0] & clearMask;
+      let cursor[0] = cursor[0] | bitMap;
       let i = i + 1;
       // fune current row using reverse of above
       let deltaY = cursor - screenBase;
@@ -224,7 +240,14 @@ class Output {
       do Output.moveCursor(currentRow + 1, startingColumn);
     }
 
-    do Output.moveCursor(startingRow, startingColumn + 2);
+    if ((cursorX & 1) = 1) { // odd
+      // incr cursor ram pointer
+      do Output.moveCursor(startingRow, startingColumn + 2);
+    }// else {
+     // do Output.moveCursor(startingRow, startingColumn + 1);
+    //}
+
+    let cursorX = cursorX + 1;
 
     return;
   }
