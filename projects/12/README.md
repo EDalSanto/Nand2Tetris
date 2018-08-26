@@ -17,16 +17,19 @@
   * algorithms for Mult, Div, and Sqrt make use of logN2 runtime algorithms
 
 ### Memory Access
+![Memory](./images/Memory.png)
 * manage access to RAM in hack way by creating static array in Memory init that points at RAM 0
   * manipulating any part of RAM at will!
 
 ### Heap Management
-* makes use of linked list directly in memory to manage free memory segments
+![HeapManagement](./images/HeapManagement.png)
+![HeapMemoryManagement](./images/HeapMemoryManagement.png)
+![MemoryHeapLinkedList](./images/MemoryHeapLinkedList.png)
 
 ### Textual Output
-* Font Implementation
-  * char mapping created from ascii number to numbers which represent whether a square is turned on in a grid -> forms each char
-
+![FontImplementation](./images/FontImplementation.png)
+![Font](./images/Font.png)
+* char mapping created from ascii number to numbers which represent whether a square is turned on in a grid -> forms each char
 
 ### Graphics
 * Bitmap Graphics -> series of N-bit words telling screen which bits to turn on / off
@@ -37,6 +40,9 @@
 * pixel drawing
   * space in RAM dedicated to screen
   * hardware refresh updates screen from RAM space regularily
+
+### Sys
+![Sys](./images/Sys.png)
 
 ### Line Drawing
 * lines are only approximations on screen

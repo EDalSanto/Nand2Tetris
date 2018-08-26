@@ -214,6 +214,7 @@ class Output {
 
     while (i < 11) {
       let bitMap = charMap[i];
+      // find way to determine address here so no spacing  between chars?
       let cursor[0] = bitMap;
       let i = i + 1;
       // fune current row using reverse of above
