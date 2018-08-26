@@ -200,7 +200,7 @@ class Output {
    *  and advances the cursor one column forward. */
   function void printChar(char c) {
     var Array charMap;
-    var int i, deltaY, currentRow;
+    var int i, deltaY, currentRow, bitMap;
     var int initialDeltaX, initialDeltaY, startingRow, startingColumn;
 
     let charMap = Output.getMap(c);
@@ -213,7 +213,8 @@ class Output {
     let startingColumn = 2 * initialDeltaX - 1;
 
     while (i < 11) {
-      let cursor[0] = charMap[i];
+      let bitMap = charMap[i];
+      let cursor[0] = bitMap;
       let i = i + 1;
       // fune current row using reverse of above
       let deltaY = cursor - screenBase;
@@ -223,8 +224,6 @@ class Output {
     }
 
     do Output.moveCursor(startingRow, startingColumn + 2);
-
-    //let cursor = screenBase + (startingRow * screenWidthInRegisters) + initialDeltaX + 1;
 
     return;
   }
@@ -237,9 +236,7 @@ class Output {
     let i = 0;
 
     while (i < s.length()) {
-      // print
       do Output.printChar(s.charAt(i));
-      // update i
       let i = i + 1;
     }
 
