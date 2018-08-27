@@ -1,7 +1,6 @@
 # Intro
 
 ### The Road Ahead
-![Nand2Tetris Roadmap](images/roadmap.png)
 * Secret of computer science is forgetting the “How” (implementation details) at each level and only focusing on the “What”(interface Abstraction) of the system
 * From Nand to Hack
   * Hardware engineers actually **build computers on computers with simulators**
